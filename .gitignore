@@ -43,3 +43,5 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 /.freebuff
+pnpm-lock.yaml
+skills-lock.json

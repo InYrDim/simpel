@@ -13,7 +13,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, manajemen, pengguna } from '@/routes';
+import { dashboard } from '@/routes';
+import manajemen from '@/routes/manajemen';
+import pengguna from '@/routes/manajemen/pengguna';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -24,12 +26,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Manajemen',
-        href: manajemen(),
+        href: manajemen.index.url(),
         icon: Users,
         children: [
             {
                 title: 'Pengguna',
-                href: pengguna(),
+                href: pengguna.index.url(),
             },
         ],
     },

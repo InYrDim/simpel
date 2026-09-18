@@ -1,5 +1,3 @@
-import type { User as UserModel } from '@/types';
-
 export type UserRow = {
     id: number;
     name: string;
@@ -48,16 +46,43 @@ export const userColumns: Column[] = [
     },
     {
         key: 'actions',
-        label: '',
-        render: () => (
-            <div className="flex justify-end">
-                <button
-                    type="button"
-                    aria-label="Hapus"
+        label: 'Aksi',
+        render: (u) => (
+            <div className="flex justify-end gap-1">
+                <a
+                    href={`/manajemen/pengguna/${u.id}/edit`}
                     className="hover:bg-accent flex size-8 items-center justify-center rounded-md"
+                    title="Edit"
                 >
-                    <TrashIcon />
-                </button>
+                    <EditIcon />
+                </a>
+                <form
+                    method="POST"
+                    action={`/manajemen/pengguna/${u.id}`}
+                    onSubmit={(e) => {
+                        if (!confirm('Hapus pengguna ini?')) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
+                    <input type="hidden" name="_method" value="DELETE" />
+                    {(() => {
+                        try {
+                            const csrf = document.querySelector('meta[name=csrf-token]');
+                            const token = csrf?.getAttribute('content') || '';
+                            return <input type="hidden" name="_token" value={token} />;
+                        } catch {
+                            return null;
+                        }
+                    })()}
+                    <button
+                        type="submit"
+                        className="hover:bg-accent flex size-8 items-center justify-center rounded-md"
+                        title="Hapus"
+                    >
+                        <TrashIcon />
+                    </button>
+                </form>
             </div>
         ),
     },
@@ -68,6 +93,15 @@ function UserIcon() {
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
+        </svg>
+    );
+}
+
+function EditIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            <path d="m15 5 4 4" />
         </svg>
     );
 }
