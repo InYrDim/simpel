@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Manajemen;
+namespace App\Modules\Manajemen\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +25,7 @@ class PenggunaController extends Controller
         if ($search !== '') {
             $query->where(function (Builder $q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 

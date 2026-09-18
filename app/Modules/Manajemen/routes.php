@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Manajemen\PenggunaController;
-use App\Http\Controllers\ManajemenController;
+use App\Modules\Manajemen\Controllers\ManajemenController;
+use App\Modules\Manajemen\Controllers\PenggunaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('manajemen')->name('manajemen.')->group(function (): void {
