@@ -1,1 +1,0 @@
-folder ini berisi catatan file mentah. File tersebut bisa berupa hasil note dari wawancara dosen maupun hasil survey
