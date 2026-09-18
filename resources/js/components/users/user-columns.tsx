@@ -12,6 +12,23 @@ export type Column = {
     render?: (row: UserRow) => React.ReactNode;
 };
 
+import { useForm } from '@inertiajs/react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
+import { destroy, update } from '@/routes/manajemen/pengguna';
+
 export const userColumns: Column[] = [
     {
         key: 'name',
@@ -33,10 +50,11 @@ export const userColumns: Column[] = [
         label: 'Verifikasi Email',
         render: (u) => {
             const verified = u.email_verified_at !== null;
-            const cls = verified
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-            return <span className={cls}>{verified ? 'Terverifikasi' : 'Belum verifikasi'}</span>;
+            return (
+                <Badge variant={verified ? 'default' : 'secondary'}>
+                    {verified ? 'Terverifikasi' : 'Belum verifikasi'}
+                </Badge>
+            );
         },
     },
     {
@@ -47,44 +65,7 @@ export const userColumns: Column[] = [
     {
         key: 'actions',
         label: 'Aksi',
-        render: (u) => (
-            <div className="flex justify-end gap-1">
-                <a
-                    href={`/manajemen/pengguna/${u.id}/edit`}
-                    className="hover:bg-accent flex size-8 items-center justify-center rounded-md"
-                    title="Edit"
-                >
-                    <EditIcon />
-                </a>
-                <form
-                    method="POST"
-                    action={`/manajemen/pengguna/${u.id}`}
-                    onSubmit={(e) => {
-                        if (!confirm('Hapus pengguna ini?')) {
-                            e.preventDefault();
-                        }
-                    }}
-                >
-                    <input type="hidden" name="_method" value="DELETE" />
-                    {(() => {
-                        try {
-                            const csrf = document.querySelector('meta[name=csrf-token]');
-                            const token = csrf?.getAttribute('content') || '';
-                            return <input type="hidden" name="_token" value={token} />;
-                        } catch {
-                            return null;
-                        }
-                    })()}
-                    <button
-                        type="submit"
-                        className="hover:bg-accent flex size-8 items-center justify-center rounded-md"
-                        title="Hapus"
-                    >
-                        <TrashIcon />
-                    </button>
-                </form>
-            </div>
-        ),
+        render: (u) => <ActionCell user={u} />,
     },
 ];
 
@@ -97,23 +78,127 @@ function UserIcon() {
     );
 }
 
-function EditIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            <path d="m15 5 4 4" />
-        </svg>
-    );
-}
+function ActionCell({ user }: { user: UserRow }) {
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const { patch, delete: deleteForm, processing, setData, data, errors } = useForm({
+        name: user.name,
+        email: user.email,
+    });
 
-function TrashIcon() {
+    const handleEdit = () => {
+        patch(update.url({ pengguna: user.id }), {
+            onSuccess: () => setEditOpen(false),
+        });
+    };
+
+    const handleDelete = () => {
+        deleteForm(destroy.url({ pengguna: user.id }), {
+            onSuccess: () => setDeleteOpen(false),
+        });
+    };
+
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 6h18" />
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-            <line x1="10" x2="10" y1="11" y2="17" />
-            <line x1="14" x2="14" y1="11" y2="17" />
-        </svg>
+        <>
+            <div className="flex justify-end gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Edit"
+                    onClick={() => setEditOpen(true)}
+                >
+                    <Pencil className="size-4" />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Hapus"
+                    onClick={() => setDeleteOpen(true)}
+                >
+                    <Trash2 className="size-4 text-destructive" />
+                </Button>
+            </div>
+
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit pengguna</DialogTitle>
+                        <DialogDescription>
+                            Ubah nama dan email pengguna <strong>{user.name}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor={`edit-name-${user.id}`}>Nama</Label>
+                            <Input
+                                id={`edit-name-${user.id}`}
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                            />
+                            {errors.name && (
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor={`edit-email-${user.id}`}>Email</Label>
+                            <Input
+                                id={`edit-email-${user.id}`}
+                                type="email"
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                            />
+                            {errors.email && (
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setEditOpen(false)}
+                            disabled={processing}
+                        >
+                            Batal
+                        </Button>
+                        <Button onClick={handleEdit} disabled={processing}>
+                            Simpan
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Hapus pengguna</DialogTitle>
+                        <DialogDescription>
+                            Apakah Anda yakin ingin menghapus pengguna{' '}
+                            <strong>{user.name}</strong>? Aksi ini tidak dapat
+                            dibatalkan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteOpen(false)}
+                            disabled={processing}
+                        >
+                            Batal
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={processing}
+                        >
+                            Hapus
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }

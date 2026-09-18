@@ -1,12 +1,18 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
-import TextLink from '@/components/text-link';
+import { Head } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
 export default function VerifyEmail({ status }: { status?: string }) {
+    const { post, processing } = useForm();
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(send.url(), { onError: () => {} });
+    };
+
     return (
         <>
             <Head title="Email verification" />
@@ -18,23 +24,20 @@ export default function VerifyEmail({ status }: { status?: string }) {
                 </div>
             )}
 
-            <Form {...send.form()} className="space-y-6 text-center">
-                {({ processing }) => (
-                    <>
-                        <Button disabled={processing} variant="secondary">
-                            {processing && <Spinner />}
-                            Resend verification email
-                        </Button>
+            <form onSubmit={submit} className="space-y-6 text-center">
+                <Button disabled={processing} variant="secondary">
+                    {processing && <Spinner />}
+                    Resend verification email
+                </Button>
 
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
-                            Log out
-                        </TextLink>
-                    </>
-                )}
-            </Form>
+                <button
+                    type="submit"
+                    formAction={logout.url()}
+                    className="text-muted-foreground mx-auto block text-sm underline decoration-neutral-300 underline-offset-4"
+                >
+                    Log out
+                </button>
+            </form>
         </>
     );
 }

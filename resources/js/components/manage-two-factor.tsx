@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
@@ -44,6 +44,23 @@ export default function ManageTwoFactor(props: Props) {
         return null;
     }
 
+    const disableForm = useForm();
+    const enableForm = useForm();
+
+    const handleDisable = (e: React.FormEvent) => {
+        e.preventDefault();
+        disableForm.post(disable.url(), {
+            onSuccess: () => clearTwoFactorAuthData(),
+        });
+    };
+
+    const handleEnable = (e: React.FormEvent) => {
+        e.preventDefault();
+        enableForm.post(enable.url(), {
+            onSuccess: () => setShowSetupModal(true),
+        });
+    };
+
     return (
         <div className="space-y-6">
             <Heading
@@ -60,17 +77,15 @@ export default function ManageTwoFactor(props: Props) {
                     </p>
 
                     <div className="relative inline">
-                        <Form {...disable.form()}>
-                            {({ processing }) => (
-                                <Button
-                                    variant="destructive"
-                                    type="submit"
-                                    disabled={processing}
-                                >
-                                    Disable 2FA
-                                </Button>
-                            )}
-                        </Form>
+                        <form onSubmit={handleDisable}>
+                            <Button
+                                variant="destructive"
+                                type="submit"
+                                disabled={disableForm.processing}
+                            >
+                                Disable 2FA
+                            </Button>
+                        </form>
                     </div>
 
                     <TwoFactorRecoveryCodes
@@ -95,16 +110,11 @@ export default function ManageTwoFactor(props: Props) {
                                 Continue setup
                             </Button>
                         ) : (
-                            <Form
-                                {...enable.form()}
-                                onSuccess={() => setShowSetupModal(true)}
-                            >
-                                {({ processing }) => (
-                                    <Button type="submit" disabled={processing}>
-                                        Enable 2FA
-                                    </Button>
-                                )}
-                            </Form>
+                            <form onSubmit={handleEnable}>
+                                <Button type="submit" disabled={enableForm.processing}>
+                                    Enable 2FA
+                                </Button>
+                            </form>
                         )}
                     </div>
                 </div>

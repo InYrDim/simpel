@@ -3,13 +3,13 @@ import type { LucideIcon } from 'lucide-react';
 
 export type BreadcrumbItem = {
     title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
+    href: InertiaLinkProps['href'];
 };
 
 export type NavItem = {
     title: string;
-    href?: NonNullable<InertiaLinkProps['href']>;
+    href?: InertiaLinkProps['href'];
     icon?: LucideIcon | null;
     isActive?: boolean;
-    children?: { title: string; href: NonNullable<InertiaLinkProps['href']> }[];
+    children?: { title: string; href: InertiaLinkProps['href'] }[];
 };
