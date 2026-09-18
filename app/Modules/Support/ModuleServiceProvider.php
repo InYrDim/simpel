@@ -2,6 +2,7 @@
 
 namespace App\Modules\Support;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -55,14 +56,23 @@ abstract class ModuleServiceProvider extends ServiceProvider
 
     /**
      * Daftarkan route milik modul.
+     *
+     * Route dibungkus grup `web` dengan sengaja: route yang dimuat provider
+     * tidak mendapat grup middleware apa pun, berbeda dengan `routes/web.php`
+     * yang otomatis dibungkus Laravel. Tanpa ini modul kehilangan sesi, CSRF,
+     * dan route model binding (`SubstituteBindings`).
      */
     protected function loadModuleRoutes(): void
     {
         $routes = $this->moduleDirectory().'/routes.php';
 
-        if (is_file($routes)) {
-            $this->loadRoutesFrom($routes);
+        if (! is_file($routes)) {
+            return;
         }
+
+        Route::middleware('web')->group(function () use ($routes): void {
+            require $routes;
+        });
     }
 
     /**

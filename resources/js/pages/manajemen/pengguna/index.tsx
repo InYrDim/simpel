@@ -2,7 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { Search, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/data-table';
-import { userColumns } from '@/components/users/user-columns';
+import { userColumns } from '@/pages/manajemen/components/user-columns';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { PaginatedUsers } from '@/types';
@@ -32,10 +32,13 @@ export default function PenggunaIndex({ users, filters }: UsersPageProps) {
                         className="flex items-center gap-2"
                         onChange={(e) => {
                             e.preventDefault();
-                            router.get(pengguna.index.url(), { search: (e.target as HTMLFormElement).search.value });
+                            router.get(pengguna.index.url(), {
+                                search: (e.target as HTMLFormElement).search
+                                    .value,
+                            });
                         }}
                     >
-                        <div className="relative flex-1 max-w-sm">
+                        <div className="relative max-w-sm flex-1">
                             <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
                             <Input
                                 name="search"
@@ -46,10 +49,15 @@ export default function PenggunaIndex({ users, filters }: UsersPageProps) {
                         </div>
                     </form>
 
-                    <DataTable columns={userColumns} data={users.data} />
+                    <DataTable
+                        columns={userColumns}
+                        data={users.data}
+                        getRowKey={(user) => user.id}
+                    />
 
                     <div className="text-muted-foreground text-sm">
-                        Menampilkan {users.data.length} dari {users.total} pengguna
+                        Menampilkan {users.data.length} dari {users.total}{' '}
+                        pengguna
                     </div>
                 </Card>
             </div>

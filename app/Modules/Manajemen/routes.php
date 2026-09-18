@@ -4,7 +4,7 @@ use App\Modules\Manajemen\Controllers\ManajemenController;
 use App\Modules\Manajemen\Controllers\PenggunaController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->prefix('manajemen')->name('manajemen.')->group(function (): void {
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('manajemen')->name('manajemen.')->group(function (): void {
     Route::get('/', ManajemenController::class)->name('index');
     Route::get('/pengguna', [PenggunaController::class, 'index'])->name('pengguna.index');
     Route::get('/pengguna/{pengguna}/edit', [PenggunaController::class, 'edit'])->name('pengguna.edit');

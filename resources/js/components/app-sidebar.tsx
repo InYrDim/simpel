@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Users } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,9 +13,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useModuleNavigation } from '@/lib/module-navigation';
 import { dashboard } from '@/routes';
-import manajemen from '@/routes/manajemen';
-import pengguna from '@/routes/manajemen/pengguna';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -23,17 +22,6 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'Manajemen',
-        href: manajemen.index.url(),
-        icon: Users,
-        children: [
-            {
-                title: 'Pengguna',
-                href: pengguna.index.url(),
-            },
-        ],
     },
 ];
 
@@ -51,6 +39,8 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const moduleNavItems = useModuleNavigation();
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -66,7 +56,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={[...mainNavItems, ...moduleNavItems]} />
             </SidebarContent>
 
             <SidebarFooter>

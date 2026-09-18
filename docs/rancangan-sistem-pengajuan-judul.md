@@ -211,13 +211,25 @@ Frontend memakai **Wayfinder** (`@/actions/...`, `@/routes/...`) untuk memanggil
 
 ## 7. Navigasi
 
-Item nav per modul didefinisikan sebagai config (mendekati struktur `types/navigation.ts` yang ada) dengan properti `roles`/`permissions`; sidebar memfilter berdasar props yang di-share Inertia:
+Item nav dimiliki modul di `resources/js/pages/<modul>/navigation.ts` (bertipe `NavItem[]`, dengan properti `roles`). Core menggabungkannya di composition root `resources/js/lib/module-navigation.ts` — satu baris per modul — lalu menyaringnya dengan `auth.roles`/`auth.permissions` yang di-share Inertia. Pola ini sudah berjalan untuk modul Manajemen; modul Skripsi tinggal menambah file nav dan mendaftarkannya:
+
+```ts
+// resources/js/pages/skripsi/navigation.ts
+export const navigation: NavItem[] = [
+    { title: 'Pengajuan Judul', href: pengajuan.index.url(), roles: ['mahasiswa'] },
+    { title: 'Validasi Pengajuan', href: validasi.index.url(), roles: ['validator'] },
+];
+```
+
+Hasil akhir di sidebar:
 
 ```
 mahasiswa : [Dashboard, Pengajuan Judul]
 validator : [Dashboard, Validasi Pengajuan]
 admin     : [Dashboard, Manajemen, Pengajuan (monitoring), Validasi]
 ```
+
+Penyaringan di sini hanya menyembunyikan UI — server tetap sumber kebenaran lewat middleware route.
 
 ## 8. Pertanyaan Terbuka (butuh keputusan sebelum implementasi)
 
@@ -247,6 +259,6 @@ admin     : [Dashboard, Manajemen, Pengajuan (monitoring), Validasi]
 3. `app/Modules/<Modul>/{Controllers,Models,Enums,Policies,Services}` + `Database/Migrations/` untuk migrasinya
 4. Tambah permission di seeder → assign ke role
 5. `resources/js/pages/<modul>/...`
-6. Tambah entri navigasi dengan `roles`
+6. `resources/js/pages/<modul>/navigation.ts` dengan `roles`, lalu daftarkan di `resources/js/lib/module-navigation.ts`
 7. Feature test per role di `tests/Feature/Modules/<Modul>/`
 8. Jalankan `vendor/bin/pest tests/Feature/Architecture/ModuleBoundaryTest.php` → pastikan batas modul masih utuh

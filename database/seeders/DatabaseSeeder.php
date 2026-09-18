@@ -19,9 +19,10 @@ class DatabaseSeeder extends Seeder
 
         // User::factory(10)->create();
 
+        // Diberi role admin supaya halaman Manajemen tetap bisa dibuka lokal.
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-        ]);
+        ])->assignRole('admin');
     }
 }

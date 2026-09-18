@@ -11,5 +11,7 @@ export type NavItem = {
     href?: InertiaLinkProps['href'];
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** Role yang boleh melihat item ini. Kosong = terlihat oleh semua user. */
+    roles?: string[];
     children?: { title: string; href: InertiaLinkProps['href'] }[];
 };

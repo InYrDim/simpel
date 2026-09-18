@@ -1,23 +1,9 @@
-export type UserRow = {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at: string | null;
-    created_at: string;
-};
-
-export type Column = {
-    key: string;
-    label: string;
-    render?: (row: UserRow) => React.ReactNode;
-};
-
 import { useForm } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import type { Column } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -26,10 +12,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { destroy, update } from '@/routes/manajemen/pengguna';
 
-export const userColumns: Column[] = [
+export type UserRow = {
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at: string | null;
+    created_at: string;
+};
+
+export const userColumns: Column<UserRow>[] = [
     {
         key: 'name',
         label: 'Pengguna',
@@ -40,7 +35,9 @@ export const userColumns: Column[] = [
                 </div>
                 <div className="flex flex-col">
                     <span className="font-medium">{u.name}</span>
-                    <span className="text-muted-foreground text-xs">{u.email}</span>
+                    <span className="text-muted-foreground text-xs">
+                        {u.email}
+                    </span>
                 </div>
             </div>
         ),
@@ -50,6 +47,7 @@ export const userColumns: Column[] = [
         label: 'Verifikasi Email',
         render: (u) => {
             const verified = u.email_verified_at !== null;
+
             return (
                 <Badge variant={verified ? 'default' : 'secondary'}>
                     {verified ? 'Terverifikasi' : 'Belum verifikasi'}
@@ -71,7 +69,18 @@ export const userColumns: Column[] = [
 
 function UserIcon() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-4"
+        >
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
         </svg>
@@ -81,7 +90,14 @@ function UserIcon() {
 function ActionCell({ user }: { user: UserRow }) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const { patch, delete: deleteForm, processing, setData, data, errors } = useForm({
+    const {
+        patch,
+        delete: deleteForm,
+        processing,
+        setData,
+        data,
+        errors,
+    } = useForm({
         name: user.name,
         email: user.email,
     });
@@ -115,7 +131,7 @@ function ActionCell({ user }: { user: UserRow }) {
                     title="Hapus"
                     onClick={() => setDeleteOpen(true)}
                 >
-                    <Trash2 className="size-4 text-destructive" />
+                    <Trash2 className="text-destructive size-4" />
                 </Button>
             </div>
 
@@ -124,7 +140,8 @@ function ActionCell({ user }: { user: UserRow }) {
                     <DialogHeader>
                         <DialogTitle>Edit pengguna</DialogTitle>
                         <DialogDescription>
-                            Ubah nama dan email pengguna <strong>{user.name}</strong>.
+                            Ubah nama dan email pengguna{' '}
+                            <strong>{user.name}</strong>.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -133,7 +150,9 @@ function ActionCell({ user }: { user: UserRow }) {
                             <Input
                                 id={`edit-name-${user.id}`}
                                 value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
                             />
                             {errors.name && (
                                 <p className="text-sm text-red-600 dark:text-red-400">
@@ -142,12 +161,16 @@ function ActionCell({ user }: { user: UserRow }) {
                             )}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor={`edit-email-${user.id}`}>Email</Label>
+                            <Label htmlFor={`edit-email-${user.id}`}>
+                                Email
+                            </Label>
                             <Input
                                 id={`edit-email-${user.id}`}
                                 type="email"
                                 value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
+                                onChange={(e) =>
+                                    setData('email', e.target.value)
+                                }
                             />
                             {errors.email && (
                                 <p className="text-sm text-red-600 dark:text-red-400">
