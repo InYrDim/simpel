@@ -36,6 +36,10 @@ Representasi teks kontekstual menggunakan model transformer — ini kategori pal
 - **LaBSE** (Language-agnostic BERT Sentence Embedding) — embedding lintas 109 bahasa
 - **Multilingual E5 (mE5)** — model embedding multibahasa, unggul di benchmark retrieval MIRACL
 - **jina-embeddings-v3** — embedding multibahasa dengan Matryoshka Representation Learning (dimensi embedding bisa dikompres tanpa banyak kehilangan performa)
+- **IndoSBERT** — Sentence-BERT berbasis IndoBERT, khusus Indonesia, digunakan di Media Elektrik UNM 2025 untuk deteksi judul skripsi (akurasi 93%)
+- **cassador/indobert-base-p2-nli-v2** — IndoBERT fine-tuned pada IndoNLI untuk semantic textual similarity, 768 dimensi
+- **firqaaa/indo-sentence-bert-large** — SentenceTransformer khusus Indonesia, 2048 dimensi, trained dengan Multiple Negative Ranking Loss
+- **NusaBERT** (LazarusNLP) — IndoBERT extended ke 12 bahasa daerah Indonesia via vocabulary expansion, SOTA di IndoNLU/NusaX/NusaWrites
 
 **Karakteristik:** menangkap makna semantik, bukan hanya kemunculan kata — inilah yang membedakan sistemmu dari kebanyakan penelitian nasional yang masih pakai TF-IDF.
 
@@ -47,6 +51,9 @@ Kategori terbaru dan paling sedikit dieksplorasi di konteks judul skripsi Indone
 - **LLM Reranker (2-stage retrieval)** — retrieval awal pakai embedding, lalu LLM mengurutkan ulang top-K berdasarkan relevansi semantik sesungguhnya (RA-LLMs survey, structured RAG paper) ⭐
 - **Retrieve-Rerank-Generate (R2G)** — kerangka kerja menggabungkan multi-retriever + rerank untuk hasil lebih robust
 - **Chain-of-Thought reranking (RankCoT)** — LLM menghasilkan reasoning eksplisit sebelum memutuskan ranking, meningkatkan explainability
+- **jina-reranker-v3.5** (Wang et al., 2026) — 0.6B listwise reranker dengan hybrid attention (sliding-window + global layers), nDCG@10 63.20 di BEIR, multilingual termasuk Indonesian. State-of-the-art di skala kecil.
+- **Cohere Rerank v4** — API-based multilingual reranker (100+ bahasa), support structured/semi-structured data. Opsi tanpa self-host.
+- **Qwen3-Reranker-0.6B** — alternatif open-source listwise reranker
 
 **Karakteristik:** biaya lebih tinggi per panggilan, tapi punya kemampuan reasoning kualitatif yang tidak dimiliki cosine similarity murni — cocok dipakai di tahap akhir (top-K), bukan seluruh database.
 

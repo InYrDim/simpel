@@ -27,8 +27,6 @@ Baik, ini matriks penelitian (research matrix) dari semua referensi yang sudah d
 
 ## 🔹 Matriks Tier 3 — Internasional
 
-|No|Penulis (Tahun)|Metode/Kontribusi|Temuan Utama|Relevansi untuk Risetmu|
-|---|---|---|---|---|
 |16|Reimers & Gurevych (2019)|Sentence-BERT (Siamese network)|Pencarian pasangan mirip turun dari 65 jam → 5 detik, akurasi setara BERT|Fondasi wajib untuk arsitektur embedding sistemmu|
 |17|Wang et al. (2024)|Multilingual E5 (mE5)|State-of-the-art retrieval lintas bahasa termasuk Indonesia|Kandidat model embedding produksi|
 |18|Sturua et al. (2024)|jina-embeddings-v3 (Matryoshka Repr. Learning)|Unggul dari mE5-large di tugas multilingual|Alternatif model embedding, dimensi fleksibel|
@@ -37,7 +35,15 @@ Baik, ini matriks penelitian (research matrix) dari semua referensi yang sudah d
 |21|SemScore (2024)|Perbandingan metrik embedding vs LLM (G-Eval)|Embedding-based metric (SEMSCORE) korelasi kuat dgn human judgment|Dasar evaluasi metodologis: bandingkan skor embedding vs skor LLM|
 |22|Survei RAG Meets LLMs|Retrieve-Rerank-Generate (R2G)|Kombinasi retrieval + rerank ↑ robustness hasil|Kerangka arsitektur untuk fitur "LLM sebagai reranker"|
 |23|arXiv 2506.23136|LLM reranker pada RAG QA|Reranker menilai keselarasan semantik sesungguhnya, bukan sekadar similarity permukaan|Justifikasi teknis langsung untuk desain sistemmu|
+|24|Wang et al. (2026)|jina-reranker-v3.5 (0.6B, hybrid attention)|nDCG@10 63.20 di BEIR, matching model 4B dengan 7x lebih sedikit parameter|⭐ Kandidat reranker produksi terbaru; multilingual termasuk Indonesian|
+|25|Cohere (2025)|Cohere Rerank v4|API-based multilingual reranker (100+ bahasa), support structured data|Alternatif API-based tanpa self-host; cocok untuk prototyping cepat|
+|26|cassador (2024)|indobert-base-p2-nli-v2 (SentenceTransformer)|IndoBERT fine-tuned untuk NLI, 768 dimensi, cocok untuk semantic similarity|Kandidat embedding model Indonesian yang sudah di-domain-adapt untuk NLI|
+|27|firqaaa (2024)|indo-sentence-bert-large|SentenceTransformer khusus Indonesia, 2048 dimensi, MNR loss|Alternatif embedding dengan dimensi lebih besar untuk capturasi makna yang lebih kaya|
+|28|Wongso et al. (2024)|NusaBERT (LazarusNLP)|IndoBERT extended ke 12 bahasa daerah via vocab expansion, SOTA di IndoNLU|Model multilingual Indonesia terbaru; bisa jadi base untuk embedding domain akademik|
+|29|Lestari (2025)|BERT + Cosine Similarity (UIN SGD)|F1 0.83, deteksi parafrase & terjemahan lintas bahasa|Baseline tambahan untuk perbandingan; menunjukkan BERT murni tanpa Sentence-BERT|
+|30|Fathuddin et al. (2025)|SBERT + ontologi untuk dokumen skripsi PDF (RRJ)|MRR 1.0, Precision 0.80, Recall 0.92|Referensi arsitektur retrieval dokumen skripsi; ontologi bisa jadi tambahan future work|
+|31|Hakiki et al. (2025)|SBERT untuk plagiarisme psikologi (Cerdika)|Accuracy 53.3%, kuat di copy-paste, lemah di mosaic|Menunjukkan batas SBERT murni tanpa reranker — justifikasi tambahan untuk layer reranker|
 
 ---
 
-Kalau mau, saya bisa export ini jadi file Excel (.xlsx) atau Word supaya lebih mudah dibawa ke pembimbing dan ditambah kolom sendiri (misalnya kolom "sudah dibaca" atau "kutipan halaman"). Mau saya buatkan?
+**Catatan gap (diperbarui 19 Sep 2026):** penelitian Indonesia yang pakai embedding untuk judul skripsi sekarang ada 2: (1) JPI-Widina (Word Embeddings + Cosine, 500 judul, 85%) dan (2) Media Elektrik UNM 2025 (IndoSBERT + Cosine, 114 judul, 93%). **Keduanya berhenti di cosine similarity — belum ada yang menggabungkan embedding + LLM reranker untuk domain judul skripsi Indonesia.** Kombinasi embedding + reranker masih jadi celah novelty yang valid, tapi klaimnya perlu disesuaikan: bukan "pertama yang pakai embedding untuk judul skripsi", tapi "pertama yang menggabungkan embedding dengan LLM reranker untuk meningkatkan akurasi deteksi kemiripan judul skripsi di Indonesia". Sumber #24 (Media Elektrik) dan #27 (cassador/indobert-base-p2-nli-v2) adalah dua yang paling wajib kamu baca detail karena paling dekat dengan rencana risetmu.

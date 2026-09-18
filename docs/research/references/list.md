@@ -58,4 +58,36 @@
 
 ---
 
-**Catatan gap:** saya belum menemukan penelitian Indonesia yang secara eksplisit menggabungkan embedding + LLM reranker untuk judul skripsi (celah novelty-mu kemungkinan besar masih kosong — bagus untuk kontribusi). Sumber #12 (Ditto Whitening) dan #13 (500 judul, NLP+Word Embeddings) adalah dua yang paling wajib kamu baca detail karena paling dekat dengan rencana risetmu.
+## 🔹 Tier 1 — Jurnal UNM (Lanjutan)
+
+24. **Development of Sentence Similarity Detection Application with Semantic Similarity and Machine Learning Approaches (Case Study: Student Thesis Title)** — Muhammad Abdul Hafizh Fathuddin, Eka Prakarsa Mandyartha, Afina Lina Nurlaili, _Jurnal Media Elektrik_, Vol. 23 No. 1 (2025). Penelitian ini mengembangkan aplikasi deteksi kemiripan judul skripsi menggunakan **IndoSBERT** (IndoBERT-base + Sentence-BERT architecture), mencapai akurasi 93% dan F1-score 0.90, dengan dataset 114 judul skripsi. Evaluasi SUS score 80 (excellent). **Baseline kompetisi langsung — dari UNM, tahun ini, topik persis sama.** Perbedaan dengan rencana risetmu: hanya pakai cosine similarity, belum ada LLM reranker. 🔗 https://journal.unm.ac.id/index.php/mediaelektrik/article/view/10503
+
+---
+
+## 🔹 Tier 3 — Internasional (Lanjutan)
+
+**Reranker model terbaru (2025–2026):**
+
+25. **jina-reranker-v3.5** (Wang et al., 2026, arXiv 2607.18152) — 0.6B parameter listwise reranker dengan hybrid attention (3 sliding-window + 2 global layers). nDCG@10 63.20 di BEIR, matching model 4B dengan 7x lebih sedikit parameter. Support multilingual termasuk Indonesian. **Kandidat reranker produksi.** 🔗 https://arxiv.org/abs/2509.25085
+
+26. **Cohere Rerank v4** (Cohere, 2025) — API-based reranker multilingual (100+ bahasa termasuk Indonesian), support structured/semi-structured data. Cocok jika kamu ingin solusi API tanpa self-host. 🔗 https://docs.cohere.com/docs/reranking-with-cohere.mdx
+
+**Fine-tuned IndoBERT untuk NLI/semantic similarity:**
+
+27. **cassador/indobert-base-p2-nli-v2** — SentenceTransformer based on indobert-base-p2, fine-tuned pada dataset IndoNLI untuk semantic textual similarity. 768 dimensi, cocok untuk pairwise similarity Indonesian. 🔗 https://huggingface.co/cassador/indobert-base-p2-nli-v2
+
+28. **firqaaa/indo-sentence-bert-large** — SentenceTransformer khusus Indonesia, 2048 dimensi, trained dengan Multiple Negative Ranking Loss. 🔗 https://huggingface.co/firqaaa/indo-sentence-bert-large
+
+29. **NusaBERT** (Wongso et al., 2024, arXiv 2403.01817) — IndoBERT yang di-extend ke 12 bahasa daerah Indonesia via vocabulary expansion + continued pre-training. SOTA di IndoNLU, NusaX, NusaWrites. Base model: 111M params, Large: 337M. 🔗 https://arxiv.org/abs/2403.01817
+
+**Penelitian nasional lain (2024–2025) yang relevan:**
+
+30. **Perangkat bantu deteksi similarity menggunakan BERT dan Cosine Similarity** — Lestari Putri Fuji (2025), UIN Sunan Gunung Djati Bandung. Integrasi BERT + cosine similarity untuk deteksi kemiripan teks, F1 score 0.83, mampu menangkap parafrase dan terjemahan lintas bahasa. 🔗 https://digilib.uinsgd.ac.id/104017/
+
+31. **Penerapan Sentence-BERT dan Cosine Similarity untuk Pencarian Semantik Dokumen Skripsi dalam Format PDF** — Fathuddin et al. (2025), _Rancang Jurnal_ Vol. 8 No. 1. SBERT + cosine similarity (0.7) + ontologi (0.3) untuk pencarian dokumen skripsi PDF. MRR 1.0, Precision 0.80, Recall 0.92. 🔗 https://jurnal.ranahresearch.com/index.php/R2J/article/download/1865/1570
+
+32. **Implementasi Sentence-BERT untuk Deteksi Plagiarisme pada Karya Tulis Ilmiah Psikologi Berbahasa Indonesia** — Ilhan Hakiki et al. (2025), _Cerdika_. SBERT (distiluse-base-multilingual-cased-v1) + cosine similarity untuk deteksi plagiarisme. Global accuracy 53.3%, kuat di copy-paste (100%), lemah di mosaic (0%). 🔗 https://doi.org/10.59141/cerdika.v5i12.2889
+
+---
+
+**Catatan gap (diperbarui 19 Sep 2026):** penelitian Indonesia yang pakai embedding untuk judul skripsi sekarang ada 2: (1) JPI-Widina (Word Embeddings + Cosine, 500 judul, 85%) dan (2) Media Elektrik UNM 2025 (IndoSBERT + Cosine, 114 judul, 93%). **Keduanya berhenti di cosine similarity — belum ada yang menggabungkan embedding + LLM reranker untuk domain judul skripsi Indonesia.** Kombinasi embedding + reranker masih jadi celah novelty yang valid, tapi klaimnya perlu disesuaikan: bukan "pertama yang pakai embedding untuk judul skripsi", tapi "pertama yang menggabungkan embedding dengan LLM reranker untuk meningkatkan akurasi deteksi kemiripan judul skripsi di Indonesia". Sumber #24 (Media Elektrik) dan #27 (cassador/indobert-base-p2-nli-v2) adalah dua yang paling wajib kamu baca detail karena paling dekat dengan rencana risetmu.
