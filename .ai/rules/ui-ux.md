@@ -2,14 +2,14 @@
 
 ## Component vs Plain HTML
 
-Use shadcn components for structured UI (forms, dialogs, tables, cards, badges).
-Use plain HTML/Tailwind for simple text, links, and containers — not everything needs a component.
+**Always prefer a shadcn component first.** Only fall back to plain HTML/Tailwind when no shadcn component exists for that use case.
 
 Examples:
-- Simple text block, paragraph, span → plain HTML
-- Link to another page → `<Link>` or `<a>`, not wrapped in Button
-- Heading + description → plain `<h1>`/`<p>`, not CardTitle/CardDescription
-- Container for layout → plain `<div>`, not Card
+- Badge, Button, Input, Label, Card, Dialog, Separator → shadcn
+- Simple text block, paragraph, span → plain HTML (no shadcn equivalent)
+- Link to another page → `<Link>` or `<a>` (not wrapped in Button unless it's an action)
+- Heading + description → plain `<h1>`/`<p>` (not CardTitle/CardDescription unless inside a Card)
+- Container for layout → plain `<div>` with Tailwind (not Card unless it has a header/content structure)
 
 ## Page vs Dialog
 
