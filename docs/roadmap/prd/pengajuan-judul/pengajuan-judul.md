@@ -2,7 +2,7 @@
 
 > Status: **Final** · Cabang: `feat/pengajuan` · Sumber: `docs/roadmap/notes/prompt.md` + wawancara `docs/research/raw/notes/wawancara/latar-belakang-awal.md`
 >
-> PRD ini hanya mencakup **flow pengajuan judul (Mahasiswa → Admin → Validator)**. Fitur lain hasil wawancara (similaritas judul, beban dosen, rekomendasi validator) ada di luar scope dan dicatat sebagai *future work* (§9).
+> PRD ini hanya mencakup **flow pengajuan judul (Mahasiswa → Admin → Validator)**. Fitur lain hasil wawancara (similaritas judul, beban dosen, rekomendasi validator) ada di luar scope dan dicatat sebagai _future work_ (§9).
 
 ## 1. Ringkasan
 
@@ -12,11 +12,11 @@ Mahasiswa mengajukan **tepat 3 judul** skripsi beserta berkas surat pengajuan. A
 
 Role sudah dikelola Spatie Permission (`database/seeders/RolePermissionSeeder.php`): `mahasiswa`, `admin`, `validator`.
 
-| Aktor | Peran dalam flow |
-|---|---|
-| Mahasiswa | Membuat pengajuan (3 judul + berkas), memantau status, melihat daftar judul terdata |
-| Admin | Memverifikasi kelengkapan administratif, menugaskan validator, melihat semua pengajuan |
-| Validator | Mereview substansi judul, menyetujui/menolak dengan catatan |
+| Aktor     | Peran dalam flow                                                                       |
+| --------- | -------------------------------------------------------------------------------------- |
+| Mahasiswa | Membuat pengajuan (3 judul + berkas), memantau status, melihat daftar judul terdata    |
+| Admin     | Memverifikasi kelengkapan administratif, menugaskan validator, melihat semua pengajuan |
+| Validator | Mereview substansi judul, menyetujui/menolak dengan catatan                            |
 
 ## 3. Data Model
 
@@ -26,48 +26,48 @@ Karena modul **Akademik** terpisah dari **Skripsi** (§7, §8), entitas lintas m
 
 Relasi ke tabel `users` (milik core, bukan milik modul lain).
 
-| Field | Tipe | Aturan |
-|---|---|---|
-| `user_id` | FK → users | unique, required |
-| `nama` | string | required |
-| `nim` | string | required, unique |
+| Field         | Tipe       | Aturan                              |
+| ------------- | ---------- | ----------------------------------- |
+| `user_id`     | FK → users | unique, required                    |
+| `nama`        | string     | required                            |
+| `nim`         | string     | required, unique                    |
 | `dosen_pa_id` | ID → dosen | required (Dosen Penasehat Akademik) |
-| `prodi` | string | opsional (disarankan) |
-| `angkatan` | year | opsional (disarankan) |
+| `prodi`       | string     | opsional (disarankan)               |
+| `angkatan`    | year       | opsional (disarankan)               |
 
 ### 3.2 Modul Akademik — Dosen
 
 Bukan role login; entitas referensi untuk Dosen PA, validator, pembimbing, dan penguji.
 
-| Field | Tipe | Aturan |
-|---|---|---|
-| `nama` | string | required |
-| `nip` | string | required, unique |
+| Field    | Tipe   | Aturan                                             |
+| -------- | ------ | -------------------------------------------------- |
+| `nama`   | string | required                                           |
+| `nip`    | string | required, unique                                   |
 | `bidang` | string | required (dipakai admin saat menugaskan validator) |
 
 ### 3.3 Modul Skripsi — PengajuanJudul
 
-| Field | Tipe | Aturan |
-|---|---|---|
-| `user_id` | FK → users | required, user penyusun pengajuan (dipakai policy & notifikasi) |
-| `mahasiswa_id` | ID (tanpa FK lintas modul) | required, merujuk Mahasiswa milik Akademik |
-| `berkas_path` | string | path PDF hasil upload, required |
-| `berkas_original_name` | string | nama asli berkas, untuk ditampilkan |
-| `status` | enum | `diajukan`, `diverifikasi_admin`, `ditolak_admin`, `diverifikasi_validator`, `disetujui`, `ditolak_validator` |
-| `catatan_admin` | text | nullable, wajib saat ditolak admin |
-| `catatan_validator` | text | nullable, wajib saat ditolak validator |
-| `validator_id` | ID (tanpa FK lintas modul) | nullable, diisi admin saat verifikasi |
-| `submitted_at`, `verified_at`, `decided_at` | timestamp | audit ringan |
+| Field                                       | Tipe                       | Aturan                                                                                                        |
+| ------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `user_id`                                   | FK → users                 | required, user penyusun pengajuan (dipakai policy & notifikasi)                                               |
+| `mahasiswa_id`                              | ID (tanpa FK lintas modul) | required, merujuk Mahasiswa milik Akademik                                                                    |
+| `berkas_path`                               | string                     | path PDF hasil upload, required                                                                               |
+| `berkas_original_name`                      | string                     | nama asli berkas, untuk ditampilkan                                                                           |
+| `status`                                    | enum                       | `diajukan`, `diverifikasi_admin`, `ditolak_admin`, `diverifikasi_validator`, `disetujui`, `ditolak_validator` |
+| `catatan_admin`                             | text                       | nullable, wajib saat ditolak admin                                                                            |
+| `catatan_validator`                         | text                       | nullable, wajib saat ditolak validator                                                                        |
+| `validator_id`                              | ID (tanpa FK lintas modul) | nullable, diisi admin saat verifikasi                                                                         |
+| `submitted_at`, `verified_at`, `decided_at` | timestamp                  | audit ringan                                                                                                  |
 
 ### 3.4 Modul Skripsi — JudulPengajuan (detail 3 judul)
 
-| Field | Tipe | Aturan |
-|---|---|---|
+| Field          | Tipe                 | Aturan   |
+| -------------- | -------------------- | -------- |
 | `pengajuan_id` | FK → pengajuan_judul | required |
-| `judul` | string | required |
-| `deskripsi` | text | required |
-| `topik` | string | required |
-| `urutan` | int | 1–3 |
+| `judul`        | string               | required |
+| `deskripsi`    | text                 | required |
+| `topik`        | string               | required |
+| `urutan`       | int                  | 1–3      |
 
 ### 3.5 Penugasan (hasil akhir)
 
@@ -98,11 +98,12 @@ Menu sidebar **Skripsi** dengan submenu (mengikuti pola `pages/<modul>/navigatio
 **Melihat status** — kartu/panel berisi status pengajuan terkini (`belum mengajukan`, `diverifikasi admin`, `diverifikasi validator`, `disetujui`, `ditolak admin`, `ditolak validator`), 3 judul yang diajukan, berkas, dan catatan penolakan bila ada. Riwayat pengajuan sebelumnya (yang ditolak) tampil ringkas di bawah status terkini.
 
 **Mengajukan** — tombol submit:
-- Disabled kecuali status *belum mengajukan* atau *ditolak* (admin/validator); dicek ulang di server (§6.4).
+
+- Disabled kecuali status _belum mengajukan_ atau _ditolak_ (admin/validator); dicek ulang di server (§6.4).
 - Dialog **step-by-step** (satu dialog berkelanjutan, 3 langkah):
-  - **Step 1 — Detail Pengajuan:** untuk masing-masing dari 3 judul: input `Judul`, `Deskripsi`, `Topik`.
-  - **Step 2 — Berkas:** link download **template pengajuan (.docx)**, input upload berkas hasil pengisian template — **maks 5 MB, hanya PDF**.
-  - **Step 3 — Verifikasi:** ringkasan 3 judul + berkas terpilih (nama, ukuran) untuk dicek sebelum submit; tombol submit final.
+    - **Step 1 — Detail Pengajuan:** untuk masing-masing dari 3 judul: input `Judul`, `Deskripsi`, `Topik`.
+    - **Step 2 — Berkas:** link download **template pengajuan (.docx)**, input upload berkas hasil pengisian template — **maks 5 MB, hanya PDF**.
+    - **Step 3 — Verifikasi:** ringkasan 3 judul + berkas terpilih (nama, ukuran) untuk dicek sebelum submit; tombol submit final.
 
 ### 5.2 Submenu Daftar Judul (role: admin & validator)
 
@@ -118,12 +119,12 @@ Menu sidebar **Skripsi** dengan submenu (mengikuti pola `pages/<modul>/navigatio
 
 Menggunakan channel **database notification** Laravel (bel notifikasi di UI, tanpa email):
 
-| Kejadian | Penerima |
-|---|---|
-| Pengajuan dibuat | Admin |
+| Kejadian                            | Penerima                     |
+| ----------------------------------- | ---------------------------- |
+| Pengajuan dibuat                    | Admin                        |
 | Diverifikasi + ditugaskan validator | Mahasiswa, Validator terkait |
-| Ditolak admin (dengan catatan) | Mahasiswa |
-| Disetujui / ditolak validator | Mahasiswa |
+| Ditolak admin (dengan catatan)      | Mahasiswa                    |
+| Disetujui / ditolak validator       | Mahasiswa                    |
 
 Penerima diresolusi tanpa menyentuh modul lain: user mahasiswa dari kolom `user_id` di `PengajuanJudul` (§3.3), penerima role admin via `User::role('admin')` (`App\Models\User` adalah shared kernel yang boleh dipakai modul).
 
@@ -212,12 +213,12 @@ app/Modules/Skripsi/
 
 ## 8. Keputusan (diputuskan 20 Sep 2026)
 
-| # | Pertanyaan | Keputusan |
-|---|---|---|
-| 1 | Mekanisme submit ulang setelah ditolak | **Pengajuan baru** — riwayat lama terarsip sebagai audit trail, pengajuan lama tidak bisa diedit |
-| 2 | Penempatan model Mahasiswa & Dosen | **Modul Akademik terpisah** — Skripsi mengonsumsi via `AkademikContract`; siap untuk fitur beban dosen & rekomendasi validator |
-| 3 | Notifikasi perubahan status | **In-app saja** — database notification Laravel, tanpa email |
-| 4 | Format template berkas | **DOCX** — mahasiswa mengisi template Word lalu upload sebagai PDF |
+| #   | Pertanyaan                             | Keputusan                                                                                                                      |
+| --- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Mekanisme submit ulang setelah ditolak | **Pengajuan baru** — riwayat lama terarsip sebagai audit trail, pengajuan lama tidak bisa diedit                               |
+| 2   | Penempatan model Mahasiswa & Dosen     | **Modul Akademik terpisah** — Skripsi mengonsumsi via `AkademikContract`; siap untuk fitur beban dosen & rekomendasi validator |
+| 3   | Notifikasi perubahan status            | **In-app saja** — database notification Laravel, tanpa email                                                                   |
+| 4   | Format template berkas                 | **DOCX** — mahasiswa mengisi template Word lalu upload sebagai PDF                                                             |
 
 ## 9. Out of Scope (future work)
 
