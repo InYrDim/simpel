@@ -3,6 +3,7 @@
 namespace App\Modules\Skripsi\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Contracts\AkademikContract;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Services\VerifikasiAdmin;
@@ -55,11 +56,15 @@ class VerifikasiAdminController extends Controller
             'catatan_admin' => ['required_if:disetujui,false', 'nullable', 'string'],
         ]);
 
+        /** @var User $user */
+        $user = auth()->user();
+
         $action->handle(
             $pengajuan,
             disetujui: (bool) $validated['disetujui'],
             dosenValidatorId: $validated['validator_id'] ?? null,
             catatan: $validated['catatan_admin'] ?? null,
+            aktor: $user,
         );
 
         return redirect()->route('skripsi.verifikasi.index')

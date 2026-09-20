@@ -46,10 +46,29 @@ type RiwayatItem = {
     jumlah_judul: number;
 };
 
+type RiwayatStatusItem = {
+    aksi: string;
+    dari_status_label: string | null;
+    ke_status: string;
+    ke_status_label: string;
+    aktor_nama: string;
+    catatan: string | null;
+    created_at: string | null;
+};
+
 type PengajuanPageProps = {
     pengajuan: PengajuanProp | null;
     judulTerkini: JudulItem[];
     riwayat: RiwayatItem[];
+    riwayatStatus: RiwayatStatusItem[];
+};
+
+const AKSI_RIWAYAT_LABEL: Record<string, string> = {
+    submit: 'Pengajuan dikirim',
+    verifikasi_setuju: 'Verifikasi admin — disetujui',
+    verifikasi_tolak: 'Verifikasi admin — ditolak',
+    putusan_setuju: 'Putusan validator — disetujui',
+    putusan_tolak: 'Putusan validator — ditolak',
 };
 
 const STATUS_VARIANT: Record<
@@ -82,6 +101,7 @@ export default function PengajuanIndex({
     pengajuan,
     judulTerkini,
     riwayat,
+    riwayatStatus,
 }: PengajuanPageProps) {
     const statusKey = pengajuan?.status ?? 'belum';
     const bolehMengajukan =
@@ -173,6 +193,51 @@ export default function PengajuanIndex({
                     </CardContent>
                 </Card>
 
+                {riwayatStatus.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Kronologi Pengajuan</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ol className="border-l-border ml-3 space-y-4 border-l-2 pl-5">
+                                {riwayatStatus.map((r, i) => (
+                                    <li key={i} className="relative text-sm">
+                                        <span className="bg-primary absolute top-1.5 -left-[27px] size-2.5 rounded-full" />
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-medium">
+                                                {AKSI_RIWAYAT_LABEL[r.aksi] ??
+                                                    r.aksi}
+                                            </span>
+                                            <Badge
+                                                variant={
+                                                    STATUS_VARIANT[
+                                                        r.ke_status
+                                                    ] ?? 'outline'
+                                                }
+                                            >
+                                                {r.ke_status_label}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-muted-foreground mt-0.5 text-xs">
+                                            {r.aktor_nama} ·{' '}
+                                            {r.created_at
+                                                ? new Date(
+                                                      r.created_at,
+                                                  ).toLocaleString('id-ID')
+                                                : '-'}
+                                        </p>
+                                        {r.catatan && (
+                                            <p className="text-muted-foreground mt-1">
+                                                “{r.catatan}”
+                                            </p>
+                                        )}
+                                    </li>
+                                ))}
+                            </ol>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {riwayat.length > 0 && (
                     <Card>
                         <CardHeader>
@@ -252,7 +317,12 @@ function SubmitDialog({ disabled }: { disabled: boolean }) {
             onSuccess: () => {
                 close();
                 router.reload({
-                    only: ['pengajuan', 'judulTerkini', 'riwayat'],
+                    only: [
+                        'pengajuan',
+                        'judulTerkini',
+                        'riwayat',
+                        'riwayatStatus',
+                    ],
                 });
             },
         });

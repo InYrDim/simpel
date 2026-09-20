@@ -63,11 +63,15 @@ class PutusanValidatorController extends Controller
             'catatan_validator' => ['required_if:disetujui,false', 'nullable', 'string'],
         ]);
 
+        /** @var User $user */
+        $user = auth()->user();
+
         $action->handle(
             $pengajuan,
             disetujui: (bool) $validated['disetujui'],
             judulId: $validated['judul_id'] ?? null,
             catatan: $validated['catatan_validator'] ?? null,
+            aktor: $user,
         );
 
         return redirect()->route('skripsi.putusan.index')

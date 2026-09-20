@@ -17,12 +17,15 @@ class SkripsiServiceProvider extends ModuleServiceProvider
         return [
             Events\PengajuanDiajukan::class => [
                 Listeners\KirimNotifikasiPengajuanDiajukan::class,
+                Listeners\CatatRiwayatPengajuanDiajukan::class,
             ],
             Events\PengajuanDiverifikasi::class => [
                 Listeners\KirimNotifikasiPengajuanDiverifikasi::class,
+                Listeners\CatatRiwayatPengajuanDiverifikasi::class,
             ],
             Events\PengajuanDiputus::class => [
                 Listeners\KirimNotifikasiPengajuanDiputus::class,
+                Listeners\CatatRiwayatPengajuanDiputus::class,
             ],
         ];
     }

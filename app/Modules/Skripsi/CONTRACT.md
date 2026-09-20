@@ -2,8 +2,8 @@
 
 ## Owns
 
-- Database tables: `skripsi_pengajuan_juduls`, `skripsi_judul_pengajuans`
-- Core domain concepts: alur pengajuan judul skripsi — mahasiswa mengajukan tepat 3 judul + berkas, admin memverifikasi kelengkapan & menugaskan validator, validator memutuskan persetujuan satu judul
+- Database tables: `skripsi_pengajuan_juduls`, `skripsi_judul_pengajuans`, `skripsi_pengajuan_riwayats`
+- Core domain concepts: alur pengajuan judul skripsi — mahasiswa mengajukan tepat 3 judul + berkas, admin memverifikasi kelengkapan & menugaskan validator, validator memutuskan persetujuan satu judul; jejak audit transisi status
 
 ## Public interface (Contracts/)
 
@@ -19,8 +19,8 @@
 ## Events published
 
 - `PengajuanDiajukan` — mahasiswa submit pengajuan baru; payload: `pengajuan`
-- `PengajuanDiverifikasi` — admin memverifikasi (menugaskan validator) atau menolak; payload: `pengajuan`
-- `PengajuanDiputus` — validator memutuskan; payload: `pengajuan`, `judulDisetujui` (nullable)
+- `PengajuanDiverifikasi` — admin memverifikasi (menugaskan validator) atau menolak; payload: `pengajuan`, `aktor` (nullable User)
+- `PengajuanDiputus` — validator memutuskan; payload: `pengajuan`, `judulDisetujui` (nullable), `aktor` (nullable User)
 
 ## Events consumed
 
@@ -28,7 +28,7 @@
 
 ## Explicitly NOT exposed
 
-- Model Eloquent `PengajuanJudul`, `JudulPengajuan` — internal modul
+- Model Eloquent `PengajuanJudul`, `JudulPengajuan`, `PengajuanRiwayat` — internal modul
 - Tabel `skripsi_*` — jangan di-query langsung dari modul lain (boundary rule #2)
 - Services transisi status (`SubmitPengajuan`, `VerifikasiAdmin`, `PutusanValidator`, `AssignPenugasan`) — hanya dipanggil controller modul ini
 
@@ -39,3 +39,4 @@
 - Penugasan pembimbing/penguji diisi admin lewat modal detail Daftar Judul, hanya pada judul milik pengajuan `disetujui` (keputusan pelaksanaan §3.5).
 - Validator login di-resolusi ke dosen-nya lewat `AkademikContract::dosenByUserId()` — tautan `user_id` ada di tabel `akademik_dosens` (keputusan pelaksanaan, sesi 20 Sep 2026).
 - Berkas pengajuan di disk `local` (storage privat) dengan nama acak; nama asli disimpan terpisah untuk ditampilkan (§6.2).
+- Jejak audit transisi status tersimpan dalam tabel `skripsi_pengajuan_riwayats` melalui listener internal modul (PR 1 sesi 3).
