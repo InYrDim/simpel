@@ -1,52 +1,67 @@
 # Modular Monolith Kit — Laravel Boost Edition
 
 Built to slot into a repo that already runs **Laravel Boost** (your
-`AGENTS.md` has the `<laravel-boost-guidelines>` block). Boost's foundation
-rules already require the agent to read `.ai/rules/index.md` and every
-matching rule file before planning or editing anything — so instead of
-building a separate AGENTS.md/CLAUDE.md/Skill system, this kit plugs directly
-into that existing mechanism. Nothing here touches your Boost-generated
-`AGENTS.md` block, so `php artisan boost:update` won't wipe it out.
+`AGENTS.md` has the `<laravel-boost-guidelines>` block) and already uses
+**Pest** as its test runner (confirmed by your Boost `pest/core` rules).
+Boost's foundation rules already require the agent to read
+`.ai/rules/index.md` and every matching rule file before planning or editing
+anything — so instead of building a separate AGENTS.md/CLAUDE.md/Skill
+system, this kit plugs directly into that existing mechanism. Nothing here
+touches your Boost-generated `AGENTS.md` block, so `php artisan boost:update`
+won't wipe it out.
+
+PHP boundary enforcement uses **Pest Arch** rather than a separate static
+analysis tool (Deptrac), because Pest is already installed here and Arch
+tests run automatically as part of the test suite you already require after
+every change — no extra command for the agent to remember.
 
 ## What's in here
 
-| File | Purpose |
-|---|---|
-| `.ai/rules/index.md` | Glob → rule file map. Add a row here if you add more rule files later. |
-| `.ai/rules/modular-monolith-boundaries.md` | Hard MUST/MUST-NOT rules, decision table, required checks — loaded for anything under `Modules/**` or `app/**` |
-| `.ai/rules/modular-monolith-module-structure.md` | Exact folder tree + `CONTRACT.md` template for a module |
-| `.ai/rules/modular-monolith-migration.md` | Strangler-pattern steps for extracting legacy code into a module |
-| `deptrac.yaml` | Enforces PHP module boundaries — the part that stops the agent from cheating, not just asking nicely |
-| `eslint-boundaries.example.cjs` | Enforces React/Inertia module boundaries |
+| File                                             | Purpose                                                                                                        |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `.ai/rules/index.md`                             | Glob → rule file map. Add a row here if you add more rule files later.                                         |
+| `.ai/rules/modular-monolith-boundaries.md`       | Hard MUST/MUST-NOT rules, decision table, required checks — loaded for anything under `Modules/**` or `app/**` |
+| `.ai/rules/modular-monolith-module-structure.md` | Exact folder tree + `CONTRACT.md` template for a module                                                        |
+| `.ai/rules/modular-monolith-migration.md`        | Strangler-pattern steps for extracting legacy code into a module                                               |
+| `tests/Unit/ModularMonolithArchTest.php`         | Pest Arch test enforcing PHP module boundaries — runs with `vendor/bin/pest` / `php artisan test --compact`    |
+| `eslint-boundaries.example.cjs`                  | Enforces React/Inertia module boundaries                                                                       |
 
 ## Install
 
 1. Copy the `.ai/rules/` folder into your repo root. If you already have an
    `.ai/rules/index.md`, merge the table rows instead of overwriting it.
-2. Install Deptrac and copy `deptrac.yaml` to your repo root:
-   ```bash
-   composer require --dev qossmic/deptrac --no-interaction
-   ```
-   Edit the `layers` section to match your first real module — the file
-   ships with a placeholder `Billing`/`Invoicing` example.
+2. Install the Pest Arch plugin and copy `tests/Unit/ModularMonolithArchTest.php`
+   into your repo's `tests/Unit/` (check first whether you already have an
+   `ArchTest.php` there — if so, merge the rules into it instead of having two files):
+    ```bash
+    composer require pestphp/pest-plugin-arch --dev
+    ```
+    This one is low-risk to add now, even before your first module exists —
+    it's a dev-only addition to a tool you already run, and the one rule it
+    ships with (`App` must not depend on `Modules`) is trivially true today.
+    It becomes a real guard the moment a module appears, with nothing extra
+    to set up.
 3. Install `eslint-plugin-boundaries` and merge `eslint-boundaries.example.cjs`
-   into your actual ESLint config:
-   ```bash
-   npm install --save-dev eslint-plugin-boundaries
-   ```
+   into your actual ESLint config — this one, unlike the Pest plugin, is
+   worth waiting on until your first module exists, since there's nothing
+   for it to check yet and it's a new tooling category rather than an
+   extension of something already installed:
+    ```bash
+    npm install --save-dev eslint-plugin-boundaries
+    ```
 
-## First run (retrofit, not greenfield)
+## Extending as you extract modules
 
-Don't wire Deptrac into CI as a hard failure on day one — your existing
-`app/` tree predates this system. Run it in report-only mode first:
+Each time you extract a module (`.ai/rules/modular-monolith-migration.md`),
+uncomment and adapt the template block in `ModularMonolithArchTest.php` for
+that module — e.g. "other modules must not depend on `Billing`'s
+`Domain`/`Infrastructure`, only its `Contracts`." No separate config file to
+maintain in parallel; it's just more Pest test cases.
 
-```bash
-vendor/bin/deptrac analyse --report-uncovered
-```
-
-Once you extract your first module (`modular-monolith-migration.md`), that
-module's layer can become a hard CI failure independently, while the rest of
-the codebase catches up over time.
+One gap worth knowing either way: Arch tests (like Deptrac) see PHP class
+references — `use`, `extends`, type hints — not raw strings. A
+`DB::table('other_modules_table')` call bypassing a module's `Contracts/`
+isn't caught by either tool. That has to be caught in code review.
 
 ## Why `.ai/rules` instead of a custom Claude Code Skill
 
@@ -72,8 +87,7 @@ through `.ai/rules` regardless.
 
 ## Extending this kit
 
-- Every time you extract a new module, add its Internal/Contract layer pair
-  to `deptrac.yaml` (migration playbook, step 7) and register it in
-  `.ai/rules/index.md` if it needs its own rule file.
 - Keep rule files scoped and short — Boost loads every matching one per
   task, so a bloated file costs context on every single edit under its glob.
+- Register any new rule file in `.ai/rules/index.md` alongside your existing
+  `git-workflow.md` / `ui-ux.md` rows.
