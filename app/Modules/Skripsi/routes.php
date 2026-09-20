@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Skripsi\Controllers\DaftarJudulController;
+use App\Modules\Skripsi\Controllers\MonitoringController;
 use App\Modules\Skripsi\Controllers\PengajuanJudulController;
 use App\Modules\Skripsi\Controllers\PutusanValidatorController;
 use App\Modules\Skripsi\Controllers\VerifikasiAdminController;
@@ -40,4 +41,10 @@ Route::middleware(['auth', 'verified', 'role:admin|validator'])->prefix('skripsi
     Route::post('/{judul}/assign', [DaftarJudulController::class, 'assign'])
         ->middleware('role:admin')
         ->name('assign');
+});
+
+// Admin (PR 3 sesi 3): dashboard monitoring — statistik pengajuan & beban
+// validator.
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/monitoring')->name('skripsi.monitoring.')->group(function (): void {
+    Route::get('/', [MonitoringController::class, 'index'])->name('index');
 });

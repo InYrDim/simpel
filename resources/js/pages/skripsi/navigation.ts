@@ -1,5 +1,6 @@
 import { BookOpen } from 'lucide-react';
 import daftarJudul from '@/routes/skripsi/daftar-judul';
+import monitoring from '@/routes/skripsi/monitoring';
 import pengajuan from '@/routes/skripsi/pengajuan';
 import putusan from '@/routes/skripsi/putusan';
 import verifikasi from '@/routes/skripsi/verifikasi';
@@ -39,6 +40,11 @@ export const navigation: NavItem[] = [
                 title: 'Daftar Judul',
                 href: daftarJudul.index.url(),
                 roles: ['admin', 'validator'],
+            },
+            {
+                title: 'Monitoring',
+                href: monitoring.index.url(),
+                roles: ['admin'],
             },
         ],
     },

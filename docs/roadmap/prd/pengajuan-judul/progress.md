@@ -124,9 +124,9 @@ Sesi 1:
 - [x] Tests: `RevisiTest` — 8 test (revisi admin & validator, catatan wajib, guard asal status, resubmit same-record + berkas lama terhapus, guard kepemilikan, direvisi menghalangi pengajuan baru, kronologi alur lengkap)
 - [x] UI: tombol "Minta Revisi" di verifikasi & putusan (dialog catatan, form terpisah agar error tidak bocor antar-dialog) + tombol "Kirim Revisi" di pengajuan mahasiswa (judul lama di-prefill, posting ke `resubmit`); status/aksi `direvisi` ditambahkan ke label & kronologi
 
-### PR 3 — Dashboard monitoring (admin)
+### PR 3 — Dashboard monitoring (admin) ✅ **Selesai**
 
-- [ ] `SkripsiMonitoringService` (atau query service): `total`, `per_status`, `per_validator` (beban), `bulan_ini` — diadaptasi dari arsip tanpa impor model lintas modul
-- [ ] Controller + halaman `skripsi/monitoring` (kartu statistik + grafik ringan)
-- [ ] Route + nav submenu admin; permission `view` bila perlu
-- [ ] Tests: angka agregasi benar, guard akses admin
+- [x] `SkripsiMonitoringService`: `total`, `per_status` (semua status enum selalu hadir, urutan stabil), `per_validator` (beban penugasan aktif, urut terbanyak), `bulan_ini` — nama dosen via `AkademikContract::dosenById()`, tanpa query lintas modul
+- [x] Controller `MonitoringController` + halaman `skripsi/monitoring` (4 kartu statistik + bar chart per-status CSS ringan + daftar beban validator)
+- [x] Route `skripsi/monitoring` (role:admin) + submenu nav "Monitoring" (roles: admin); permission `view` tidak perlu — konsisten dengan konvensi routes modul lain (guard `role:` di middleware)
+- [x] Tests: `MonitoringTest` — 3 test (guard akses admin/mahasiswa/validator/tamu, angka agregasi semua status, urutan beban validator)
