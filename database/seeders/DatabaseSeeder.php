@@ -20,11 +20,17 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         // Akun admin lokal — dipakai untuk membuka halaman admin (Manajemen,
-        // Akademik, nanti Skripsi) saat development.
-        User::factory()->create([
-            'name' => 'Admin Simpel',
-            'email' => 'admin@simpel.com',
-            'password' => 'admin123',
-        ])->assignRole('admin');
+        // Akademik, Skripsi) saat development. updateOrCreate agar seeder
+        // idempotent (aman dijalankan berulang).
+        $admin = User::query()->updateOrCreate(
+            ['email' => 'admin@simpel.com'],
+            ['name' => 'Admin Simpel', 'password' => 'admin123', 'email_verified_at' => now()],
+        );
+        $admin->assignRole('admin');
+
+        // Data contoh E2E (dosen + akun validator + profil mahasiswa) ada di
+        // seeder milik modul Akademik — core tidak boleh menyentuh model
+        // modul. Jalankan terpisah:
+        // php artisan db:seed --class=App\\Modules\\Akademik\\Database\\Seeders\\SampleDataSeeder
     }
 }
