@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
-import { store } from '@/routes/skripsi/verifikasi';
+import { revisi, store } from '@/routes/skripsi/verifikasi';
 
 type JudulItem = { id: number; urutan: number; judul: string; topik: string };
 
@@ -78,7 +78,9 @@ function PengajuanCard({
     pengajuan: PengajuanItem;
     dosenOptions: DosenOption[];
 }) {
-    const [dialog, setDialog] = useState<'none' | 'approve' | 'reject'>('none');
+    const [dialog, setDialog] = useState<
+        'none' | 'approve' | 'reject' | 'revisi'
+    >('none');
     const { data, setData, post, processing, errors, reset, transform } =
         useForm<{
             validator_id: string;
@@ -87,10 +89,20 @@ function PengajuanCard({
             validator_id: '',
             catatan_admin: '',
         });
+    // Form terpisah agar error validasi revisi tidak bocor ke dialog tolak
+    // (yang memakai field `catatan_admin` yang sama).
+    const revisiForm = useForm<{ catatan_admin: string }>({
+        catatan_admin: '',
+    });
 
     const closeDialog = () => {
         setDialog('none');
         reset();
+    };
+
+    const closeRevisiDialog = () => {
+        setDialog('none');
+        revisiForm.reset();
     };
 
     const submit = (disetujui: boolean) => {
@@ -101,6 +113,12 @@ function PengajuanCard({
         }));
         post(store.url({ pengajuan: pengajuan.id }), {
             onSuccess: closeDialog,
+        });
+    };
+
+    const submitRevisi = () => {
+        revisiForm.post(revisi.url({ pengajuan: pengajuan.id }), {
+            onSuccess: closeRevisiDialog,
         });
     };
 
@@ -129,6 +147,13 @@ function PengajuanCard({
                                 onClick={() => setDialog('approve')}
                             >
                                 Verifikasi
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setDialog('revisi')}
+                            >
+                                Minta Revisi
                             </Button>
                             <Button
                                 size="sm"
@@ -246,6 +271,53 @@ function PengajuanCard({
                             onClick={() => submit(false)}
                         >
                             Tolak Pengajuan
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={dialog === 'revisi'}
+                onOpenChange={(v) => !v && closeRevisiDialog()}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Minta revisi</DialogTitle>
+                        <DialogDescription>
+                            Pengajuan dikembalikan ke mahasiswa untuk
+                            diperbaiki, lalu diajukan ulang pada pengajuan yang
+                            sama. Catatan wajib diisi — akan dilihat mahasiswa.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2">
+                        <Label htmlFor={`catatan-revisi-${pengajuan.id}`}>
+                            Catatan revisi
+                        </Label>
+                        <Textarea
+                            id={`catatan-revisi-${pengajuan.id}`}
+                            value={revisiForm.data.catatan_admin}
+                            onChange={(e) =>
+                                revisiForm.setData(
+                                    'catatan_admin',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                        {revisiForm.errors.catatan_admin && (
+                            <p className="text-sm text-red-600">
+                                {revisiForm.errors.catatan_admin}
+                            </p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={closeRevisiDialog}>
+                            Batal
+                        </Button>
+                        <Button
+                            disabled={revisiForm.processing}
+                            onClick={submitRevisi}
+                        >
+                            Kirim Permintaan Revisi
                         </Button>
                     </DialogFooter>
                 </DialogContent>

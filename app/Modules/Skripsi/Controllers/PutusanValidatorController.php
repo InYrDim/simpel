@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Contracts\AkademikContract;
 use App\Modules\Skripsi\Models\PengajuanJudul;
+use App\Modules\Skripsi\Services\MintaRevisiValidator;
 use App\Modules\Skripsi\Services\PutusanValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,14 +64,38 @@ class PutusanValidatorController extends Controller
             'catatan_validator' => ['required_if:disetujui,false', 'nullable', 'string'],
         ]);
 
+        /** @var User $user */
+        $user = auth()->user();
+
         $action->handle(
             $pengajuan,
             disetujui: (bool) $validated['disetujui'],
             judulId: $validated['judul_id'] ?? null,
             catatan: $validated['catatan_validator'] ?? null,
+            aktor: $user,
         );
 
         return redirect()->route('skripsi.putusan.index')
             ->with('success', 'Putusan tersimpan.');
+    }
+
+    /**
+     * Minta revisi (alur revisi, sesi 3): kembalikan pengajuan berstatus
+     * `diverifikasi_admin` ke mahasiswa dengan catatan wajib — setelah
+     * diperbaiki, mahasiswa resubmit pada pengajuan yang sama.
+     */
+    public function revisi(Request $request, PengajuanJudul $pengajuan, MintaRevisiValidator $action): RedirectResponse
+    {
+        $validated = $request->validate([
+            'catatan_validator' => ['required', 'string'],
+        ]);
+
+        /** @var User $user */
+        $user = auth()->user();
+
+        $action->handle($pengajuan, catatan: $validated['catatan_validator'], aktor: $user);
+
+        return redirect()->route('skripsi.putusan.index')
+            ->with('success', 'Pengajuan diminta revisi.');
     }
 }

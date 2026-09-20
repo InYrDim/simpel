@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Modules\Skripsi\Listeners;
+
+use App\Models\User;
+use App\Modules\Skripsi\Events\PengajuanDiajukanUlang;
+use App\Modules\Skripsi\Notifications\PengajuanDiajukanUlang as PengajuanDiajukanUlangNotification;
+use Illuminate\Support\Facades\Notification;
+
+/**
+ * Kirim database notification ke semua admin saat pengajuan yang diminta
+ * revisi dikirim ulang mahasiswa (alur revisi, sesi 3).
+ *
+ * Penerima role admin diresolusi via `User::role('admin')` — `App\Models\User`
+ * shared kernel yang boleh dipakai modul (PRD §5.4).
+ */
+class KirimNotifikasiPengajuanDiajukanUlang
+{
+    public function handle(PengajuanDiajukanUlang $event): void
+    {
+        $admins = User::query()->role('admin')->get();
+
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        Notification::send($admins, new PengajuanDiajukanUlangNotification($event->pengajuan));
+    }
+}

@@ -1,7 +1,9 @@
 import { BookOpen } from 'lucide-react';
 import daftarJudul from '@/routes/skripsi/daftar-judul';
+import monitoring from '@/routes/skripsi/monitoring';
 import pengajuan from '@/routes/skripsi/pengajuan';
 import putusan from '@/routes/skripsi/putusan';
+import riwayat from '@/routes/skripsi/riwayat';
 import verifikasi from '@/routes/skripsi/verifikasi';
 import type { NavItem } from '@/types';
 
@@ -26,6 +28,11 @@ export const navigation: NavItem[] = [
                 roles: ['mahasiswa'],
             },
             {
+                title: 'Riwayat Pengajuan',
+                href: riwayat.index.url(),
+                roles: ['mahasiswa', 'admin'],
+            },
+            {
                 title: 'Verifikasi',
                 href: verifikasi.index.url(),
                 roles: ['admin'],
@@ -39,6 +46,11 @@ export const navigation: NavItem[] = [
                 title: 'Daftar Judul',
                 href: daftarJudul.index.url(),
                 roles: ['admin', 'validator'],
+            },
+            {
+                title: 'Monitoring',
+                href: monitoring.index.url(),
+                roles: ['admin'],
             },
         ],
     },

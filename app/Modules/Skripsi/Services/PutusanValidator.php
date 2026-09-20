@@ -2,6 +2,7 @@
 
 namespace App\Modules\Skripsi\Services;
 
+use App\Models\User;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Events\PengajuanDiputus;
 use App\Modules\Skripsi\Models\JudulPengajuan;
@@ -22,7 +23,7 @@ use Illuminate\Validation\ValidationException;
  */
 class PutusanValidator
 {
-    public function handle(PengajuanJudul $pengajuan, bool $disetujui, ?int $judulId = null, ?string $catatan = null): PengajuanJudul
+    public function handle(PengajuanJudul $pengajuan, bool $disetujui, ?int $judulId = null, ?string $catatan = null, ?User $aktor = null): PengajuanJudul
     {
         if ($pengajuan->status !== StatusPengajuan::DiverifikasiAdmin) {
             throw ValidationException::withMessages([
@@ -50,7 +51,7 @@ class PutusanValidator
             ]);
         }
 
-        return DB::transaction(function () use ($pengajuan, $disetujui, $judulDisetujui, $catatan): PengajuanJudul {
+        return DB::transaction(function () use ($pengajuan, $disetujui, $judulDisetujui, $catatan, $aktor): PengajuanJudul {
             $pengajuan->update([
                 'status' => $disetujui
                     ? StatusPengajuan::Disetujui->value
@@ -59,7 +60,7 @@ class PutusanValidator
                 'decided_at' => now(),
             ]);
 
-            PengajuanDiputus::dispatch($pengajuan->refresh(), $judulDisetujui);
+            PengajuanDiputus::dispatch($pengajuan->refresh(), $judulDisetujui, $aktor);
 
             return $pengajuan;
         });

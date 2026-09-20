@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read User $user
  * @property-read Collection<int, JudulPengajuan> $juduls
+ * @property-read Collection<int, PengajuanRiwayat> $riwayat
  */
 class PengajuanJudul extends Model
 {
@@ -88,6 +89,18 @@ class PengajuanJudul extends Model
     public function juduls(): HasMany
     {
         return $this->hasMany(JudulPengajuan::class, 'pengajuan_judul_id')->orderBy('urutan');
+    }
+
+    /**
+     * Jejak audit transisi status, terurut kronologis (PRD §4).
+     *
+     * @return HasMany<PengajuanRiwayat, $this>
+     */
+    public function riwayat(): HasMany
+    {
+        return $this->hasMany(PengajuanRiwayat::class, 'pengajuan_judul_id')
+            ->orderBy('created_at')
+            ->orderBy('id');
     }
 
     /**

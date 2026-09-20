@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
-import { store, template } from '@/routes/skripsi/pengajuan';
+import { resubmit, store, template } from '@/routes/skripsi/pengajuan';
 
 type JudulItem = {
     id: number;
@@ -46,10 +46,32 @@ type RiwayatItem = {
     jumlah_judul: number;
 };
 
+type RiwayatStatusItem = {
+    aksi: string;
+    dari_status_label: string | null;
+    ke_status: string;
+    ke_status_label: string;
+    aktor_nama: string;
+    catatan: string | null;
+    created_at: string | null;
+};
+
 type PengajuanPageProps = {
     pengajuan: PengajuanProp | null;
     judulTerkini: JudulItem[];
     riwayat: RiwayatItem[];
+    riwayatStatus: RiwayatStatusItem[];
+};
+
+const AKSI_RIWAYAT_LABEL: Record<string, string> = {
+    submit: 'Pengajuan dikirim',
+    verifikasi_setuju: 'Verifikasi admin — disetujui',
+    verifikasi_tolak: 'Verifikasi admin — ditolak',
+    putusan_setuju: 'Putusan validator — disetujui',
+    putusan_tolak: 'Putusan validator — ditolak',
+    verifikasi_revisi: 'Verifikasi admin — minta revisi',
+    putusan_revisi: 'Putusan validator — minta revisi',
+    resubmit: 'Revisi dikirim ulang',
 };
 
 const STATUS_VARIANT: Record<
@@ -59,6 +81,7 @@ const STATUS_VARIANT: Record<
     diajukan: 'secondary',
     diverifikasi_admin: 'default',
     diverifikasi_validator: 'default',
+    direvisi: 'secondary',
     disetujui: 'default',
     ditolak_admin: 'destructive',
     ditolak_validator: 'destructive',
@@ -68,6 +91,7 @@ const STATUS_LABEL: Record<string, string> = {
     diajukan: 'Diajukan',
     diverifikasi_admin: 'Diverifikasi Admin',
     diverifikasi_validator: 'Diverifikasi Validator',
+    direvisi: 'Direvisi',
     disetujui: 'Disetujui',
     ditolak_admin: 'Ditolak Admin',
     ditolak_validator: 'Ditolak Validator',
@@ -82,6 +106,7 @@ export default function PengajuanIndex({
     pengajuan,
     judulTerkini,
     riwayat,
+    riwayatStatus,
 }: PengajuanPageProps) {
     const statusKey = pengajuan?.status ?? 'belum';
     const bolehMengajukan =
@@ -97,7 +122,12 @@ export default function PengajuanIndex({
                     <h1 className="text-2xl font-bold">
                         Pengajuan Judul Skripsi
                     </h1>
-                    <SubmitDialog disabled={!bolehMengajukan} />
+                    <SubmitDialog
+                        mode={statusKey === 'direvisi' ? 'revisi' : 'baru'}
+                        disabled={!bolehMengajukan}
+                        pengajuanId={pengajuan?.id ?? null}
+                        judulTerkini={judulTerkini}
+                    />
                 </div>
 
                 <Card>
@@ -173,6 +203,51 @@ export default function PengajuanIndex({
                     </CardContent>
                 </Card>
 
+                {riwayatStatus.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Kronologi Pengajuan</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ol className="border-l-border ml-3 space-y-4 border-l-2 pl-5">
+                                {riwayatStatus.map((r, i) => (
+                                    <li key={i} className="relative text-sm">
+                                        <span className="bg-primary absolute top-1.5 -left-[27px] size-2.5 rounded-full" />
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-medium">
+                                                {AKSI_RIWAYAT_LABEL[r.aksi] ??
+                                                    r.aksi}
+                                            </span>
+                                            <Badge
+                                                variant={
+                                                    STATUS_VARIANT[
+                                                        r.ke_status
+                                                    ] ?? 'outline'
+                                                }
+                                            >
+                                                {r.ke_status_label}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-muted-foreground mt-0.5 text-xs">
+                                            {r.aktor_nama} ·{' '}
+                                            {r.created_at
+                                                ? new Date(
+                                                      r.created_at,
+                                                  ).toLocaleString('id-ID')
+                                                : '-'}
+                                        </p>
+                                        {r.catatan && (
+                                            <p className="text-muted-foreground mt-1">
+                                                “{r.catatan}”
+                                            </p>
+                                        )}
+                                    </li>
+                                ))}
+                            </ol>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {riwayat.length > 0 && (
                     <Card>
                         <CardHeader>
@@ -212,7 +287,22 @@ export default function PengajuanIndex({
 
 type JudulForm = { judul: string; deskripsi: string; topik: string };
 
-function SubmitDialog({ disabled }: { disabled: boolean }) {
+function SubmitDialog({
+    mode,
+    disabled,
+    pengajuanId,
+    judulTerkini,
+}: {
+    mode: 'baru' | 'revisi';
+    disabled: boolean;
+    pengajuanId: number | null;
+    judulTerkini: JudulItem[];
+}) {
+    // Mode revisi: pengajuan diminta revisi — mahasiswa memperbaiki judul &
+    // berkas pada pengajuan yang SAMA, judul lama di-prefill sebagai titik
+    // awal perbaikan.
+    const revisi = mode === 'revisi';
+    const tombolDisabled = revisi ? false : disabled;
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(1);
     const [berkas, setBerkas] = useState<File | null>(null);
@@ -222,13 +312,20 @@ function SubmitDialog({ disabled }: { disabled: boolean }) {
         { judul: '', deskripsi: '', topik: '' },
         { judul: '', deskripsi: '', topik: '' },
     ];
+    const judulAwal: JudulForm[] = revisi
+        ? judulTerkini.map((j) => ({
+              judul: j.judul,
+              deskripsi: j.deskripsi,
+              topik: j.topik,
+          }))
+        : emptyJuduls;
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
         useForm<{
             juduls: JudulForm[];
             berkas: File | null;
         }>({
-            juduls: emptyJuduls,
+            juduls: judulAwal,
             berkas: null,
         });
 
@@ -248,23 +345,37 @@ function SubmitDialog({ disabled }: { disabled: boolean }) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(store.url(), {
-            onSuccess: () => {
-                close();
-                router.reload({
-                    only: ['pengajuan', 'judulTerkini', 'riwayat'],
-                });
+        post(
+            revisi && pengajuanId !== null
+                ? resubmit.url({ pengajuan: pengajuanId })
+                : store.url(),
+            {
+                onSuccess: () => {
+                    close();
+                    router.reload({
+                        only: [
+                            'pengajuan',
+                            'judulTerkini',
+                            'riwayat',
+                            'riwayatStatus',
+                        ],
+                    });
+                },
             },
-        });
+        );
     };
 
     return (
         <>
-            <Button size="sm" disabled={disabled} onClick={() => setOpen(true)}>
+            <Button
+                size="sm"
+                disabled={tombolDisabled}
+                onClick={() => setOpen(true)}
+            >
                 <Send className="mr-2 size-4" />
-                Ajukan Judul
+                {revisi ? 'Kirim Revisi' : 'Ajukan Judul'}
             </Button>
-            {disabled && (
+            {!revisi && tombolDisabled && (
                 <p className="text-muted-foreground self-center text-xs">
                     Pengajuan aktif tidak memungkinkan submit baru.
                 </p>
@@ -277,15 +388,22 @@ function SubmitDialog({ disabled }: { disabled: boolean }) {
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            Ajukan Judul — Langkah {step} dari 3
+                            {revisi ? 'Kirim Revisi' : 'Ajukan Judul'} — Langkah{' '}
+                            {step} dari 3
                         </DialogTitle>
                         <DialogDescription>
                             {step === 1 &&
-                                'Isi tepat 3 judul beserta deskripsi dan topiknya.'}
+                                (revisi
+                                    ? 'Perbaiki 3 judul yang diminta revisi — judul lama sudah diisi.'
+                                    : 'Isi tepat 3 judul beserta deskripsi dan topiknya.')}
                             {step === 2 &&
-                                'Unduh template, isi, lalu unggah sebagai PDF (maks 5 MB).'}
+                                (revisi
+                                    ? 'Unggah berkas perbaikan sebagai PDF (maks 5 MB), menggantikan berkas lama.'
+                                    : 'Unduh template, isi, lalu unggah sebagai PDF (maks 5 MB).')}
                             {step === 3 &&
-                                'Periksa kembali sebelum mengirim pengajuan.'}
+                                (revisi
+                                    ? 'Periksa kembali sebelum mengirim revisi.'
+                                    : 'Periksa kembali sebelum mengirim pengajuan.')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -441,7 +559,9 @@ function SubmitDialog({ disabled }: { disabled: boolean }) {
                                     >
                                         {processing
                                             ? 'Mengirim...'
-                                            : 'Kirim Pengajuan'}
+                                            : revisi
+                                              ? 'Kirim Revisi'
+                                              : 'Kirim Pengajuan'}
                                     </Button>
                                 )}
                             </div>

@@ -31,6 +31,14 @@ type Penugasan = {
     dosen_penguji_2: number | null;
 };
 
+type RiwayatEntry = {
+    aksi: string;
+    ke_status_label: string;
+    aktor_nama: string;
+    catatan: string | null;
+    created_at: string | null;
+};
+
 type JudulRow = {
     id: number;
     judul: string;
@@ -39,6 +47,7 @@ type JudulRow = {
     nama_mahasiswa: string;
     nim: string;
     penugasan: Penugasan;
+    riwayat: RiwayatEntry[];
 };
 
 type DaftarJudulPageProps = {
@@ -262,6 +271,44 @@ function DetailModal({
                                 Topik: {judul.topik}
                             </p>
                         </div>
+
+                        {judul.riwayat.length > 0 && (
+                            <div>
+                                <Label className="mb-2">
+                                    Kronologi pengajuan
+                                </Label>
+                                <ol className="border-l-border ml-3 space-y-3 border-l-2 pl-5">
+                                    {judul.riwayat.map((r, i) => (
+                                        <li
+                                            key={i}
+                                            className="relative text-sm"
+                                        >
+                                            <span className="bg-primary absolute top-1.5 -left-[27px] size-2.5 rounded-full" />
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="font-medium">
+                                                    {r.ke_status_label}
+                                                </span>
+                                                <span className="text-muted-foreground text-xs">
+                                                    {r.aktor_nama} ·{' '}
+                                                    {r.created_at
+                                                        ? new Date(
+                                                              r.created_at,
+                                                          ).toLocaleString(
+                                                              'id-ID',
+                                                          )
+                                                        : '-'}
+                                                </span>
+                                            </div>
+                                            {r.catatan && (
+                                                <p className="text-muted-foreground mt-0.5 text-xs">
+                                                    “{r.catatan}”
+                                                </p>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+                        )}
 
                         <div className="grid gap-2">
                             {fields.map(({ key, label }) => (

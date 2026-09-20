@@ -3,8 +3,10 @@
 namespace App\Modules\Skripsi\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Modules\Contracts\AkademikContract;
 use App\Modules\Skripsi\Models\PengajuanJudul;
+use App\Modules\Skripsi\Services\MintaRevisiAdmin;
 use App\Modules\Skripsi\Services\VerifikasiAdmin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,14 +57,38 @@ class VerifikasiAdminController extends Controller
             'catatan_admin' => ['required_if:disetujui,false', 'nullable', 'string'],
         ]);
 
+        /** @var User $user */
+        $user = auth()->user();
+
         $action->handle(
             $pengajuan,
             disetujui: (bool) $validated['disetujui'],
             dosenValidatorId: $validated['validator_id'] ?? null,
             catatan: $validated['catatan_admin'] ?? null,
+            aktor: $user,
         );
 
         return redirect()->route('skripsi.verifikasi.index')
             ->with('success', 'Keputusan verifikasi tersimpan.');
+    }
+
+    /**
+     * Minta revisi (alur revisi, sesi 3): kembalikan pengajuan berstatus
+     * `diajukan` ke mahasiswa dengan catatan wajib — setelah diperbaiki,
+     * mahasiswa resubmit pada pengajuan yang sama.
+     */
+    public function revisi(Request $request, PengajuanJudul $pengajuan, MintaRevisiAdmin $action): RedirectResponse
+    {
+        $validated = $request->validate([
+            'catatan_admin' => ['required', 'string'],
+        ]);
+
+        /** @var User $user */
+        $user = auth()->user();
+
+        $action->handle($pengajuan, catatan: $validated['catatan_admin'], aktor: $user);
+
+        return redirect()->route('skripsi.verifikasi.index')
+            ->with('success', 'Pengajuan diminta revisi.');
     }
 }

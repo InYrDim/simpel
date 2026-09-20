@@ -2,6 +2,7 @@
 
 namespace App\Modules\Skripsi\Services;
 
+use App\Models\User;
 use App\Modules\Contracts\AkademikContract;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Events\PengajuanDiverifikasi;
@@ -24,9 +25,11 @@ class VerifikasiAdmin
     ) {}
 
     /**
+     * @param  ?User  $aktor  admin pelaksana — dicatat di jejak audit
+     *
      * @throws ValidationException
      */
-    public function handle(PengajuanJudul $pengajuan, bool $disetujui, ?int $dosenValidatorId = null, ?string $catatan = null): PengajuanJudul
+    public function handle(PengajuanJudul $pengajuan, bool $disetujui, ?int $dosenValidatorId = null, ?string $catatan = null, ?User $aktor = null): PengajuanJudul
     {
         if ($pengajuan->status !== StatusPengajuan::Diajukan) {
             throw ValidationException::withMessages([
@@ -52,7 +55,7 @@ class VerifikasiAdmin
             ]);
         }
 
-        return DB::transaction(function () use ($pengajuan, $disetujui, $dosenValidatorId, $catatan): PengajuanJudul {
+        return DB::transaction(function () use ($pengajuan, $disetujui, $dosenValidatorId, $catatan, $aktor): PengajuanJudul {
             $pengajuan->update([
                 'status' => $disetujui
                     ? StatusPengajuan::DiverifikasiAdmin->value
@@ -62,7 +65,7 @@ class VerifikasiAdmin
                 'verified_at' => now(),
             ]);
 
-            PengajuanDiverifikasi::dispatch($pengajuan->refresh());
+            PengajuanDiverifikasi::dispatch($pengajuan->refresh(), $aktor);
 
             return $pengajuan;
         });

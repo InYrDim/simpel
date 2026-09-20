@@ -4,7 +4,9 @@ namespace App\Modules\Skripsi\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Contracts\AkademikContract;
+use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Models\JudulPengajuan;
+use App\Modules\Skripsi\Models\PengajuanRiwayat;
 use App\Modules\Skripsi\Services\AssignPenugasan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -44,7 +46,7 @@ class DaftarJudulController extends Controller
             });
         }
 
-        $juduls = $query->with('pengajuan:id,user_id')->paginate(10)->withQueryString()->through(fn (JudulPengajuan $j): array => [
+        $juduls = $query->with(['pengajuan:id,user_id', 'pengajuan.riwayat.aktor'])->paginate(10)->withQueryString()->through(fn (JudulPengajuan $j): array => [
             'id' => $j->id,
             'judul' => $j->judul,
             'topik' => $j->topik,
@@ -59,6 +61,15 @@ class DaftarJudulController extends Controller
                 'dosen_penguji_1' => $j->dosen_penguji_1,
                 'dosen_penguji_2' => $j->dosen_penguji_2,
             ],
+            // Jejak audit pengajuan asal judul (PR 1 sesi 3) — ditampilkan
+            // di modal detail agar admin/validator melihat kronologinya.
+            'riwayat' => $j->pengajuan->riwayat->map(fn (PengajuanRiwayat $r): array => [
+                'aksi' => $r->aksi,
+                'ke_status_label' => StatusPengajuan::tryFrom($r->ke_status)?->label() ?? $r->ke_status,
+                'aktor_nama' => $r->aktor_id === null ? 'Sistem' : $r->aktor->name,
+                'catatan' => $r->catatan,
+                'created_at' => $r->created_at?->toISOString(),
+            ])->all(),
         ]);
 
         return Inertia::render('skripsi/daftar-judul/index', [
