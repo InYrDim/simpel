@@ -32,6 +32,9 @@ class RolePermissionSeeder extends Seeder
             'skripsi.pengajuan.submit' => ['mahasiswa'],
             'skripsi.pengajuan.verify' => ['admin'],
             'skripsi.pengajuan.decide' => ['validator'],
+            // Alur revisi (sesi 3): admin & validator boleh meminta revisi;
+            // resubmit mahasiswa tetap tercakup `skripsi.pengajuan.submit`.
+            'skripsi.pengajuan.revise' => ['admin', 'validator'],
         ],
     ];
 

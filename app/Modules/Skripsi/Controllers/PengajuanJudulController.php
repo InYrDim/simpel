@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Models\PengajuanRiwayat;
+use App\Modules\Skripsi\Services\ResubmitPengajuan;
 use App\Modules\Skripsi\Services\SubmitPengajuan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,6 +95,32 @@ class PengajuanJudulController extends Controller
 
         return redirect()->route('skripsi.pengajuan.status')
             ->with('success', 'Pengajuan berhasil dikirim. Menunggu verifikasi admin.');
+    }
+
+    /**
+     * Resubmit pengajuan yang diminta revisi — unggah ulang 3 judul + berkas
+     * pada pengajuan yang SAMA (alur revisi, sesi 3). Kepemilikan & guard
+     * status `direvisi` dicek ulang di ResubmitPengajuan (§6.4).
+     */
+    public function resubmit(
+        Request $request,
+        PengajuanJudul $pengajuan,
+        ResubmitPengajuan $action,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = auth()->user();
+        $validated = $request->validate([
+            'juduls' => ['required', 'array', 'min:3', 'max:3'],
+            'juduls.*.judul' => ['required', 'string', 'max:255'],
+            'juduls.*.deskripsi' => ['required', 'string'],
+            'juduls.*.topik' => ['required', 'string', 'max:255'],
+            'berkas' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+        ]);
+
+        $action->handle($user, $pengajuan, $validated['juduls'], $request->file('berkas'));
+
+        return redirect()->route('skripsi.pengajuan.status')
+            ->with('success', 'Revisi berhasil dikirim. Menunggu verifikasi ulang admin.');
     }
 
     /**

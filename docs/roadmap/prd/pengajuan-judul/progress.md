@@ -115,13 +115,14 @@ Sesi 1:
 - [x] UI: panel/timeline riwayat di modal detail Daftar Judul + halaman pengajuan mahasiswa
 - [x] Tests: baris riwayat tercatat per transisi, aktor & catatan benar
 
-### PR 2 — Alur revisi (admin + validator)
+### PR 2 — Alur revisi (admin + validator) ✅ **Selesai**
 
-- [ ] `StatusPengajuan::Direvisi = 'direvisi'` + transisi sah: `diajukan → direvisi → diajukan` (dari dua titik asal)
-- [ ] Aksi `mintaRevisi` (admin saat verifikasi, validator saat putusan) — catatan wajib, event notifikasi ke mahasiswa
-- [ ] Resubmit mahasiswa: unggah ulang berkas/judul pada pengajuan yang sama (bukan pengajuan baru — berbeda dari §8 #1 yang berlaku untuk penolakan)
-- [ ] Guard status, policy, permission diperluas; UI tombol revisi + resubmit
-- [ ] Tests: revisi admin & validator, resubmit, guard transisi, notifikasi
+- [x] `StatusPengajuan::Direvisi = 'direvisi'` + transisi sah: `diajukan → direvisi → diajukan` (dari dua titik asal); `direvisi` masuk himpunan aktif
+- [x] Aksi `mintaRevisi` (admin saat verifikasi, validator saat putusan) — catatan wajib, event `PengajuanDirevisi` + notifikasi ke mahasiswa
+- [x] Resubmit mahasiswa: unggah ulang berkas/judul pada pengajuan yang sama (bukan pengajuan baru — berbeda dari §8 #1 yang berlaku untuk penolakan); event `PengajuanDiajukanUlang` + notifikasi ke admin
+- [x] Guard status (guard eksplisit di Services), permission `skripsi.pengajuan.revise`; routes `revisi` (verifikasi & putusan) + `resubmit`
+- [x] Tests: `RevisiTest` — 8 test (revisi admin & validator, catatan wajib, guard asal status, resubmit same-record + berkas lama terhapus, guard kepemilikan, direvisi menghalangi pengajuan baru, kronologi alur lengkap)
+- [x] UI: tombol "Minta Revisi" di verifikasi & putusan (dialog catatan, form terpisah agar error tidak bocor antar-dialog) + tombol "Kirim Revisi" di pengajuan mahasiswa (judul lama di-prefill, posting ke `resubmit`); status/aksi `direvisi` ditambahkan ke label & kronologi
 
 ### PR 3 — Dashboard monitoring (admin)
 

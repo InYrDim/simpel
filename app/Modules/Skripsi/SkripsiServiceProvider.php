@@ -27,6 +27,16 @@ class SkripsiServiceProvider extends ModuleServiceProvider
                 Listeners\KirimNotifikasiPengajuanDiputus::class,
                 Listeners\CatatRiwayatPengajuanDiputus::class,
             ],
+            // Alur revisi (sesi 3): minta revisi admin/validator + resubmit
+            // mahasiswa pada pengajuan yang sama.
+            Events\PengajuanDirevisi::class => [
+                Listeners\KirimNotifikasiPengajuanDirevisi::class,
+                Listeners\CatatRiwayatPengajuanDirevisi::class,
+            ],
+            Events\PengajuanDiajukanUlang::class => [
+                Listeners\KirimNotifikasiPengajuanDiajukanUlang::class,
+                Listeners\CatatRiwayatPengajuanDiajukanUlang::class,
+            ],
         ];
     }
 
