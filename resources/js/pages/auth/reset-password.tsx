@@ -44,10 +44,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                         readOnly
                         className="mt-1 block w-full"
                     />
-                    <InputError
-                        message={errors.email}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 <div className="grid gap-2">
@@ -74,7 +71,9 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                         id="password_confirmation"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                        onChange={(e) =>
+                            setData('password_confirmation', e.target.value)
+                        }
                         autoComplete="new-password"
                         className="mt-1 block w-full"
                         placeholder="Confirm password"

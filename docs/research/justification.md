@@ -15,7 +15,7 @@ Solusi yang sudah banyak dieksplorasi di Indonesia adalah sistem deteksi kemirip
 
 ### Gap 1: Indonesia masih dominan pendekatan klasik
 
- Mayoritas penelitian nasional yang mengumpulkan **masih di kategori 1–2** (string-matching & TF-IDF+Cosine). Hanya 1 penelitian (Ditto Whitening, UNG) yang mencapai kategori 3 (embedding-based) secara spesifik untuk judul penelitian. Belum ada yang menggabungkan kategori 3 (embedding) + kategori 4 (LLM reranker) untuk domain ini.
+Mayoritas penelitian nasional yang mengumpulkan **masih di kategori 1–2** (string-matching & TF-IDF+Cosine). Hanya 1 penelitian (Ditto Whitening, UNG) yang mencapai kategori 3 (embedding-based) secara spesifik untuk judul penelitian. Belum ada yang menggabungkan kategori 3 (embedding) + kategori 4 (LLM reranker) untuk domain ini.
 
 ### Gap 2: Embedding + LLM Reranker belum dieksplorasi untuk judul skripsi Indonesia
 
@@ -32,13 +32,13 @@ Berdasarkan 32 referensi yang telah dikumpulkan (termasuk paper terbaru 2025–2
 
 ## Perbedaan Eksplisit dengan Media Elektrik UNM 2025
 
-| Aspek | Media Elektrik UNM (2025) | Rencana Riset Ini |
-|-------|--------------------------|-------------------|
-| **Metode utama** | IndoSBERT + Cosine Similarity | Sentence Embedding + LLM Reranker (2-stage) |
-| **Layer tambahan** | Tidak ada | LLM reranker untuk reasoning kualitatif |
-| **Dataset** | 114 judul skripsi | [Sesuaikan dengan data kampusmu] |
-| **Arsitektur sistem** | Aplikasi desktop/web standalone | Sistem terintegrasi berbasis Laravel |
-| **Evaluasi** | Akurasi, F1, SUS | [Sesuaikan — bandingkan skor embedding vs skor LLM] |
+| Aspek                 | Media Elektrik UNM (2025)       | Rencana Riset Ini                                   |
+| --------------------- | ------------------------------- | --------------------------------------------------- |
+| **Metode utama**      | IndoSBERT + Cosine Similarity   | Sentence Embedding + LLM Reranker (2-stage)         |
+| **Layer tambahan**    | Tidak ada                       | LLM reranker untuk reasoning kualitatif             |
+| **Dataset**           | 114 judul skripsi               | [Sesuaikan dengan data kampusmu]                    |
+| **Arsitektur sistem** | Aplikasi desktop/web standalone | Sistem terintegrasi berbasis Laravel                |
+| **Evaluasi**          | Akurasi, F1, SUS                | [Sesuaikan — bandingkan skor embedding vs skor LLM] |
 
 ---
 
@@ -46,22 +46,22 @@ Berdasarkan 32 referensi yang telah dikumpulkan (termasuk paper terbaru 2025–2
 
 ### Embedding Model
 
-| Opsi | Kelebihan | Kekurangan |
-|------|-----------|------------|
-| **IndoSBERT** (baseline UNM) | Sudah terbukti di domain yang sama, akurasi 93% | Bukan model terbaru, performa bisa ditandingi |
-| **cassador/indobert-base-p2-nli-v2** | Fine-tuned untuk NLI, cocok untuk similarity | Performa STS belum diukur secara ekstensif |
-| **jina-embeddings-v3** | Multilingual, Matryoshka (dimensi fleksibel) | Belum diuji khusus untuk Indonesian academic text |
-| **mE5-large** | SOTA retrieval multilingual | Model besar, resource intensive |
+| Opsi                                 | Kelebihan                                       | Kekurangan                                        |
+| ------------------------------------ | ----------------------------------------------- | ------------------------------------------------- |
+| **IndoSBERT** (baseline UNM)         | Sudah terbukti di domain yang sama, akurasi 93% | Bukan model terbaru, performa bisa ditandingi     |
+| **cassador/indobert-base-p2-nli-v2** | Fine-tuned untuk NLI, cocok untuk similarity    | Performa STS belum diukur secara ekstensif        |
+| **jina-embeddings-v3**               | Multilingual, Matryoshka (dimensi fleksibel)    | Belum diuji khusus untuk Indonesian academic text |
+| **mE5-large**                        | SOTA retrieval multilingual                     | Model besar, resource intensive                   |
 
 **Rekomendasi awal:** pakai **IndoSBERT** sebagai baseline (karena langsung komparabel dengan Media Elektrik UNM), lalu bandingkan dengan **cassador/indobert-base-p2-nli-v2** untuk melihat apakah fine-tuning NLI memberikan peningkatan.
 
 ### Reranker Model
 
-| Opsi | Kelebihan | Kekurangan |
-|------|-----------|------------|
-| **jina-reranker-v3.5** | 0.6B, multilingual, SOTA BEIR, open-weight | Perlu GPU untuk inference yang nyaman |
-| **Cohere Rerank v4** | API-based, tanpa self-host | Bergantung pada API eksternal, biaya per-request |
-| **Qwen3-Reranker-0.6B** | Open-source, Qwen family | Performa lebih rendah dari jina-v3.5 |
+| Opsi                    | Kelebihan                                  | Kekurangan                                       |
+| ----------------------- | ------------------------------------------ | ------------------------------------------------ |
+| **jina-reranker-v3.5**  | 0.6B, multilingual, SOTA BEIR, open-weight | Perlu GPU untuk inference yang nyaman            |
+| **Cohere Rerank v4**    | API-based, tanpa self-host                 | Bergantung pada API eksternal, biaya per-request |
+| **Qwen3-Reranker-0.6B** | Open-source, Qwen family                   | Performa lebih rendah dari jina-v3.5             |
 
 **Rekomendasi awal:** **jina-reranker-v3.5** — model terbaru, multilingual, dan performa terbaik di skala 0.6B. Jika resource terbatas, pertimbangkan API-based Cohere untuk prototyping.
 

@@ -34,7 +34,11 @@ export default function AppearanceToggleTab({
                 className="border-0 shadow-none"
             >
                 {tabs.map(({ value, icon: Icon, label }) => (
-                    <ToggleGroupItem key={value} value={value} aria-label={label}>
+                    <ToggleGroupItem
+                        key={value}
+                        value={value}
+                        aria-label={label}
+                    >
                         <Icon className="h-4 w-4" />
                         <span>{label}</span>
                     </ToggleGroupItem>

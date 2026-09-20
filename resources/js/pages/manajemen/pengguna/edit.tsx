@@ -19,7 +19,13 @@ type EditPageProps = {
 };
 
 export default function PenggunaEdit({ user, errors }: EditPageProps) {
-    const { data, setData, put, processing, errors: formErrors } = useForm({
+    const {
+        data,
+        setData,
+        put,
+        processing,
+        errors: formErrors,
+    } = useForm({
         name: user.name,
         email: user.email,
     });
@@ -53,10 +59,14 @@ export default function PenggunaEdit({ user, errors }: EditPageProps) {
                                     id="name"
                                     name="name"
                                     value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
                                     disabled={processing}
                                 />
-                                {nameError && <InputError message={nameError} />}
+                                {nameError && (
+                                    <InputError message={nameError} />
+                                )}
                             </div>
 
                             <div className="grid gap-2">
@@ -66,10 +76,14 @@ export default function PenggunaEdit({ user, errors }: EditPageProps) {
                                     name="email"
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
                                     disabled={processing}
                                 />
-                                {emailError && <InputError message={emailError} />}
+                                {emailError && (
+                                    <InputError message={emailError} />
+                                )}
                             </div>
 
                             <div className="flex items-center gap-2">

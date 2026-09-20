@@ -47,10 +47,7 @@ export default function Register({ passwordRules }: Props) {
                             onChange={(e) => setData('name', e.target.value)}
                             placeholder="Full name"
                         />
-                        <InputError
-                            message={errors.name}
-                            className="mt-2"
-                        />
+                        <InputError message={errors.name} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">
@@ -76,7 +73,9 @@ export default function Register({ passwordRules }: Props) {
                             tabIndex={3}
                             autoComplete="new-password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) =>
+                                setData('password', e.target.value)
+                            }
                             placeholder="Password"
                             passwordrules={passwordRules}
                         />
@@ -93,13 +92,13 @@ export default function Register({ passwordRules }: Props) {
                             tabIndex={4}
                             autoComplete="new-password"
                             value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                            onChange={(e) =>
+                                setData('password_confirmation', e.target.value)
+                            }
                             placeholder="Confirm password"
                             passwordrules={passwordRules}
                         />
-                        <InputError
-                            message={errors.password_confirmation}
-                        />
+                        <InputError message={errors.password_confirmation} />
                     </div>
 
                     <Button

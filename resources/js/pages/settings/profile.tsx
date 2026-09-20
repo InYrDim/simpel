@@ -62,10 +62,7 @@ export default function Profile({
                             placeholder="Full name"
                         />
 
-                        <InputError
-                            className="mt-2"
-                            message={errors.name}
-                        />
+                        <InputError className="mt-2" message={errors.name} />
                     </div>
 
                     <div className="grid gap-2">
@@ -82,10 +79,7 @@ export default function Profile({
                             placeholder="Email address"
                         />
 
-                        <InputError
-                            className="mt-2"
-                            message={errors.email}
-                        />
+                        <InputError className="mt-2" message={errors.email} />
                     </div>
 
                     {mustVerifyEmail &&
@@ -98,16 +92,15 @@ export default function Profile({
                                         as="button"
                                         className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                     >
-                                        Click here to re-send the
-                                        verification email.
+                                        Click here to re-send the verification
+                                        email.
                                     </Link>
                                 </p>
 
-                                {status ===
-                                    'verification-link-sent' && (
+                                {status === 'verification-link-sent' && (
                                     <div className="mt-2 text-sm font-medium text-green-600">
-                                        A new verification link has been
-                                        sent to your email address.
+                                        A new verification link has been sent to
+                                        your email address.
                                     </div>
                                 )}
                             </div>

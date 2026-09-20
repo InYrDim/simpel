@@ -59,9 +59,7 @@ export default function ForgotPassword({ status }: Props) {
                             disabled={processing}
                             data-test="email-password-reset-link-button"
                         >
-                            {processing && (
-                                <Spinner />
-                            )}
+                            {processing && <Spinner />}
                             Email password reset link
                         </Button>
                     </div>

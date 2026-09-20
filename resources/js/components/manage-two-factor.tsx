@@ -111,7 +111,10 @@ export default function ManageTwoFactor(props: Props) {
                             </Button>
                         ) : (
                             <form onSubmit={handleEnable}>
-                                <Button type="submit" disabled={enableForm.processing}>
+                                <Button
+                                    type="submit"
+                                    disabled={enableForm.processing}
+                                >
                                     Enable 2FA
                                 </Button>
                             </form>

@@ -67,7 +67,9 @@ export default function Security(props: Props) {
                             ref={currentPasswordInput}
                             name="current_password"
                             value={data.current_password}
-                            onChange={(e) => setData('current_password', e.target.value)}
+                            onChange={(e) =>
+                                setData('current_password', e.target.value)
+                            }
                             className="mt-1 block w-full"
                             autoComplete="current-password"
                             placeholder="Current password"
@@ -84,7 +86,9 @@ export default function Security(props: Props) {
                             ref={passwordInput}
                             name="password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) =>
+                                setData('password', e.target.value)
+                            }
                             className="mt-1 block w-full"
                             autoComplete="new-password"
                             placeholder="New password"
@@ -103,16 +107,16 @@ export default function Security(props: Props) {
                             id="password_confirmation"
                             name="password_confirmation"
                             value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                            onChange={(e) =>
+                                setData('password_confirmation', e.target.value)
+                            }
                             className="mt-1 block w-full"
                             autoComplete="new-password"
                             placeholder="Confirm password"
                             passwordrules={props.passwordRules}
                         />
 
-                        <InputError
-                            message={errors.password_confirmation}
-                        />
+                        <InputError message={errors.password_confirmation} />
                     </div>
 
                     <div className="flex items-center gap-4">
