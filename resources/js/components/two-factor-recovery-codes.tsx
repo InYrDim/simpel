@@ -137,7 +137,11 @@ export default function TwoFactorRecoveryCodes({
                                             {Array.from(
                                                 { length: 8 },
                                                 (_, index) => (
-                                                    <Skeleton key={index} className="h-4 w-full" aria-hidden="true" />
+                                                    <Skeleton
+                                                        key={index}
+                                                        className="h-4 w-full"
+                                                        aria-hidden="true"
+                                                    />
                                                 ),
                                             )}
                                         </div>

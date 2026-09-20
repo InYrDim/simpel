@@ -17,7 +17,10 @@ export default function TwoFactorChallenge() {
     const [showRecoveryInput, setShowRecoveryInput] = useState<boolean>(false);
     const [code, setCode] = useState<string>('');
 
-    const { post, processing, errors, clearErrors } = useForm<{ code?: string; recovery_code?: string }>();
+    const { post, processing, errors, clearErrors } = useForm<{
+        code?: string;
+        recovery_code?: string;
+    }>();
 
     const authConfigContent = useMemo<{
         title: string;
@@ -75,9 +78,7 @@ export default function TwoFactorChallenge() {
                                     autoFocus={showRecoveryInput}
                                     required
                                 />
-                                <InputError
-                                    message={errors.recovery_code}
-                                />
+                                <InputError message={errors.recovery_code} />
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center space-y-3 text-center">

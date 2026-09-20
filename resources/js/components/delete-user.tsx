@@ -19,7 +19,14 @@ import Heading from '@/components/heading';
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
-    const { data, setData, delete: destroy, processing, errors, reset } = useForm({
+    const {
+        data,
+        setData,
+        delete: destroy,
+        processing,
+        errors,
+        reset,
+    } = useForm({
         password: '',
     });
 
@@ -45,76 +52,77 @@ export default function DeleteUser() {
                 </AlertDescription>
             </Alert>
 
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button
-                            variant="destructive"
-                            data-test="delete-user-button"
-                        >
-                            Delete account
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>
-                            Are you sure you want to delete your account?
-                        </DialogTitle>
-                        <DialogDescription>
-                            Once your account is deleted, all of its resources
-                            and data will also be permanently deleted. Please
-                            enter your password to confirm you would like to
-                            permanently delete your account.
-                        </DialogDescription>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
+                    >
+                        Delete account
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogTitle>
+                        Are you sure you want to delete your account?
+                    </DialogTitle>
+                    <DialogDescription>
+                        Once your account is deleted, all of its resources and
+                        data will also be permanently deleted. Please enter your
+                        password to confirm you would like to permanently delete
+                        your account.
+                    </DialogDescription>
 
-                        <form onSubmit={submit} className="space-y-6">
-                            <div className="grid gap-2">
-                                <Label
-                                    htmlFor="password"
-                                    className="sr-only"
-                                >
-                                    Password
-                                </Label>
+                    <form onSubmit={submit} className="space-y-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="password" className="sr-only">
+                                Password
+                            </Label>
 
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    ref={passwordInput}
-                                    placeholder="Password"
-                                    autoComplete="current-password"
-                                />
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                value={data.password}
+                                onChange={(e) =>
+                                    setData('password', e.target.value)
+                                }
+                                ref={passwordInput}
+                                placeholder="Password"
+                                autoComplete="current-password"
+                            />
 
-                                {errors.password && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">{errors.password}</p>
-                                )}
-                            </div>
+                            {errors.password && (
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
 
-                            <DialogFooter className="gap-2">
-                                <DialogClose asChild>
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => reset()}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </DialogClose>
-
+                        <DialogFooter className="gap-2">
+                            <DialogClose asChild>
                                 <Button
-                                    variant="destructive"
-                                    disabled={processing}
-                                    asChild
+                                    variant="secondary"
+                                    onClick={() => reset()}
                                 >
-                                    <button
-                                        type="submit"
-                                        data-test="confirm-delete-user-button"
-                                    >
-                                        Delete account
-                                    </button>
+                                    Cancel
                                 </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                            </DialogClose>
+
+                            <Button
+                                variant="destructive"
+                                disabled={processing}
+                                asChild
+                            >
+                                <button
+                                    type="submit"
+                                    data-test="confirm-delete-user-button"
+                                >
+                                    Delete account
+                                </button>
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

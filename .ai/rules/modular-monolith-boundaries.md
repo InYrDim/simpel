@@ -42,15 +42,15 @@ for the exact folder tree and naming.
 
 ## Decision table
 
-| Situation | Action |
-|---|---|
-| Module A needs data owned by Module B | Inject B's `Contracts` interface. Never touch B's Eloquent model directly. |
-| Something in A should trigger a reaction in B | Dispatch a domain event from A; B listens via its own listener. |
-| A DTO/value object is needed by two modules | `Modules/Shared/Domain/`. Never duplicate it into each module. |
-| Not sure which module owns something | Stop. Ask the user. Do not place it wherever is convenient. |
-| Touching a legacy `app/` file for an unrelated fix | Fix only what's needed. Don't opportunistically migrate it — that's a separate, deliberate task. |
-| Extracting legacy code into a module | Follow `modular-monolith-migration.md` exactly, step by step. |
-| A boundary check fails | Fix the violation. Do not edit the check config or suppress the failing rule without explicit user confirmation. |
+| Situation                                          | Action                                                                                                           |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Module A needs data owned by Module B              | Inject B's `Contracts` interface. Never touch B's Eloquent model directly.                                       |
+| Something in A should trigger a reaction in B      | Dispatch a domain event from A; B listens via its own listener.                                                  |
+| A DTO/value object is needed by two modules        | `Modules/Shared/Domain/`. Never duplicate it into each module.                                                   |
+| Not sure which module owns something               | Stop. Ask the user. Do not place it wherever is convenient.                                                      |
+| Touching a legacy `app/` file for an unrelated fix | Fix only what's needed. Don't opportunistically migrate it — that's a separate, deliberate task.                 |
+| Extracting legacy code into a module               | Follow `modular-monolith-migration.md` exactly, step by step.                                                    |
+| A boundary check fails                             | Fix the violation. Do not edit the check config or suppress the failing rule without explicit user confirmation. |
 
 ## Required checks
 

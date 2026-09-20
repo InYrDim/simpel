@@ -74,7 +74,9 @@ export default function Login({ status, canResetPassword }: Props) {
                             id="password"
                             name="password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) =>
+                                setData('password', e.target.value)
+                            }
                             required
                             tabIndex={2}
                             autoComplete="current-password"
@@ -89,7 +91,9 @@ export default function Login({ status, canResetPassword }: Props) {
                             name="remember"
                             tabIndex={3}
                             checked={data.remember}
-                            onCheckedChange={(checked) => setData('remember', checked === true)}
+                            onCheckedChange={(checked) =>
+                                setData('remember', checked === true)
+                            }
                         />
                         <Label htmlFor="remember">Remember me</Label>
                     </div>

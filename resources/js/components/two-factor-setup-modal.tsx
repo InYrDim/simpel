@@ -147,7 +147,9 @@ function TwoFactorVerificationStep({
 }) {
     const [code, setCode] = useState<string>('');
     const pinInputContainerRef = useRef<HTMLDivElement>(null);
-    const { post, processing, errors, setData } = useForm<{ code: string }>({ code: '' });
+    const { post, processing, errors, setData } = useForm<{ code: string }>({
+        code: '',
+    });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,10 +186,7 @@ function TwoFactorVerificationStep({
                             {Array.from(
                                 { length: OTP_MAX_LENGTH },
                                 (_, index) => (
-                                    <InputOTPSlot
-                                        key={index}
-                                        index={index}
-                                    />
+                                    <InputOTPSlot key={index} index={index} />
                                 ),
                             )}
                         </InputOTPGroup>
@@ -208,9 +207,7 @@ function TwoFactorVerificationStep({
                     <Button
                         type="submit"
                         className="flex-1"
-                        disabled={
-                            processing || code.length < OTP_MAX_LENGTH
-                        }
+                        disabled={processing || code.length < OTP_MAX_LENGTH}
                     >
                         Confirm
                     </Button>

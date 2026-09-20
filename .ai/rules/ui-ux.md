@@ -5,6 +5,7 @@
 **Always prefer a shadcn component first.** Only fall back to plain HTML/Tailwind when no shadcn component exists for that use case.
 
 Examples:
+
 - Badge, Button, Input, Label, Card, Dialog, Separator → shadcn
 - Simple text block, paragraph, span → plain HTML (no shadcn equivalent)
 - Link to another page → `<Link>` or `<a>` (not wrapped in Button unless it's an action)

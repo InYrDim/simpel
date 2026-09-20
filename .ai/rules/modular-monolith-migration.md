@@ -28,15 +28,15 @@ whether it should be split into separate extractions.
    moving anything if the task is large.
 
 4. **Move one file at a time:**
-   - Move the file into its new module location.
-   - Update its namespace.
-   - Update every place that referenced the old namespace (search the whole
-     repo, not just the obvious callers).
-   - Run the relevant test immediately: `vendor/bin/pest --filter=testName`
-     or the narrowest file path, per this project's Pest conventions.
-   - Only move to the next file once this one passes.
-   - Run `vendor/bin/pint --dirty --format agent` after each batch of PHP
-     file moves, per this project's normal formatting workflow.
+    - Move the file into its new module location.
+    - Update its namespace.
+    - Update every place that referenced the old namespace (search the whole
+      repo, not just the obvious callers).
+    - Run the relevant test immediately: `vendor/bin/pest --filter=testName`
+      or the narrowest file path, per this project's Pest conventions.
+    - Only move to the next file once this one passes.
+    - Run `vendor/bin/pint --dirty --format agent` after each batch of PHP
+      file moves, per this project's normal formatting workflow.
 
 5. **Add `Contracts/` last**, after internals are moved. Define the minimal
    public interface other code actually needs. Update legacy callers to

@@ -1,12 +1,10 @@
-
 ## 🔹 Tier 1 — Jurnal UNM
 
 1. **Integrasi TF-IDF dan Algoritma Cosine Similarity untuk Deteksi Tingkat Kemiripan Judul Penelitian** — Asmaul Husnah Nasrullah, _INTEC Journal_ (journal.unm.ac.id), 2024. Penelitian ini mengintegrasikan TF-IDF dan Cosine Similarity untuk mendeteksi kemiripan judul penelitian mahasiswa, dengan rata-rata akurasi hingga 89,7%. Paling relevan sebagai **baseline metodologis** kamu — studi kasus mirip persis dengan topikmu.  
-    🔗 https://journal.unm.ac.id/index.php/INTEC/article/download/5810/3667
-    
+   🔗 https://journal.unm.ac.id/index.php/INTEC/article/download/5810/3667
+
 2. **Automated essay grading / perbandingan model embedding (BERT, ALBERT, Sentence-BERT)** — _Information Technology Education Journal_, INTEC UNM, Vol. 4 No. 2 (2025). Studi ini membandingkan performa embedding IndoBERT dan model Sentence-BERT lain pada tugas penilaian esai otomatis berbahasa Indonesia, mencapai skor QWK 0,9. Berguna untuk justifikasi pemilihan model embedding domain Indonesia.  
-    🔗 https://journal.unm.ac.id/index.php/INTEC/article/download/8069/5099
-    
+   🔗 https://journal.unm.ac.id/index.php/INTEC/article/download/8069/5099
 
 ## 🔹 Tier 2 — Jurnal Nasional Indonesia
 
@@ -26,14 +24,13 @@
 
 12. **Optimasi Embedding IndoBERT dengan Ditto Whitening** (UNG, sangat relevan!) — penelitian ini menemukan bahwa sebagian besar judul penelitian tampak memiliki kemiripan tinggi meski berbeda secara semantik akibat anisotropi embedding, dan Ditto Whitening terbukti efektif meningkatkan isotropi embedding IndoBERT sekaligus akurasi sistem deteksi kemiripan judul. Ini **directly on-topic** dengan rencana risetmu — wajib dibaca lengkap.  
     🔗 https://ejurnal.ung.ac.id/index.php/jjeee/article/viewFile/35554/12492
-    
+
 13. **Sistem Pendeteksi Kemiripan Judul Skripsi Berbasis Web Menggunakan NLP dan Word Embeddings** — menggunakan 500 judul skripsi Teknik Informatika selama lima tahun terakhir dengan cosine similarity, mencapai akurasi deteksi hingga 85%. Referensi ukuran dataset yang bagus untuk pembandingmu.  
     🔗 https://jurnal.penerbitwidina.com/index.php/JPI/article/view/1964
-    
+
 14. IndoBERT fine-tuning untuk deteksi teks GenAI + penilaian esai berbasis cosine similarity — fine-tuning pada model pre-trained IndoBERT mencapai akurasi 93,91% untuk deteksi GenAI, embedding yang sama dipakai untuk mengukur kemiripan semantik jawaban. — JEPIN, https://jurnal.untan.ac.id/index.php/jepin/article/viewFile/93221
-    
+
 15. Uji Kemiripan Kalimat Judul Tugas Akhir dengan Cosine Similarity dan TF-IDF (Deli Husada) — https://www.researchgate.net/publication/367868215
-    
 
 ## 🔹 Tier 3 — Internasional
 

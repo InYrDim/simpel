@@ -2,10 +2,7 @@ import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-    Avatar,
-    AvatarFallback,
-} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     Dialog,
     DialogClose,
@@ -44,7 +41,9 @@ export default function PasskeyItem({ passkey, onDelete }: Props) {
                             {passkey.name}
                         </p>
                         {passkey.authenticator && (
-                            <Badge variant="secondary">{passkey.authenticator}</Badge>
+                            <Badge variant="secondary">
+                                {passkey.authenticator}
+                            </Badge>
                         )}
                     </div>
                     <p className="text-muted-foreground text-sm">

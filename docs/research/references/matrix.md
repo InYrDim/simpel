@@ -2,28 +2,28 @@ Baik, ini matriks penelitian (research matrix) dari semua referensi yang sudah d
 
 ## 🔹 Matriks Tier 1 — Jurnal UNM
 
-|No|Penulis (Tahun)|Metode|Dataset/Objek|Hasil Utama|Relevansi/Gap|
-|---|---|---|---|---|---|
-|1|Nasrullah (2024), _INTEC UNM_|TF-IDF + Cosine Similarity|Judul penelitian mhs Fakultas Ilmu Komputer|Akurasi rata-rata 89,7%|Baseline metodologis langsung sebanding dengan topikmu; belum pakai embedding/LLM|
-|2|_INTEC UNM_ Vol.4 No.2 (2025)|Perbandingan embedding BERT, ALBERT, Sentence-BERT (tanpa fine-tuning)|Esai berbahasa Indonesia (adaptasi ASAP)|QWK hingga 0,9 pakai IndoBERT/SBERT|Menunjukkan SBERT unggul di teks Indonesia; belum diuji untuk domain judul skripsi|
+| No  | Penulis (Tahun)               | Metode                                                                 | Dataset/Objek                               | Hasil Utama                         | Relevansi/Gap                                                                      |
+| --- | ----------------------------- | ---------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------- |
+| 1   | Nasrullah (2024), _INTEC UNM_ | TF-IDF + Cosine Similarity                                             | Judul penelitian mhs Fakultas Ilmu Komputer | Akurasi rata-rata 89,7%             | Baseline metodologis langsung sebanding dengan topikmu; belum pakai embedding/LLM  |
+| 2   | _INTEC UNM_ Vol.4 No.2 (2025) | Perbandingan embedding BERT, ALBERT, Sentence-BERT (tanpa fine-tuning) | Esai berbahasa Indonesia (adaptasi ASAP)    | QWK hingga 0,9 pakai IndoBERT/SBERT | Menunjukkan SBERT unggul di teks Indonesia; belum diuji untuk domain judul skripsi |
 
 ## 🔹 Matriks Tier 2 — Jurnal Nasional Indonesia
 
-|No|Penulis/Sumber (Tahun)|Metode|Dataset/Objek|Hasil Utama|Relevansi/Gap|
-|---|---|---|---|---|---|
-|3|FIKOM UMI (2020)|Algoritma Smith-Waterman|4 judul skripsi TI 2018–2019|Berhasil deteksi kecocokan string|Sampel sangat kecil; string-matching, bukan semantik|
-|4|Infotekjar (2018)|Algoritma Winnowing|117 judul skripsi|11 judul mirip pada threshold ≥20%|Deteksi leksikal; tidak tangkap kemiripan makna|
-|5|Sistem Informasi Pengajuan Skripsi|Algoritma Oliver (fungsi PHP)|217 judul training, 10 judul uji|Threshold diterima pada kemiripan 60%|Berbasis string similarity murni|
-|6|EDUTIC-Trunojoyo|Levenshtein Distance|Multi-kategori, 6 target database|Kemiripan 28,5–42,85% tergantung kategori|Cocok untuk typo/variasi kecil, lemah pada parafrase|
-|7|Teknika-Polsri (2024)|TF-IDF + Fuzzy Matching (Algoritma Oliver)|Database judul skripsi|Auto-reject pada kemiripan >60%|Ide threshold otomatis relevan untuk fitur sistemmu|
-|8|UMS (eprints)|TF-IDF + Cosine Similarity|Data _myskripsi_ UMS, Django+PostgreSQL|SUS score 77,17 (layak pakai)|Contoh integrasi ke sistem informasi skripsi nyata; arsitektur mirip rencanamu|
-|9|JIEET-UNESA|Levenshtein Distance + Cosine Similarity (hybrid)|Jurnal publikasi skripsi|Deteksi kemiripan dokumen penuh, bukan hanya judul|Bisa jadi referensi hybrid method, tapi objek beda (dokumen, bukan judul)|
-|10|Unismuh (2024)|SVM + TF-IDF (NLP)|Database judul_skripsi|Akurasi memadai (SVM classifier)|Machine learning klasik; bisa dibandingkan sebagai baseline ML vs deep learning|
-|11|LTR2-Univ. Almuslim|K-Nearest Neighbor + Cosine Similarity|Naskah dokumen skripsi|Identifikasi kemiripan naskah penuh|Pendekatan klasifikasi, bukan retrieval; skala terbatas|
-|12|**JJEEE-UNG**|**IndoBERT embedding + Ditto Whitening**|Judul penelitian berbahasa Indonesia|Ditto Whitening ↑ isotropi embedding & akurasi deteksi kemiripan|⭐ **Paling relevan** — bukti nyata masalah anisotropi embedding pada judul, solusinya applicable ke sistemmu|
-|13|**JPI-Widina**|NLP + Word Embeddings + Cosine Similarity|**500 judul skripsi TI, 5 tahun**|Akurasi hingga 85%|⭐ Skala data & metode paling dekat dengan rencana risetmu — jadi pembanding utama|
-|14|JEPIN-Untan|Fine-tuning IndoBERT (deteksi GenAI) + cosine similarity (esai)|Teks GenAI & jawaban esai|Akurasi fine-tuning 93,91%|Menunjukkan potensi fine-tuning IndoBERT domain-spesifik — relevan untuk opsi "domain-adapted embedding"|
-|15|ResearchGate (Deli Husada)|Cosine Similarity + TF-IDF|Judul TA, Institut Kesehatan|43% ditolak, 53% diterima|Ilustrasi real-world decision threshold di kampus|
+| No  | Penulis/Sumber (Tahun)             | Metode                                                          | Dataset/Objek                           | Hasil Utama                                                      | Relevansi/Gap                                                                                                 |
+| --- | ---------------------------------- | --------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 3   | FIKOM UMI (2020)                   | Algoritma Smith-Waterman                                        | 4 judul skripsi TI 2018–2019            | Berhasil deteksi kecocokan string                                | Sampel sangat kecil; string-matching, bukan semantik                                                          |
+| 4   | Infotekjar (2018)                  | Algoritma Winnowing                                             | 117 judul skripsi                       | 11 judul mirip pada threshold ≥20%                               | Deteksi leksikal; tidak tangkap kemiripan makna                                                               |
+| 5   | Sistem Informasi Pengajuan Skripsi | Algoritma Oliver (fungsi PHP)                                   | 217 judul training, 10 judul uji        | Threshold diterima pada kemiripan 60%                            | Berbasis string similarity murni                                                                              |
+| 6   | EDUTIC-Trunojoyo                   | Levenshtein Distance                                            | Multi-kategori, 6 target database       | Kemiripan 28,5–42,85% tergantung kategori                        | Cocok untuk typo/variasi kecil, lemah pada parafrase                                                          |
+| 7   | Teknika-Polsri (2024)              | TF-IDF + Fuzzy Matching (Algoritma Oliver)                      | Database judul skripsi                  | Auto-reject pada kemiripan >60%                                  | Ide threshold otomatis relevan untuk fitur sistemmu                                                           |
+| 8   | UMS (eprints)                      | TF-IDF + Cosine Similarity                                      | Data _myskripsi_ UMS, Django+PostgreSQL | SUS score 77,17 (layak pakai)                                    | Contoh integrasi ke sistem informasi skripsi nyata; arsitektur mirip rencanamu                                |
+| 9   | JIEET-UNESA                        | Levenshtein Distance + Cosine Similarity (hybrid)               | Jurnal publikasi skripsi                | Deteksi kemiripan dokumen penuh, bukan hanya judul               | Bisa jadi referensi hybrid method, tapi objek beda (dokumen, bukan judul)                                     |
+| 10  | Unismuh (2024)                     | SVM + TF-IDF (NLP)                                              | Database judul_skripsi                  | Akurasi memadai (SVM classifier)                                 | Machine learning klasik; bisa dibandingkan sebagai baseline ML vs deep learning                               |
+| 11  | LTR2-Univ. Almuslim                | K-Nearest Neighbor + Cosine Similarity                          | Naskah dokumen skripsi                  | Identifikasi kemiripan naskah penuh                              | Pendekatan klasifikasi, bukan retrieval; skala terbatas                                                       |
+| 12  | **JJEEE-UNG**                      | **IndoBERT embedding + Ditto Whitening**                        | Judul penelitian berbahasa Indonesia    | Ditto Whitening ↑ isotropi embedding & akurasi deteksi kemiripan | ⭐ **Paling relevan** — bukti nyata masalah anisotropi embedding pada judul, solusinya applicable ke sistemmu |
+| 13  | **JPI-Widina**                     | NLP + Word Embeddings + Cosine Similarity                       | **500 judul skripsi TI, 5 tahun**       | Akurasi hingga 85%                                               | ⭐ Skala data & metode paling dekat dengan rencana risetmu — jadi pembanding utama                            |
+| 14  | JEPIN-Untan                        | Fine-tuning IndoBERT (deteksi GenAI) + cosine similarity (esai) | Teks GenAI & jawaban esai               | Akurasi fine-tuning 93,91%                                       | Menunjukkan potensi fine-tuning IndoBERT domain-spesifik — relevan untuk opsi "domain-adapted embedding"      |
+| 15  | ResearchGate (Deli Husada)         | Cosine Similarity + TF-IDF                                      | Judul TA, Institut Kesehatan            | 43% ditolak, 53% diterima                                        | Ilustrasi real-world decision threshold di kampus                                                             |
 
 ## 🔹 Matriks Tier 3 — Internasional
 
