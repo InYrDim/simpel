@@ -4,6 +4,7 @@ use App\Modules\Skripsi\Controllers\DaftarJudulController;
 use App\Modules\Skripsi\Controllers\MonitoringController;
 use App\Modules\Skripsi\Controllers\PengajuanJudulController;
 use App\Modules\Skripsi\Controllers\PutusanValidatorController;
+use App\Modules\Skripsi\Controllers\RiwayatPengajuanController;
 use App\Modules\Skripsi\Controllers\VerifikasiAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,4 +48,12 @@ Route::middleware(['auth', 'verified', 'role:admin|validator'])->prefix('skripsi
 // validator.
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/monitoring')->name('skripsi.monitoring.')->group(function (): void {
     Route::get('/', [MonitoringController::class, 'index'])->name('index');
+});
+
+// Admin & mahasiswa (PR 4 sesi 3): riwayat pengajuan — daftar baca-saja
+// dengan timeline detail di dialog. Catatan: multi-role Spatie memakai
+// PIPE (role:admin|mahasiswa) — koma akan dibaca sebagai argumen guard
+// kedua.
+Route::middleware(['auth', 'verified', 'role:admin|mahasiswa'])->prefix('skripsi/riwayat')->name('skripsi.riwayat.')->group(function (): void {
+    Route::get('/', [RiwayatPengajuanController::class, 'index'])->name('index');
 });

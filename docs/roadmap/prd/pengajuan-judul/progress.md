@@ -130,3 +130,10 @@ Sesi 1:
 - [x] Controller `MonitoringController` + halaman `skripsi/monitoring` (4 kartu statistik + bar chart per-status CSS ringan + daftar beban validator)
 - [x] Route `skripsi/monitoring` (role:admin) + submenu nav "Monitoring" (roles: admin); permission `view` tidak perlu — konsisten dengan konvensi routes modul lain (guard `role:` di middleware)
 - [x] Tests: `MonitoringTest` — 3 test (guard akses admin/mahasiswa/validator/tamu, angka agregasi semua status, urutan beban validator)
+
+### PR 4 — Riwayat Pengajuan (admin + mahasiswa) ✅ **Selesai**
+
+- [x] `RiwayatPengajuanService` — daftar baca-saja per baris lengkap dengan timeline `riwayat()`; admin melihat semua (`lihatSemua`), mahasiswa hanya miliknya; identitas via `AkademikContract::mahasiswaByUserId()` (satu panggilan per baris)
+- [x] `RiwayatPengajuanController` + route `skripsi/riwayat` (role:admin|mahasiswa) + nav "Riwayat Pengajuan" (roles: mahasiswa, admin)
+- [x] Halaman `skripsi/riwayat` — tabel pengajuan (status/mahasiswa/diajukan/jumlah judul) + dialog detail: ringkasan, judul, catatan, timeline kronologi
+- [x] Tests: `RiwayatPengajuanTest` — guard akses (validator ditolak), scope mahasiswa, kronologi lengkap 5 aksi, urutan terbaru dulu

@@ -3,6 +3,7 @@ import daftarJudul from '@/routes/skripsi/daftar-judul';
 import monitoring from '@/routes/skripsi/monitoring';
 import pengajuan from '@/routes/skripsi/pengajuan';
 import putusan from '@/routes/skripsi/putusan';
+import riwayat from '@/routes/skripsi/riwayat';
 import verifikasi from '@/routes/skripsi/verifikasi';
 import type { NavItem } from '@/types';
 
@@ -25,6 +26,11 @@ export const navigation: NavItem[] = [
                 title: 'Pengajuan',
                 href: pengajuan.status.url(),
                 roles: ['mahasiswa'],
+            },
+            {
+                title: 'Riwayat Pengajuan',
+                href: riwayat.index.url(),
+                roles: ['mahasiswa', 'admin'],
             },
             {
                 title: 'Verifikasi',
