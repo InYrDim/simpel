@@ -1,4 +1,5 @@
 import { usePage } from '@inertiajs/react';
+import { navigation as akademik } from '@/pages/akademik/navigation';
 import { navigation as manajemen } from '@/pages/manajemen/navigation';
 import type { NavItem } from '@/types';
 
@@ -10,7 +11,7 @@ import type { NavItem } from '@/types';
  * di-share Inertia. Server tetap sumber kebenaran — penyaringan di sini hanya
  * menyembunyikan UI yang memang tidak bisa diakses.
  */
-const moduleNavigation: NavItem[] = [...manajemen];
+const moduleNavigation: NavItem[] = [...akademik, ...manajemen];
 
 function isVisibleFor(item: NavItem, roles: string[]): boolean {
     return (
