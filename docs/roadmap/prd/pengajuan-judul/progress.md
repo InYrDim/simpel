@@ -6,11 +6,11 @@
 
 ## Ringkasan
 
-| Tahap (§7.5)                      | Status         | Commit                                        |
-| --------------------------------- | -------------- | --------------------------------------------- |
-| 1. Modul Akademik (§7.1)          | ✅ **Selesai** | `9bddf4a` + ekstensi validator-link (sesi 2)  |
-| 2. Modul Skripsi (§7.2)           | ✅ **Selesai** | sesi 2 — belum di-commit                      |
-| 3. Registrasi permission (§7.5.3) | ✅ **Selesai** | sesi 2 — `RolePermissionSeeder`               |
+| Tahap (§7.5)                      | Status         | Commit                                       |
+| --------------------------------- | -------------- | -------------------------------------------- |
+| 1. Modul Akademik (§7.1)          | ✅ **Selesai** | `9bddf4a` + ekstensi validator-link (sesi 2) |
+| 2. Modul Skripsi (§7.2)           | ✅ **Selesai** | sesi 2 — belum di-commit                     |
+| 3. Registrasi permission (§7.5.3) | ✅ **Selesai** | sesi 2 — `RolePermissionSeeder`              |
 
 Checks wajib hijau (§7.4) pada akhir sesi 2: `pint` ✅ · `phpstan` ✅ · `php artisan test` **110 passed** ✅ · `npm run check` ✅ · `npm run types:check` ✅
 

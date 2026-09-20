@@ -1,32 +1,39 @@
 # Module: Skripsi
 
 ## Owns
+
 - Database tables: `skripsi_pengajuan_juduls`, `skripsi_judul_pengajuans`
 - Core domain concepts: alur pengajuan judul skripsi — mahasiswa mengajukan tepat 3 judul + berkas, admin memverifikasi kelengkapan & menugaskan validator, validator memutuskan persetujuan satu judul
 
 ## Public interface (Contracts/)
+
 - Belum ada — modul ini adalah ujung (consumer) yang mengonsumsi `AkademikContract` dari modul Akademik. Bila kelak modul lain perlu membaca data pengajuan, interface-nya ditempatkan di `App\Modules\Contracts\` (PRD §7.2).
 
 ## Allowed dependencies
+
 - `App\Modules\Support\*` (kerangka modul)
 - `App\Modules\Contracts\*` (`AkademikContract` + DTO — satu-satunya akses ke data Akademik)
 - Shared kernel: `App\Http\Controllers\Controller`, `App\Models\User`
 - DILARANG mengimpor `App\Modules\Akademik\*` — digagalkan ModuleBoundaryTest/Pest Arch
 
 ## Events published
+
 - `PengajuanDiajukan` — mahasiswa submit pengajuan baru; payload: `pengajuan`
 - `PengajuanDiverifikasi` — admin memverifikasi (menugaskan validator) atau menolak; payload: `pengajuan`
 - `PengajuanDiputus` — validator memutuskan; payload: `pengajuan`, `judulDisetujui` (nullable)
 
 ## Events consumed
+
 - Tidak ada — listener internal modul mengirim database notification dari event milik sendiri (§5.4)
 
 ## Explicitly NOT exposed
+
 - Model Eloquent `PengajuanJudul`, `JudulPengajuan` — internal modul
 - Tabel `skripsi_*` — jangan di-query langsung dari modul lain (boundary rule #2)
 - Services transisi status (`SubmitPengajuan`, `VerifikasiAdmin`, `PutusanValidator`, `AssignPenugasan`) — hanya dipanggil controller modul ini
 
 ## Notes for maintainers
+
 - Transisi status di-guard di Services (bukan controller) — `StatusPengajuan::bolehTransisiKe()` + guard eksplisit per action (§6.5).
 - `mahasiswa_id`, `validator_id`, dan kolom `dosen_*` penugasan TANPA FK lintas modul; keberadaan ID dicek via `AkademikContract` di layer Action (§6.8).
 - Penugasan pembimbing/penguji diisi admin lewat modal detail Daftar Judul, hanya pada judul milik pengajuan `disetujui` (keputusan pelaksanaan §3.5).
