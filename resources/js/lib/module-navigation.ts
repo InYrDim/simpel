@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { navigation as akademik } from '@/pages/akademik/navigation';
 import { navigation as manajemen } from '@/pages/manajemen/navigation';
+import { navigation as skripsi } from '@/pages/skripsi/navigation';
 import type { NavItem } from '@/types';
 
 /**
@@ -11,9 +12,9 @@ import type { NavItem } from '@/types';
  * di-share Inertia. Server tetap sumber kebenaran — penyaringan di sini hanya
  * menyembunyikan UI yang memang tidak bisa diakses.
  */
-const moduleNavigation: NavItem[] = [...akademik, ...manajemen];
+const moduleNavigation: NavItem[] = [...akademik, ...manajemen, ...skripsi];
 
-function isVisibleFor(item: NavItem, roles: string[]): boolean {
+function isVisibleFor(item: { roles?: string[] }, roles: string[]): boolean {
     return (
         !item.roles?.length || item.roles.some((role) => roles.includes(role))
     );
@@ -22,5 +23,12 @@ function isVisibleFor(item: NavItem, roles: string[]): boolean {
 export function useModuleNavigation(): NavItem[] {
     const { auth } = usePage().props;
 
-    return moduleNavigation.filter((item) => isVisibleFor(item, auth.roles));
+    return moduleNavigation
+        .filter((item) => isVisibleFor(item, auth.roles))
+        .map((item) => ({
+            ...item,
+            children: item.children?.filter((child) =>
+                isVisibleFor(child, auth.roles),
+            ),
+        }));
 }

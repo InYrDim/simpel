@@ -50,6 +50,14 @@ class AkademikService implements AkademikContract
         return $dosen === null ? null : $this->toDosenDTO($dosen);
     }
 
+    public function dosenByUserId(int $userId): ?DosenDTO
+    {
+        /** @var Dosen|null $dosen */
+        $dosen = Dosen::query()->where('user_id', $userId)->first();
+
+        return $dosen === null ? null : $this->toDosenDTO($dosen);
+    }
+
     private function toMahasiswaDTO(Mahasiswa $m): MahasiswaDTO
     {
         return new MahasiswaDTO(
@@ -70,6 +78,7 @@ class AkademikService implements AkademikContract
             nama: $d->nama,
             nip: $d->nip,
             bidang: $d->bidang,
+            userId: $d->user_id,
         );
     }
 }

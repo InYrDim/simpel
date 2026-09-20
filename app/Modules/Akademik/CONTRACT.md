@@ -3,12 +3,10 @@
 ## Owns
 
 - Database tables: `akademik_dosens`, `akademik_mahasiswas`
-- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji) dan profil akademik mahasiswa (NIM, prodi, angkatan, dosen PA)
-
-## Public interface (Contracts/)
-
-- `AkademikContract` — resolusi profil mahasiswa (by user / by NIM), daftar dosen, detail dosen by ID
+- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji) dan profil akademik mahasiswa (NIM, prodi, angkatan, dosen PA)## Public interface (Contracts/)
+- `AkademikContract` — resolusi profil mahasiswa (by user / by NIM), daftar dosen, detail dosen by ID / by user, untuk konsumsi modul lain (mis. Skripsi)
 - `MahasiswaDTO`, `DosenDTO`, `DosenDTOList` — bentuk data yang melintasi batas modul
+- `DosenDTO->userId` — akun login dosen (biasanya role `validator`); modul lain memakai ini untuk resolusi penerima notifikasi tanpa menyentuh Akademik
 
 ## Allowed dependencies
 
@@ -22,12 +20,10 @@
 
 ## Events consumed
 
-- Tidak ada
-
-## Explicitly NOT exposed
-
+- Tidak ada## Explicitly NOT exposed
 - Model Eloquent `Dosen` dan `Mahasiswa` — internal modul. Modul lain wajib lewat `AkademikContract`.
 - Tabel `akademik_*` — jangan di-query langsung dari modul lain (boundary rule #2).
+- Penugasan role validator pada akun dosen — dikelola di luar modul (core seeder/admin), Akademik hanya menyimpan tautan `user_id`.
 
 ## Notes for maintainers
 

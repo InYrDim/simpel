@@ -49,6 +49,20 @@ class HandleInertiaRequests extends Middleware
                     ->pluck('name')
                     ->all() ?? [],
             ],
+            // Bel notifikasi in-app (§5.4 PRD pengajuan judul): data berasal
+            // dari trait Notifiable milik User (core) — modul manapun cukup
+            // mengirim notification database, core yang men-share ke UI.
+            'notifications' => fn (): array => [
+                'unread_count' => $request->user()?->unreadNotifications->count() ?? 0,
+                'items' => $request->user()?->notifications
+                    ->take(10)
+                    ->map(fn ($n): array => [
+                        'id' => $n->id,
+                        'data' => $n->data,
+                        'read_at' => $n->read_at?->toISOString(),
+                        'created_at' => $n->created_at->toISOString(),
+                    ])->all() ?? [],
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

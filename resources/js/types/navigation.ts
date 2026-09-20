@@ -13,5 +13,10 @@ export type NavItem = {
     isActive?: boolean;
     /** Role yang boleh melihat item ini. Kosong = terlihat oleh semua user. */
     roles?: string[];
-    children?: { title: string; href: InertiaLinkProps['href'] }[];
+    children?: {
+        title: string;
+        href: InertiaLinkProps['href'];
+        /** Role yang boleh melihat submenu ini. Kosong = ikut item induk. */
+        roles?: string[];
+    }[];
 };

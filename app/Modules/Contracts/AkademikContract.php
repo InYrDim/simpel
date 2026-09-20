@@ -33,4 +33,11 @@ interface AkademikContract
      * Detail satu dosen by ID, atau null bila tidak ada.
      */
     public function dosenById(int $id): ?DosenDTO;
+
+    /**
+     * Dosen pemilik akun user tertentu, atau null bila akun bukan dosen /
+     * belum terhubung — dipakai modul lain untuk resolusi validator dari
+     * akun login tanpa menyentuh internal Akademik.
+     */
+    public function dosenByUserId(int $userId): ?DosenDTO;
 }

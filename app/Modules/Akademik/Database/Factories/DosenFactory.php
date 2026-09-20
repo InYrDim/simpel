@@ -32,6 +32,7 @@ class DosenFactory extends Factory
                 'Jaringan Komputer',
                 'Sistem Informasi',
             ]),
+            'user_id' => null,
         ];
     }
 }
