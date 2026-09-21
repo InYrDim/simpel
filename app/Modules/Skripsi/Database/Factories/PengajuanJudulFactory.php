@@ -51,6 +51,20 @@ class PengajuanJudulFactory extends Factory
     }
 
     /**
+     * Pengajuan yang telah diputuskan validator: satu judul disetujui —
+     * judul-judulnya boleh diberi penugasan pembimbing/penguji (PRD §3.5).
+     */
+    public function disetujui(?int $validatorId = null): static
+    {
+        return $this->state(fn (): array => [
+            'status' => StatusPengajuan::Disetujui,
+            'validator_id' => $validatorId,
+            'verified_at' => now(),
+            'decided_at' => now(),
+        ]);
+    }
+
+    /**
      * Pengajuan yang ditolak admin.
      */
     public function ditolakAdmin(string $catatan = 'Berkas tidak lengkap.'): static

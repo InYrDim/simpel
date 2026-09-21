@@ -1,0 +1,22 @@
+# Files treehouse copies from the main checkout into each acquired worktree.
+# Only files that are gitignored AND matched here are seeded (.gitignore syntax).
+# Agent/IDE config is gitignored in this repo, so it must be seeded for agents
+# (CLAUDE.md, AGENTS.md, .mcp.json) to be visible inside worktrees.
+
+# Laravel runtime
+.env
+auth.json
+database/database.sqlite
+
+# Agent instructions & tooling config (all gitignored in this repo)
+AGENTS.md
+CLAUDE.md
+.mcp.json
+boost.json
+skills-lock.json
+.agents/
+.claude/
+.freebuff/
+
+# Transient state, useless in a fresh worktree
+!.claude/scheduled_tasks.lock

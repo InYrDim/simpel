@@ -33,3 +33,4 @@ Aturan singkat:
 | PRD                                                           | Status                                  | Progres                                                    |
 | ------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------- |
 | [Pengajuan Judul Skripsi](pengajuan-judul/pengajuan-judul.md) | Final — Akademik selesai, Skripsi belum | [pengajuan-judul/progress.md](pengajuan-judul/progress.md) |
+| [Beban Dosen](beban-dosen/beban-dosen.md)                     | Final — terimplementasi (21 Sep 2026)   | [beban-dosen/progress.md](beban-dosen/progress.md)         |

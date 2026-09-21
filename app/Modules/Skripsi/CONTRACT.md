@@ -33,7 +33,7 @@
 - Model Eloquent `PengajuanJudul`, `JudulPengajuan`, `PengajuanRiwayat` — internal modul
 - Tabel `skripsi_*` — jangan di-query langsung dari modul lain (boundary rule #2)
 - Services transisi status (`SubmitPengajuan`, `VerifikasiAdmin`, `PutusanValidator`, `AssignPenugasan`, `MintaRevisiAdmin`, `MintaRevisiValidator`, `ResubmitPengajuan`) — hanya dipanggil controller modul ini
-- Service agregasi `SkripsiMonitoringService` (statistik dashboard admin) — hanya dipanggil `MonitoringController` modul ini
+- Service agregasi `SkripsiMonitoringService` (statistik dashboard admin + sebaran beban dosen) — hanya dipanggil `MonitoringController` modul ini
 - Service baca-saja `RiwayatPengajuanService` (daftar pengajuan + timeline jejak audit) — hanya dipanggil `RiwayatPengajuanController` modul ini
 
 ## Notes for maintainers
@@ -46,4 +46,5 @@
 - Jejak audit transisi status tersimpan dalam tabel `skripsi_pengajuan_riwayats` melalui listener internal modul (PR 1 sesi 3).
 - Alur revisi (PR 2 sesi 3): status `direvisi` masuk himpunan pengajuan aktif (menghalangi pengajuan baru); resubmit terjadi pada pengajuan yang SAMA — berbeda dari penolakan, yang menuntut pengajuan baru (§8 keputusan #1).
 - Dashboard monitoring (PR 3 sesi 3): statistik agregat baca-saja (`total`, `per_status`, `per_validator`, `bulan_ini`) lewat `SkripsiMonitoringService`; nama dosen di-resolusi via `AkademikContract::dosenById()` — semua status enum selalu hadir di `per_status` (termasuk nol) agar urutan UI stabil.
+- Sebaran Beban Dosen (PRD Beban Dosen, 21 Sep 2026): `SkripsiMonitoringService::bebanDosen()` mengagregasi 5 peran (validator aktif + 4 kolom `dosen_*` judul disetujui) per dosen; cakupan SEMUA dosen Akademik via SATU panggilan `daftarDosen()` (beban 0 tetap tampil, dosen tak terdaftar tampil `-`); beban kumulatif tanpa konsep "selesai"; urutan Total menurun lalu nama. Tetap baca-saja, tanpa route baru (guard `role:admin` grup monitoring).
 - Halaman Riwayat Pengajuan (PR 4 sesi 3): daftar baca-saja; admin melihat semua pengajuan, mahasiswa hanya miliknya; timeline kronologi berasal dari relasi `riwayat()` yang sama, dituang per baris agar dialog detail tidak butuh endpoint terpisah (pola modal Daftar Judul).

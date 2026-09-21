@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
+use App\Modules\Skripsi\Models\JudulPengajuan;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
@@ -15,11 +16,17 @@ beforeEach(function () {
     Notification::fake();
 });
 
-function monitoringMahasiswa(): User
+function monitoringMahasiswa(?int $dosenPaId = null): User
 {
     $user = User::factory()->create();
     $user->assignRole('mahasiswa');
-    Mahasiswa::factory()->create(['user_id' => $user->id]);
+    Mahasiswa::factory()->create([
+        'user_id' => $user->id,
+        // Tanpa dosen PA eksplisit, factory membuat dosen acak — dosen itu
+        // sah muncul di sebaran beban (PRD Beban Dosen §4: semua dosen
+        // Akademik tampil). Test sebaran memakai dosen yang sudah dikenal.
+        'dosen_pa_id' => $dosenPaId ?? Dosen::factory(),
+    ]);
 
     return $user;
 }
@@ -149,6 +156,106 @@ test('angka agregasi mencerminkan keadaan seluruh pengajuan', function () {
             ->where('per_validator', [
                 ['dosen_id' => $dosen1->id, 'dosen_nama' => $dosen1->nama, 'beban' => 1],
             ]));
+});
+
+test('sebaran beban dosen mencakup semua dosen dengan rincian per peran', function () {
+    // Nama eksplisit agar urutan (total desc, lalu nama asc) deterministik.
+    $dosenProlifik = Dosen::factory()->create(['nama' => 'Prolifik']);
+    $dosenSekali = Dosen::factory()->create(['nama' => 'Anek']);
+    $dosenKosong = Dosen::factory()->create(['nama' => 'Zulfikar']);
+
+    // Judul disetujui: b1 & u1 = prolifik, b2 = sekali.
+    $disetujui1 = PengajuanJudul::factory()->disetujui()->create();
+    JudulPengajuan::factory()->create([
+        'pengajuan_judul_id' => $disetujui1->id,
+        'dosen_pembimbing_1' => $dosenProlifik->id,
+        'dosen_pembimbing_2' => $dosenSekali->id,
+        'dosen_penguji_1' => $dosenProlifik->id,
+    ]);
+
+    // Judul disetujui kedua: b1 & u2 = prolifik → total prolifik = 4.
+    $disetujui2 = PengajuanJudul::factory()->disetujui()->create();
+    JudulPengajuan::factory()->create([
+        'pengajuan_judul_id' => $disetujui2->id,
+        'dosen_pembimbing_1' => $dosenProlifik->id,
+        'dosen_penguji_2' => $dosenProlifik->id,
+    ]);
+
+    // Penugasan pada pengajuan BELUM disetujui tidak dihitung.
+    $belumDisetujui = PengajuanJudul::factory()->create();
+    JudulPengajuan::factory()->create([
+        'pengajuan_judul_id' => $belumDisetujui->id,
+        'dosen_pembimbing_1' => $dosenProlifik->id,
+    ]);
+
+    // Validator aktif: pengajuan sedang direview dosenValidator. Nama
+    // eksplisit: total 1 seri dengan Anek — tiebreak nama harus deterministik
+    // (Anek < Validator < Zulfikar).
+    $validator1 = monitoringValidator();
+    $dosenValidator = Dosen::factory()->create(['user_id' => $validator1->id, 'nama' => 'Validator']);
+    monitoringVerifikasi(monitoringAjukan(monitoringMahasiswa(dosenPaId: $dosenKosong->id)), $dosenValidator);
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.monitoring.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('beban_dosen', [
+            ['dosen_id' => $dosenProlifik->id, 'dosen_nama' => $dosenProlifik->nama,
+                'validator_aktif' => 0, 'pembimbing_1' => 2, 'pembimbing_2' => 0,
+                'penguji_1' => 1, 'penguji_2' => 1, 'total' => 4],
+            ['dosen_id' => $dosenSekali->id, 'dosen_nama' => $dosenSekali->nama,
+                'validator_aktif' => 0, 'pembimbing_1' => 0, 'pembimbing_2' => 1,
+                'penguji_1' => 0, 'penguji_2' => 0, 'total' => 1],
+            ['dosen_id' => $dosenValidator->id, 'dosen_nama' => $dosenValidator->nama,
+                'validator_aktif' => 1, 'pembimbing_1' => 0, 'pembimbing_2' => 0,
+                'penguji_1' => 0, 'penguji_2' => 0, 'total' => 1],
+            ['dosen_id' => $dosenKosong->id, 'dosen_nama' => $dosenKosong->nama,
+                'validator_aktif' => 0, 'pembimbing_1' => 0, 'pembimbing_2' => 0,
+                'penguji_1' => 0, 'penguji_2' => 0, 'total' => 0],
+        ]));
+});
+
+test('dosen tanpa akun tetap tampil dan dosen tak terdaftar tampil sebagai "-"', function () {
+    $dosenTanpaAkun = Dosen::factory()->create(['user_id' => null]);
+    $disetujui = PengajuanJudul::factory()->disetujui()->create();
+    JudulPengajuan::factory()->create([
+        'pengajuan_judul_id' => $disetujui->id,
+        'dosen_pembimbing_1' => $dosenTanpaAkun->id,
+        'dosen_penguji_1' => 999999, // id dosen yang sudah tak terdaftar
+    ]);
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.monitoring.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('beban_dosen', function ($rows) use ($dosenTanpaAkun): bool {
+            $perId = $rows->keyBy('dosen_id');
+            expect($rows)->toHaveCount(2);
+            expect($perId->get($dosenTanpaAkun->id)['dosen_nama'])->toBe($dosenTanpaAkun->nama);
+            expect($perId->get($dosenTanpaAkun->id)['total'])->toBe(1);
+            expect($perId->get(999999)['dosen_nama'])->toBe('-');
+            expect($perId->get(999999)['penguji_1'])->toBe(1);
+
+            return true;
+        }));
+});
+
+test('sebaran beban dosen diurutkan dari total tertinggi lalu nama', function () {
+    $dosenA = Dosen::factory()->create(['nama' => 'Andi']);
+    $dosenB = Dosen::factory()->create(['nama' => 'Budi']);
+    Dosen::factory()->create(['nama' => 'Cici']);
+
+    // Budi 2 penugasan, Andi 1, Cici 0 — urutan Total menurun.
+    $disetujui = PengajuanJudul::factory()->disetujui()->create();
+    JudulPengajuan::factory()->create([
+        'pengajuan_judul_id' => $disetujui->id,
+        'dosen_pembimbing_1' => $dosenB->id,
+        'dosen_penguji_1' => $dosenB->id,
+        'dosen_pembimbing_2' => $dosenA->id,
+    ]);
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.monitoring.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('beban_dosen', fn ($rows): bool => $rows->pluck('dosen_nama')->values()->all() === ['Budi', 'Andi', 'Cici']));
 });
 
 test('beban validator diurutkan dari penugasan terbanyak', function () {
