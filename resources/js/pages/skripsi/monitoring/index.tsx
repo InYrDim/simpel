@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Column, DataTable } from '@/components/data-table';
 import monitoring from '@/routes/skripsi/monitoring';
 import skripsi from '@/routes/skripsi';
 
@@ -16,11 +17,23 @@ type ValidatorStat = {
     beban: number;
 };
 
+type BebanDosenRow = {
+    dosen_id: number;
+    dosen_nama: string;
+    validator_aktif: number;
+    pembimbing_1: number;
+    pembimbing_2: number;
+    penguji_1: number;
+    penguji_2: number;
+    total: number;
+};
+
 type MonitoringPageProps = {
     total: number;
     per_status: StatusStat[];
     per_validator: ValidatorStat[];
     bulan_ini: number;
+    beban_dosen: BebanDosenRow[];
 };
 
 const STATUS_VARIANT: Record<
@@ -36,11 +49,28 @@ const STATUS_VARIANT: Record<
     ditolak_validator: 'destructive',
 };
 
+const bebanDosenColumns: Column<BebanDosenRow>[] = [
+    { key: 'dosen_nama', label: 'Dosen' },
+    { key: 'validator_aktif', label: 'Validator aktif' },
+    { key: 'pembimbing_1', label: 'Pembimbing 1' },
+    { key: 'pembimbing_2', label: 'Pembimbing 2' },
+    { key: 'penguji_1', label: 'Penguji 1' },
+    { key: 'penguji_2', label: 'Penguji 2' },
+    {
+        key: 'total',
+        label: 'Total',
+        render: (row) => (
+            <span className="font-semibold tabular-nums">{row.total}</span>
+        ),
+    },
+];
+
 export default function MonitoringIndex({
     total,
     per_status,
     per_validator,
     bulan_ini,
+    beban_dosen,
 }: MonitoringPageProps) {
     const jumlahStatus = (status: string) =>
         per_status.find((s) => s.status === status)?.jumlah ?? 0;
@@ -96,6 +126,19 @@ export default function MonitoringIndex({
                                 </span>
                             </div>
                         ))}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Sebaran Beban Dosen</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                            columns={bebanDosenColumns}
+                            data={beban_dosen}
+                            getRowKey={(row) => row.dosen_id}
+                        />
                     </CardContent>
                 </Card>
 
