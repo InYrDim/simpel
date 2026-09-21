@@ -1,0 +1,6 @@
+# Treehouse worktree pool — https://github.com/kunchenguid/treehouse
+# Pool lives at ~/.treehouse/skibidi (default root).
+max_trees = 8
+
+# Worktrees are cut from origin/HEAD (main) unless overridden:
+# base_branch = "main"
