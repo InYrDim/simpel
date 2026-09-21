@@ -2,5 +2,6 @@
 # Pool lives at ~/.treehouse/skibidi (default root).
 max_trees = 8
 
-# Worktrees are cut from origin/HEAD (main) unless overridden:
-# base_branch = "main"
+# Worktrees are cut from staging (where active development happens;
+# main only receives merged PRs).
+base_branch = "staging"
