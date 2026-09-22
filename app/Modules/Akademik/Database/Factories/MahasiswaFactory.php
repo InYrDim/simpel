@@ -30,7 +30,7 @@ class MahasiswaFactory extends Factory
             'nama' => fake()->name(),
             'nim' => fake()->unique()->numerify('21#########'),
             'dosen_pa_id' => Dosen::factory(),
-            'prodi' => fake()->randomElement(['Teknik Informatika', 'Sistem Informasi']),
+            'prodi_id' => null,
             'angkatan' => fake()->numberBetween(2020, 2025),
         ];
     }

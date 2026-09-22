@@ -1,10 +1,13 @@
 <?php
 
+use App\Modules\Skripsi\Controllers\BebanDosenController;
 use App\Modules\Skripsi\Controllers\DaftarJudulController;
+use App\Modules\Skripsi\Controllers\ExportController;
 use App\Modules\Skripsi\Controllers\MonitoringController;
 use App\Modules\Skripsi\Controllers\PengajuanJudulController;
 use App\Modules\Skripsi\Controllers\PutusanValidatorController;
 use App\Modules\Skripsi\Controllers\RiwayatPengajuanController;
+use App\Modules\Skripsi\Controllers\StatistikController;
 use App\Modules\Skripsi\Controllers\VerifikasiAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,10 +47,14 @@ Route::middleware(['auth', 'verified', 'role:admin|validator'])->prefix('skripsi
         ->name('assign');
 });
 
-// Admin (PR 3 sesi 3): dashboard monitoring — statistik pengajuan & beban
-// validator.
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/monitoring')->name('skripsi.monitoring.')->group(function (): void {
-    Route::get('/', [MonitoringController::class, 'index'])->name('index');
+// Admin (PR 3 sesi 3 — dipecah jadi menu Laporan): statistik ringkasan,
+// monitoring per pengajuan, dan sebaran beban dosen.
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi')->name('skripsi.')->group(function (): void {
+    Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
+    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('/beban-dosen', [BebanDosenController::class, 'index'])->name('beban-dosen.index');
+    Route::get('/export', [ExportController::class, 'index'])->name('export.index');
+    Route::get('/export.csv', [ExportController::class, 'download'])->name('export.csv');
 });
 
 // Admin & mahasiswa (PR 4 sesi 3): riwayat pengajuan — daftar baca-saja

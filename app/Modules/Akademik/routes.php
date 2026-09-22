@@ -2,6 +2,7 @@
 
 use App\Modules\Akademik\Controllers\DosenController;
 use App\Modules\Akademik\Controllers\MahasiswaController;
+use App\Modules\Akademik\Controllers\ProdiController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('akademik')->name('akademik.')->group(function (): void {
@@ -14,4 +15,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('akademik')->name(
     Route::post('/mahasiswa', [MahasiswaController::class, 'store'])->name('mahasiswa.store');
     Route::put('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
     Route::delete('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'destroy'])->name('mahasiswa.destroy');
+
+    Route::get('/prodi', [ProdiController::class, 'index'])->name('prodi.index');
+    Route::post('/prodi', [ProdiController::class, 'store'])->name('prodi.store');
+    Route::put('/prodi/{prodi}', [ProdiController::class, 'update'])->name('prodi.update');
+    Route::delete('/prodi/{prodi}', [ProdiController::class, 'destroy'])->name('prodi.destroy');
 });

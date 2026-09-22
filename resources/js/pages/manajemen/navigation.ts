@@ -1,6 +1,8 @@
 import { Users } from 'lucide-react';
 import manajemen from '@/routes/manajemen';
+import jurusan from '@/routes/manajemen/jurusan';
 import pengguna from '@/routes/manajemen/pengguna';
+import peran from '@/routes/manajemen/peran';
 import type { NavItem } from '@/types';
 
 /**
@@ -19,8 +21,16 @@ export const navigation: NavItem[] = [
         roles: ['admin'],
         children: [
             {
-                title: 'Pengguna',
+                title: 'Akun',
                 href: pengguna.index.url(),
+            },
+            {
+                title: 'Jurusan',
+                href: jurusan.edit.url(),
+            },
+            {
+                title: 'Peran',
+                href: peran.index.url(),
             },
         ],
     },
