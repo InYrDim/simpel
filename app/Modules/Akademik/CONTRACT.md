@@ -2,12 +2,15 @@
 
 ## Owns
 
-- Database tables: `akademik_dosens`, `akademik_mahasiswas`
-- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji) dan profil akademik mahasiswa (NIM, prodi, angkatan, dosen PA)## Public interface (Contracts/)
-- `AkademikContract` — resolusi profil mahasiswa (by user / by NIM / sekumpulan user sekaligus), daftar dosen, detail dosen by ID / by user, untuk konsumsi modul lain (mis. Skripsi)
-- `MahasiswaDTO`, `DosenDTO`, `DosenDTOList`, `MahasiswaDTOList` — bentuk data yang melintasi batas modul
-- `MahasiswaDTOList` — hasil batch `mahasiswaByUserIds()`; pemetaan per baris lewat `byUserId()` (id tak dikenal → `null`)
+- Database tables: `akademik_dosens`, `akademik_mahasiswas`, `akademik_prodis`
+- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji), profil akademik mahasiswa (NIM, angkatan, dosen PA), dan program studi (Prodi, kaprodi)
+
+## Public interface (Contracts/)
+
+- `AkademikContract` — resolusi profil mahasiswa (by user / by NIM), daftar dosen, detail dosen by ID / by user, untuk konsumsi modul lain (mis. Skripsi)
+- `MahasiswaDTO`, `DosenDTO`, `DosenDTOList` — bentuk data yang melintasi batas modul
 - `DosenDTO->userId` — akun login dosen (biasanya role `validator`); modul lain memakai ini untuk resolusi penerima notifikasi tanpa menyentuh Akademik
+- `MahasiswaDTO->prodi` tetap string (nama prodi, di-resolve dari relasi `prodi_id`) agar konsumen Skripsi tidak ikut berubah saat kolom beralih ke FK
 
 ## Allowed dependencies
 

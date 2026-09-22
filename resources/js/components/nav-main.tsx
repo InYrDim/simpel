@@ -16,8 +16,8 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { useCurrentUrl } from '@/hooks/use-current-url';
-import type { NavItem } from '@/types';
+import { useCurrentUrl, type IsCurrentUrlFn } from '@/hooks/use-current-url';
+import type { NavChild, NavItem } from '@/types';
 
 export function NavMain({ items }: { items: NavItem[] }) {
     return (
@@ -33,7 +33,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
 }
 
 /**
- * Satu item navigasi.
+ * Satu item navigasi tingkat atas.
  *
  * Dipisah menjadi komponen sendiri karena memakai hook — daftar nav kini
  * dinamis (disaring per role), jadi jumlah item bisa berubah antar render dan
@@ -43,7 +43,7 @@ function NavMainItem({ item }: { item: NavItem }) {
     const { isCurrentUrl } = useCurrentUrl();
     const children = item.children ?? [];
     const [open, setOpen] = useState(
-        children.some((child) => isCurrentUrl(child.href)),
+        children.some((child) => childHasActiveHref(child, isCurrentUrl)),
     );
 
     if (children.length === 0) {
@@ -76,20 +76,68 @@ function NavMainItem({ item }: { item: NavItem }) {
                 <CollapsibleContent>
                     <SidebarMenuSub>
                         {children.map((child) => (
-                            <SidebarMenuSubItem key={child.title}>
-                                <SidebarMenuSubButton
-                                    asChild
-                                    isActive={isCurrentUrl(child.href)}
-                                >
-                                    <Link href={child.href} prefetch>
-                                        <span>{child.title}</span>
-                                    </Link>
-                                </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
+                            <NavSubItem key={child.title} child={child} />
                         ))}
                     </SidebarMenuSub>
                 </CollapsibleContent>
             </SidebarMenuItem>
         </Collapsible>
+    );
+}
+
+/**
+ * Item submenu, render rekursif untuk mendukung nested.
+ */
+function NavSubItem({ child }: { child: NavChild }) {
+    const { isCurrentUrl } = useCurrentUrl();
+    const children = child.children ?? [];
+    const [open, setOpen] = useState(
+        children.some((sub) => childHasActiveHref(sub, isCurrentUrl)),
+    );
+
+    if (children.length === 0) {
+        const href = child.href!;
+        return (
+            <SidebarMenuSubItem>
+                <SidebarMenuSubButton asChild isActive={isCurrentUrl(href)}>
+                    <Link href={href} prefetch>
+                        <span>{child.title}</span>
+                    </Link>
+                </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+        );
+    }
+
+    return (
+        <Collapsible open={open} onOpenChange={setOpen}>
+            <SidebarMenuSubItem>
+                <CollapsibleTrigger asChild>
+                    <SidebarMenuSubButton>
+                        <span>{child.title}</span>
+                        <ChevronRight className="ml-auto transition-transform duration-200 [&[data-state=open]]:rotate-90" />
+                    </SidebarMenuSubButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <SidebarMenuSub>
+                        {children.map((sub) => (
+                            <NavSubItem key={sub.title} child={sub} />
+                        ))}
+                    </SidebarMenuSub>
+                </CollapsibleContent>
+            </SidebarMenuSubItem>
+        </Collapsible>
+    );
+}
+
+function childHasActiveHref(
+    child: NavChild,
+    isCurrentUrl: IsCurrentUrlFn,
+): boolean {
+    if (child.href && isCurrentUrl(child.href)) {
+        return true;
+    }
+
+    return (child.children ?? []).some((sub) =>
+        childHasActiveHref(sub, isCurrentUrl),
     );
 }
