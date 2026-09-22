@@ -7,6 +7,7 @@ use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Notifications\PengajuanDiajukan as PengajuanDiajukanNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -133,6 +134,30 @@ test('submitting notifies admins via database notification', function () {
     $this->actingAs($user)->post(route('skripsi.pengajuan.store'), validPayload());
 
     Notification::assertSentTo($admin, PengajuanDiajukanNotification::class);
+});
+
+test('notifikasi tidak terkirim saat transaksi pembungkus event di-rollback', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $user = mahasiswaWithProfile();
+
+    try {
+        DB::transaction(function () use ($user): void {
+            $this->actingAs($user)->post(route('skripsi.pengajuan.store'), validPayload());
+
+            // Rollback disengaja: yang diuji adalah efek sampingnya — submit
+            // dibatalkan, jadi notifikasi ke admin tidak boleh terkirim
+            // (PRD ketahanan-teknis §3.1 `$afterCommit`).
+            throw new RuntimeException('Batalkan transaksi untuk menguji rollback.');
+        });
+    } catch (RuntimeException) {
+        // Diharapkan: transaksi pembungkus di-rollback.
+    }
+
+    expect(PengajuanJudul::count())->toBe(0);
+    Notification::assertNothingSent();
 });
 
 test('status page shows belum mengajukan when none exists', function () {
