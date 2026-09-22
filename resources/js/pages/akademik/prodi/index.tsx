@@ -3,7 +3,6 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -57,7 +56,7 @@ export default function ProdiIndex({
                     <CreateProdiDialog kaprodiOptions={kaprodiOptions} />
                 </div>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <form
                         className="flex items-center gap-2"
                         onChange={(e) => {
@@ -89,7 +88,7 @@ export default function ProdiIndex({
                         Menampilkan {prodis.data.length} dari {prodis.total}{' '}
                         prodi
                     </div>
-                </Card>
+                </section>
             </div>
         </>
     );

@@ -2,7 +2,6 @@ import { Head, router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -80,7 +79,7 @@ export default function DaftarJudulIndex({
                     <h1 className="text-2xl font-bold">Daftar Judul</h1>
                 </div>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <form
                         className="flex items-center gap-2"
                         onChange={(e) => {
@@ -192,7 +191,7 @@ export default function DaftarJudulIndex({
                             )}
                         </div>
                     </div>
-                </Card>
+                </section>
 
                 <DetailModal
                     judul={detail}

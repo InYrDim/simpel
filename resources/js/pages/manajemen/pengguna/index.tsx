@@ -3,7 +3,6 @@ import { Search, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/data-table';
 import { userColumns } from '@/pages/manajemen/components/user-columns';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { PaginatedUsers } from '@/types';
 import manajemen from '@/routes/manajemen';
@@ -27,7 +26,7 @@ export default function PenggunaIndex({ users, filters }: UsersPageProps) {
                     </Button>
                 </div>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <form
                         className="flex items-center gap-2"
                         onChange={(e) => {
@@ -59,7 +58,7 @@ export default function PenggunaIndex({ users, filters }: UsersPageProps) {
                         Menampilkan {users.data.length} dari {users.total}{' '}
                         pengguna
                     </div>
-                </Card>
+                </section>
             </div>
         </>
     );

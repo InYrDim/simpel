@@ -2,7 +2,6 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -80,7 +79,7 @@ export default function RiwayatIndex({ pengajuans }: RiwayatPageProps) {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <h1 className="text-2xl font-bold">Riwayat Pengajuan</h1>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <div className="rounded-md border">
                         <table className="w-full text-sm">
                             <thead>
@@ -181,7 +180,7 @@ export default function RiwayatIndex({ pengajuans }: RiwayatPageProps) {
                             )}
                         </div>
                     </div>
-                </Card>
+                </section>
 
                 <DetailDialog
                     pengajuan={detail}

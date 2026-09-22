@@ -31,21 +31,21 @@
              resources/css/app.css agar tampilannya sejalan dengan aplikasi. --}}
         <style>
             :root {
-                --background: oklch(1 0 0);
-                --foreground: oklch(0.145 0 0);
-                --muted-foreground: oklch(0.556 0 0);
-                --border: oklch(0.922 0 0);
-                --primary: oklch(0.205 0 0);
-                --primary-foreground: oklch(0.985 0 0);
+                --background: oklch(0.994 0 0);
+                --foreground: oklch(0 0 0);
+                --muted-foreground: oklch(0.4386 0 0);
+                --border: oklch(0.93 0.0094 286.2156);
+                --primary: oklch(0.6609 0.158 243.9173);
+                --primary-foreground: oklch(1 0 0);
             }
 
             .dark {
-                --background: oklch(0.145 0 0);
-                --foreground: oklch(0.985 0 0);
-                --muted-foreground: oklch(0.708 0 0);
-                --border: oklch(0.269 0 0);
-                --primary: oklch(0.985 0 0);
-                --primary-foreground: oklch(0.205 0 0);
+                --background: oklch(0.1448 0 0);
+                --foreground: oklch(0.9551 0 0);
+                --muted-foreground: oklch(0.6731 0 0);
+                --border: oklch(0.2393 0 0);
+                --primary: oklch(0.6609 0.158 243.9173);
+                --primary-foreground: oklch(1 0 0);
             }
 
             * {
@@ -97,7 +97,7 @@
                 display: inline-block;
                 padding: 0.5rem 1rem;
                 border: 1px solid var(--border);
-                border-radius: 0.625rem;
+                border-radius: 1.2rem;
                 background-color: var(--primary);
                 color: var(--primary-foreground);
                 font-size: 0.875rem;
