@@ -13,11 +13,16 @@ use Illuminate\Support\Facades\Route;
 
 // Mahasiswa (§5.1): panel status + submit pengajuan + template DOCX.
 // Resubmit (alur revisi, sesi 3) mengirim ulang pengajuan yang sama saat
-// statusnya `direvisi`.
+// statusnya `direvisi`. Submit & resubmit dibatasi rate limiter
+// `pengajuan-submit` (5/menit per akun, PRD ketahanan-teknis §3.3).
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('skripsi/pengajuan')->name('skripsi.pengajuan.')->group(function (): void {
     Route::get('/', [PengajuanJudulController::class, 'status'])->name('status');
-    Route::post('/', [PengajuanJudulController::class, 'store'])->name('store');
-    Route::post('/{pengajuan}/resubmit', [PengajuanJudulController::class, 'resubmit'])->name('resubmit');
+    Route::post('/', [PengajuanJudulController::class, 'store'])
+        ->middleware('throttle:pengajuan-submit')
+        ->name('store');
+    Route::post('/{pengajuan}/resubmit', [PengajuanJudulController::class, 'resubmit'])
+        ->middleware('throttle:pengajuan-submit')
+        ->name('resubmit');
     Route::get('/template', [PengajuanJudulController::class, 'template'])->name('template');
 });
 

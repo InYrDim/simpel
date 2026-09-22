@@ -34,3 +34,4 @@
 - `users` adalah tabel core, jadi FK `akademik_mahasiswas.user_id → users` diperbolehkan (PRD §3.1). FK ke tabel modul lain tetap dilarang.
 - Saat modul Skripsi dibangun, ia mengonsumsi `AkademikContract` ini untuk daftar dosen (penugasan validator) dan data mahasiswa — bukan mengimpor model di sini.
 - CRUD admin dosen & mahasiswa dipagari `role:admin` di `routes.php`; Skripsi nanti menambah guard role-nya sendiri.
+- `mahasiswaByUserIds()` adalah jalur BATCH (satu query `whereIn`) untuk konsumen yang memetakan identitas per baris — dipakai halaman Riwayat Pengajuan agar tidak N+1 (PRD ketahanan-teknis §3.2, keputusan #3). Daftar `user_id` kosong tidak menembak query sama sekali.

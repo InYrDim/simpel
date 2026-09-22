@@ -7,6 +7,7 @@ use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Notifications\PengajuanDiajukan as PengajuanDiajukanNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -87,6 +88,85 @@ test('submission is rejected when file is not pdf or too large', function () {
     expect(PengajuanJudul::count())->toBe(0);
 });
 
+test('berkas ber-ekstensi pdf yang isinya bukan pdf ditolak', function () {
+    $user = mahasiswaWithProfile();
+
+    // Berkas NYATA (bukan `UploadedFile::fake`) supaya deteksi MIME benar-
+    // benar membaca isi berkas, bukan nama ekstensinya.
+    $path = (string) tempnam(sys_get_temp_dir(), 'palsu');
+    file_put_contents($path, 'ini jelas bukan berkas PDF.');
+
+    $payload = validPayload();
+    $payload['berkas'] = new UploadedFile($path, 'palsu.pdf', 'application/pdf', null, true);
+
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), $payload)
+        ->assertSessionHasErrors('berkas');
+
+    expect(PengajuanJudul::count())->toBe(0);
+});
+
+test('berkas pdf dengan mime alias yang sah tetap diterima', function (string $mime) {
+    $user = mahasiswaWithProfile();
+
+    $payload = validPayload();
+    $payload['berkas'] = UploadedFile::fake()->create('surat-pengajuan.pdf', 500, $mime);
+
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), $payload)
+        ->assertRedirect(route('skripsi.pengajuan.status'));
+
+    expect(PengajuanJudul::count())->toBe(1);
+})->with([
+    'application/pdf',
+    'application/acrobat',
+    'application/nappdf',
+    'application/x-pdf',
+    'image/pdf',
+]);
+
+test('berkas pdf yang MIME-nya tak terdeteksi (octet-stream) ditolak', function () {
+    $user = mahasiswaWithProfile();
+
+    $payload = validPayload();
+    $payload['berkas'] = UploadedFile::fake()->create('palsu.pdf', 500, 'application/octet-stream');
+
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), $payload)
+        ->assertSessionHasErrors('berkas');
+
+    expect(PengajuanJudul::count())->toBe(0);
+});
+
+test('submit keenam dalam satu menit oleh akun yang sama ditolak 429 dengan halaman error kustom', function () {
+    $user = mahasiswaWithProfile();
+
+    // Lima percobaan pertama lolos rate limiter (yang ke-2 dst. tetap gagal
+    // di guard "satu pengajuan aktif", tapi tetap dihitung limiter).
+    for ($percobaan = 0; $percobaan < 5; $percobaan++) {
+        $this->actingAs($user)->post(route('skripsi.pengajuan.store'), validPayload());
+    }
+
+    // Permintaan non-XHR: Laravel memilih errors/429.blade.php dan tetap
+    // meneruskan header Retry-After (PRD ketahanan-teknis §3.5).
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), validPayload())
+        ->assertStatus(429)
+        ->assertHeader('Retry-After')
+        ->assertSee('Terlalu banyak percobaan');
+});
+
+test('halaman error 429 tidak dipakai untuk status error lain', function () {
+    $user = mahasiswaWithProfile();
+
+    // 404 memakai jalur bawaan Laravel — memastikan halaman 429 tidak melebar
+    // ke seluruh kelas 4xx (Laravel juga mencari `errors/4xx`).
+    $this->actingAs($user)
+        ->get('/halaman-tidak-ada')
+        ->assertNotFound()
+        ->assertDontSee('Terlalu banyak percobaan');
+});
+
 test('mahasiswa without akademik profile cannot submit', function () {
     $user = User::factory()->create();
     $user->assignRole('mahasiswa');
@@ -133,6 +213,30 @@ test('submitting notifies admins via database notification', function () {
     $this->actingAs($user)->post(route('skripsi.pengajuan.store'), validPayload());
 
     Notification::assertSentTo($admin, PengajuanDiajukanNotification::class);
+});
+
+test('notifikasi tidak terkirim saat transaksi pembungkus event di-rollback', function () {
+    Notification::fake();
+
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $user = mahasiswaWithProfile();
+
+    try {
+        DB::transaction(function () use ($user): void {
+            $this->actingAs($user)->post(route('skripsi.pengajuan.store'), validPayload());
+
+            // Rollback disengaja: yang diuji adalah efek sampingnya — submit
+            // dibatalkan, jadi notifikasi ke admin tidak boleh terkirim
+            // (PRD ketahanan-teknis §3.1 `$afterCommit`).
+            throw new RuntimeException('Batalkan transaksi untuk menguji rollback.');
+        });
+    } catch (RuntimeException) {
+        // Diharapkan: transaksi pembungkus di-rollback.
+    }
+
+    expect(PengajuanJudul::count())->toBe(0);
+    Notification::assertNothingSent();
 });
 
 test('status page shows belum mengajukan when none exists', function () {

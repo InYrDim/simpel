@@ -24,6 +24,16 @@ interface AkademikContract
     public function mahasiswaByNim(string $nim): ?MahasiswaDTO;
 
     /**
+     * Profil akademik milik sekumpulan akun user sekaligus — satu query
+     * `whereIn`, bukan satu panggilan per user (PRD ketahanan-teknis §3.2).
+     * `user_id` yang tidak dikenal cukup absen dari hasil — pemanggil
+     * menanganinya sendiri (mis. tampilkan `-`).
+     *
+     * @param  list<int>  $userIds
+     */
+    public function mahasiswaByUserIds(array $userIds): MahasiswaDTOList;
+
+    /**
      * Daftar dosen lengkap — dipakai admin untuk menugaskan validator,
      * pembimbing, dan penguji (PRD §5.3, §3.2 `bidang`).
      */
