@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Modules\Manajemen\Database\Seeders\JurusanSeeder;
 use App\Modules\Manajemen\Models\Jurusan;
 use Database\Seeders\RolePermissionSeeder;
 
@@ -16,87 +17,86 @@ function manajemenAdmin(): User
     return $user;
 }
 
-test('admin can create, update, and delete a jurusan', function () {
+test('admin dapat melihat profil jurusan', function () {
+    Jurusan::factory()->create([
+        'nama' => 'Teknik Informatika',
+        'ketua_nama' => 'Prof. Andi',
+    ]);
+
     $this->actingAs(manajemenAdmin())
-        ->post(route('manajemen.jurusan.store'), [
-            'nama' => 'Informatika',
+        ->get(route('manajemen.jurusan.edit'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('manajemen/jurusan/index')
+            ->where('jurusan.nama', 'Teknik Informatika')
+            ->where('jurusan.ketua_nama', 'Prof. Andi'));
+});
+
+test('profil jurusan belum ada saat tabel kosong', function () {
+    $this->actingAs(manajemenAdmin())
+        ->get(route('manajemen.jurusan.edit'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('manajemen/jurusan/index')
+            ->where('jurusan', null));
+});
+
+test('admin dapat memperbarui profil jurusan', function () {
+    Jurusan::factory()->create(['nama' => 'Lama']);
+
+    $this->actingAs(manajemenAdmin())
+        ->put(route('manajemen.jurusan.update'), [
+            'nama' => 'Teknik Informatika',
             'ketua_nama' => 'Prof. Andi',
             'ketua_nip' => '197001012000031001',
-            'sekretaris_nama' => 'Dr. Budi',
-            'sekretaris_nip' => '197501012000031002',
+            'sekretaris_nama' => null,
+            'sekretaris_nip' => null,
         ])
-        ->assertRedirect(route('manajemen.jurusan.index'));
+        ->assertRedirect(route('manajemen.jurusan.edit'));
 
-    $jurusan = Jurusan::query()->where('nama', 'Informatika')->firstOrFail();
+    expect(Jurusan::query()->count())->toBe(1);
+    $jurusan = Jurusan::query()->sole();
+    expect($jurusan->nama)->toBe('Teknik Informatika');
     expect($jurusan->ketua_nama)->toBe('Prof. Andi');
-    expect($jurusan->sekretaris_nip)->toBe('197501012000031002');
-
-    $this->actingAs(manajemenAdmin())
-        ->put(route('manajemen.jurusan.update', $jurusan), [
-            'nama' => 'Teknik Informatika',
-            'ketua_nama' => null,
-            'ketua_nip' => null,
-            'sekretaris_nama' => 'Dr. Budi',
-            'sekretaris_nip' => '197501012000031002',
-        ])
-        ->assertRedirect(route('manajemen.jurusan.index'));
-
-    expect($jurusan->refresh()->nama)->toBe('Teknik Informatika');
-    expect($jurusan->ketua_nama)->toBeNull();
-
-    $this->actingAs(manajemenAdmin())
-        ->delete(route('manajemen.jurusan.destroy', $jurusan))
-        ->assertRedirect(route('manajemen.jurusan.index'));
-
-    expect(Jurusan::find($jurusan->id))->toBeNull();
 });
 
-test('jurusan nama must be unique', function () {
-    Jurusan::factory()->create(['nama' => 'Informatika']);
-
+test('menyimpan profil membuat jurusan bila belum ada', function () {
     $this->actingAs(manajemenAdmin())
-        ->post(route('manajemen.jurusan.store'), [
-            'nama' => 'Informatika',
-        ])
-        ->assertSessionHasErrors('nama');
-});
-
-test('jurusan without ketua/sekretaris is allowed', function () {
-    $this->actingAs(manajemenAdmin())
-        ->post(route('manajemen.jurusan.store'), [
+        ->put(route('manajemen.jurusan.update'), [
             'nama' => 'Sistem Informasi',
         ])
-        ->assertRedirect(route('manajemen.jurusan.index'));
+        ->assertRedirect(route('manajemen.jurusan.edit'));
 
     expect(Jurusan::query()->where('nama', 'Sistem Informasi')->exists())->toBeTrue();
 });
 
-test('index jurusan dapat dicari berdasarkan nama', function () {
-    Jurusan::factory()->create(['nama' => 'Matematika']);
-    Jurusan::factory()->create(['nama' => 'Fisika']);
-    Jurusan::factory()->create(['nama' => 'Biologi']);
+test('nama jurusan wajib diisi', function () {
+    Jurusan::factory()->create();
 
     $this->actingAs(manajemenAdmin())
-        ->get(route('manajemen.jurusan.index', ['search' => 'mat']))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('manajemen/jurusan/index')
-            ->has('jurusans.data', 1)
-            ->where('jurusans.data.0.nama', 'Matematika'));
+        ->put(route('manajemen.jurusan.update'), ['nama' => ''])
+        ->assertSessionHasErrors('nama');
 });
 
-test('non-admin tidak bisa memanipulasi jurusan', function () {
+test('non-admin tidak bisa melihat atau mengubah profil jurusan', function () {
     $user = User::factory()->create();
     $user->assignRole('mahasiswa');
-    $jurusan = Jurusan::factory()->create();
 
     $this->actingAs($user)
-        ->post(route('manajemen.jurusan.store'), ['nama' => 'X'])
+        ->get(route('manajemen.jurusan.edit'))
         ->assertForbidden();
 
     $this->actingAs($user)
-        ->delete(route('manajemen.jurusan.destroy', $jurusan))
+        ->put(route('manajemen.jurusan.update'), ['nama' => 'X'])
         ->assertForbidden();
 
-    expect(Jurusan::find($jurusan->id))->not->toBeNull();
+    expect(Jurusan::query()->count())->toBe(0);
+});
+
+test('JurusanSeeder membuat tepat satu jurusan dan idempotent', function () {
+    $this->seed(JurusanSeeder::class);
+    $this->seed(JurusanSeeder::class);
+
+    expect(Jurusan::query()->count())->toBe(1);
+    expect(Jurusan::query()->sole()->nama)->toBe('Teknik Informatika');
 });

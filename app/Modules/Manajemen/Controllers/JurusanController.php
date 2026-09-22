@@ -4,56 +4,33 @@ namespace App\Modules\Manajemen\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Manajemen\Models\Jurusan;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Halaman Profil Jurusan (menu Manajemen, role:admin).
+ *
+ * Aplikasi melayani SATU jurusan: halaman ini menampilkan profil jurusan
+ * (nama, ketua, sekretaris) dan memungkinkan pembaruannya — mirip halaman
+ * profil pengguna di Settings. Tanpa daftar, tambah, atau hapus.
+ */
 class JurusanController extends Controller
 {
-    public function index(Request $request): Response
+    public function edit(): Response
     {
-        $search = trim((string) $request->input('search', ''));
-
-        /** @var Builder<Jurusan> $query */
-        $query = Jurusan::query()
-            ->select(['id', 'nama', 'ketua_nama', 'ketua_nip', 'sekretaris_nama', 'sekretaris_nip', 'created_at'])
-            ->orderBy('nama');
-
-        if ($search !== '') {
-            $query->where('nama', 'like', "%{$search}%");
-        }
-
-        /** @var LengthAwarePaginator<int, Jurusan> $paginator */
-        $paginator = $query->paginate(10)->withQueryString();
-
-        $jurusans = $paginator->through(
-            fn (Jurusan $j): array => [
-                'id' => $j->id,
-                'nama' => $j->nama,
-                'ketua_nama' => $j->ketua_nama,
-                'ketua_nip' => $j->ketua_nip,
-                'sekretaris_nama' => $j->sekretaris_nama,
-                'sekretaris_nip' => $j->sekretaris_nip,
-                'created_at' => (string) $j->created_at,
-            ],
-        );
+        $jurusan = Jurusan::query()->first();
 
         return Inertia::render('manajemen/jurusan/index', [
-            'jurusans' => $jurusans,
-            'filters' => [
-                'search' => $search,
-            ],
+            'jurusan' => $jurusan ? $this->profilJurusan($jurusan) : null,
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:255', Rule::unique('manajemen_jurusans')],
+            'nama' => ['required', 'string', 'max:255'],
             'ketua_nama' => ['nullable', 'string', 'max:255'],
             'ketua_nip' => ['nullable', 'string', 'max:50'],
             'sekretaris_nama' => ['nullable', 'string', 'max:255'],
@@ -62,33 +39,33 @@ class JurusanController extends Controller
             'nama.required' => 'Nama jurusan wajib diisi.',
         ]);
 
-        Jurusan::create($validated);
+        $jurusan = Jurusan::query()->first();
 
-        return redirect()->route('manajemen.jurusan.index')
-            ->with('success', 'Jurusan berhasil ditambahkan.');
-    }
+        if ($jurusan === null) {
+            Jurusan::create($validated);
+        } else {
+            $jurusan->update($validated);
+        }
 
-    public function update(Request $request, Jurusan $jurusan): RedirectResponse
-    {
-        $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:255', Rule::unique('manajemen_jurusans')->ignore($jurusan->id)],
-            'ketua_nama' => ['nullable', 'string', 'max:255'],
-            'ketua_nip' => ['nullable', 'string', 'max:50'],
-            'sekretaris_nama' => ['nullable', 'string', 'max:255'],
-            'sekretaris_nip' => ['nullable', 'string', 'max:50'],
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Profil jurusan berhasil diperbarui.',
         ]);
 
-        $jurusan->update($validated);
-
-        return redirect()->route('manajemen.jurusan.index')
-            ->with('success', 'Jurusan berhasil diperbarui.');
+        return redirect()->route('manajemen.jurusan.edit');
     }
 
-    public function destroy(Jurusan $jurusan): RedirectResponse
+    /**
+     * @return array{nama: string, ketua_nama: string|null, ketua_nip: string|null, sekretaris_nama: string|null, sekretaris_nip: string|null}
+     */
+    private function profilJurusan(Jurusan $jurusan): array
     {
-        $jurusan->delete();
-
-        return redirect()->route('manajemen.jurusan.index')
-            ->with('success', 'Jurusan berhasil dihapus.');
+        return [
+            'nama' => $jurusan->nama,
+            'ketua_nama' => $jurusan->ketua_nama,
+            'ketua_nip' => $jurusan->ketua_nip,
+            'sekretaris_nama' => $jurusan->sekretaris_nama,
+            'sekretaris_nip' => $jurusan->sekretaris_nip,
+        ];
     }
 }

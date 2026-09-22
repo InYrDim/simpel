@@ -26,7 +26,7 @@ export const navigation: NavItem[] = [
             },
             {
                 title: 'Jurusan',
-                href: jurusan.index.url(),
+                href: jurusan.edit.url(),
             },
             {
                 title: 'Peran',
