@@ -21,13 +21,8 @@ export const navigation: NavItem[] = [
         roles: ['admin'],
         children: [
             {
-                title: 'Pengguna',
-                children: [
-                    {
-                        title: 'Akun',
-                        href: pengguna.index.url(),
-                    },
-                ],
+                title: 'Akun',
+                href: pengguna.index.url(),
             },
             {
                 title: 'Jurusan',

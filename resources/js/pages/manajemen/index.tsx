@@ -18,7 +18,7 @@ export default function ManajemenIndex() {
                     >
                         <Users className="text-muted-foreground size-8" />
                         <div>
-                            <h2 className="text-lg font-semibold">Pengguna</h2>
+                            <h2 className="text-lg font-semibold">Akun</h2>
                             <p className="text-muted-foreground text-sm">
                                 Kelola akun pengguna sistem
                             </p>

@@ -86,7 +86,7 @@ function NavMainItem({ item }: { item: NavItem }) {
 }
 
 /**
- * Item submenu, render rekursif untuk mendukung nested (Pengguna → Akun).
+ * Item submenu, render rekursif untuk mendukung nested.
  */
 function NavSubItem({ child }: { child: NavChild }) {
     const { isCurrentUrl } = useCurrentUrl();

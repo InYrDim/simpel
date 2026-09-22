@@ -11,7 +11,7 @@ export type NavChild = {
     href?: InertiaLinkProps['href'];
     /** Role yang boleh melihat submenu ini. Kosong = ikut item induk. */
     roles?: string[];
-    /** Submenu bersarang (mis. Pengguna → Akun). */
+    /** Submenu bersarang (dirender rekursif oleh nav-main). */
     children?: NavChild[];
 };
 
