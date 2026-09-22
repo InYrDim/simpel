@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
+use App\Modules\Akademik\Models\Prodi;
 use Database\Seeders\RolePermissionSeeder;
 
 beforeEach(function () {
@@ -12,6 +13,7 @@ beforeEach(function () {
 test('guests are redirected to the login page', function () {
     $this->get(route('akademik.dosen.index'))->assertRedirect(route('login'));
     $this->get(route('akademik.mahasiswa.index'))->assertRedirect(route('login'));
+    $this->get(route('akademik.prodi.index'))->assertRedirect(route('login'));
 });
 
 test('admin can visit the akademik pages', function () {
@@ -20,6 +22,7 @@ test('admin can visit the akademik pages', function () {
 
     $this->actingAs($admin)->get(route('akademik.dosen.index'))->assertOk();
     $this->actingAs($admin)->get(route('akademik.mahasiswa.index'))->assertOk();
+    $this->actingAs($admin)->get(route('akademik.prodi.index'))->assertOk();
 });
 
 test('users without the admin role are forbidden', function (string $role) {
@@ -28,6 +31,7 @@ test('users without the admin role are forbidden', function (string $role) {
 
     $this->actingAs($user)->get(route('akademik.dosen.index'))->assertForbidden();
     $this->actingAs($user)->get(route('akademik.mahasiswa.index'))->assertForbidden();
+    $this->actingAs($user)->get(route('akademik.prodi.index'))->assertForbidden();
 })->with(['mahasiswa', 'validator']);
 
 test('admin can create, update, and delete a dosen', function () {
@@ -82,6 +86,7 @@ test('admin can create a mahasiswa profile linked to a user and dosen pa', funct
     $admin->assignRole('admin');
     $account = User::factory()->create();
     $dosenPa = Dosen::factory()->create();
+    $prodi = Prodi::factory()->create(['nama' => 'Teknik Informatika']);
 
     $this->actingAs($admin)
         ->post(route('akademik.mahasiswa.store'), [
@@ -89,7 +94,7 @@ test('admin can create a mahasiswa profile linked to a user and dosen pa', funct
             'nama' => 'Andi Wijaya',
             'nim' => '2110512001',
             'dosen_pa_id' => $dosenPa->id,
-            'prodi' => 'Teknik Informatika',
+            'prodi_id' => $prodi->id,
             'angkatan' => 2021,
         ])
         ->assertRedirect(route('akademik.mahasiswa.index'));
@@ -97,6 +102,7 @@ test('admin can create a mahasiswa profile linked to a user and dosen pa', funct
     $mahasiswa = Mahasiswa::query()->where('nim', '2110512001')->firstOrFail();
     expect($mahasiswa->user_id)->toBe($account->id);
     expect($mahasiswa->dosen_pa_id)->toBe($dosenPa->id);
+    expect($mahasiswa->prodi_id)->toBe($prodi->id);
 });
 
 test('mahasiswa user and nim must be unique', function () {

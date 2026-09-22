@@ -18,14 +18,20 @@ class AkademikService implements AkademikContract
 {
     public function mahasiswaByUserId(int $userId): ?MahasiswaDTO
     {
-        $mahasiswa = Mahasiswa::query()->where('user_id', $userId)->first();
+        $mahasiswa = Mahasiswa::query()
+            ->with('prodiRef:id,nama')
+            ->where('user_id', $userId)
+            ->first();
 
         return $mahasiswa === null ? null : $this->toMahasiswaDTO($mahasiswa);
     }
 
     public function mahasiswaByNim(string $nim): ?MahasiswaDTO
     {
-        $mahasiswa = Mahasiswa::query()->where('nim', $nim)->first();
+        $mahasiswa = Mahasiswa::query()
+            ->with('prodiRef:id,nama')
+            ->where('nim', $nim)
+            ->first();
 
         return $mahasiswa === null ? null : $this->toMahasiswaDTO($mahasiswa);
     }
@@ -66,7 +72,7 @@ class AkademikService implements AkademikContract
             nama: $m->nama,
             nim: $m->nim,
             dosenPaId: $m->dosen_pa_id,
-            prodi: $m->prodi,
+            prodi: $m->prodiRef?->nama,
             angkatan: $m->angkatan,
         );
     }
