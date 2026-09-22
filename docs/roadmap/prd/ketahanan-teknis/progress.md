@@ -103,11 +103,12 @@ diverifikasi, keadaan sebenarnya:
   melainkan `staging` kehilangan trigger-nya.
 - `42e272a` tampaknya rename yang belum tuntas: `treehouse.toml`
   (`base_branch = "staging"`) dan skill `worktree-feature` tetap merujuk
-  `staging`.
+  `staging` (keduanya sudah diselaraskan ke `test`, lihat catatan keputusan).
 
 Perbaikan ada di commit `3bc5de9`: `staging` dikembalikan sehingga trigger
-memuat `main` + `test` + `staging`, dan branch `test` benar-benar dibuat (dari
-tip `staging`, `3c834d5`) sebagai base PR ini.
+memuat `main` + `test` + `staging` — ketiganya memang dibutuhkan alur
+`feat/*` → `test` → `staging` → `main` — dan branch `test` benar-benar dibuat
+(dari tip `staging`, `3c834d5`) sebagai base PR ini.
 
 **Batas yang lebih tepat** (koreksi atas §2 PRD): karena `on: pull_request`
 tidak punya filter branch, PR ke `staging` sebenarnya tetap ter-cover CI. Yang
@@ -152,7 +153,9 @@ merge PR, sehingga state hasil merge tidak pernah diverifikasi. Jadi §2 butir 4
   `SubmitTest` (test rollback di commit A, test 429 di commit C/E) dan
   `Modules/Skripsi/CONTRACT.md` (bullet A, B, C); hasil akhirnya dicocokkan
   identik dengan versi aslinya sebelum dipecah.
-- **Target branch pindah ke `test`.** `staging` dipertahankan sebagai trigger CI
-  selama transisi, tetapi `treehouse.toml` (`base_branch`) dan skill
-  `worktree-feature` masih merujuk `staging` — peralihan sisanya dikerjakan
-  terpisah.
+- **Alur branch: `feat/*` → `test` → `staging` → `main`.** PR fitur menuju
+  `test`, dan `staging` tetap ada sebagai tahap promosi berikutnya — jadi
+  keduanya memang perlu ada di `on.push.branches`, bukan sekadar penopang masa
+  transisi. `treehouse.toml` (`base_branch = "test"`), skill `worktree-feature`,
+  dan `.ai/rules/git-workflow.md` sudah diselaraskan; rujukan "PR ke `staging`"
+  di §7 PRD dibaca sebagai PR ke `test`.
