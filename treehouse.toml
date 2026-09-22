@@ -2,6 +2,7 @@
 # Pool lives at ~/.treehouse/skibidi (default root).
 max_trees = 8
 
-# Worktrees are cut from staging (where active development happens;
-# main only receives merged PRs).
-base_branch = "staging"
+# Alur branch: feat/* -> test -> staging -> main (.ai/rules/git-workflow.md).
+# Worktrees dipotong dari `test` — branch tujuan PR fitur; staging hanya
+# menerima promosi dari test, main hanya menerima rilis.
+base_branch = "test"
