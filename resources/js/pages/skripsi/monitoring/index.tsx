@@ -1,7 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -121,7 +120,7 @@ export default function MonitoringIndex({
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <h1 className="text-2xl font-bold">Monitoring Pengajuan</h1>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <div className="mb-4 grid max-w-xs gap-2">
                         <Label htmlFor="mntr-status">Status</Label>
                         <Select
@@ -178,7 +177,7 @@ export default function MonitoringIndex({
                             </Button>
                         </div>
                     </div>
-                </Card>
+                </section>
             </div>
         </>
     );
