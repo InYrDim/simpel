@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - test
+      - staging
   pull_request:
 
 permissions:
