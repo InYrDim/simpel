@@ -1,9 +1,12 @@
-import { BookOpen } from 'lucide-react';
+import { BarChart3, BookOpen } from 'lucide-react';
+import bebanDosen from '@/routes/skripsi/beban-dosen';
 import daftarJudul from '@/routes/skripsi/daftar-judul';
+import exportRoutes from '@/routes/skripsi/export';
 import monitoring from '@/routes/skripsi/monitoring';
 import pengajuan from '@/routes/skripsi/pengajuan';
 import putusan from '@/routes/skripsi/putusan';
 import riwayat from '@/routes/skripsi/riwayat';
+import statistik from '@/routes/skripsi/statistik';
 import verifikasi from '@/routes/skripsi/verifikasi';
 import type { NavItem } from '@/types';
 
@@ -47,10 +50,29 @@ export const navigation: NavItem[] = [
                 href: daftarJudul.index.url(),
                 roles: ['admin', 'validator'],
             },
+        ],
+    },
+    {
+        title: 'Laporan',
+        href: statistik.index.url(),
+        icon: BarChart3,
+        roles: ['admin'],
+        children: [
+            {
+                title: 'Statistik',
+                href: statistik.index.url(),
+            },
             {
                 title: 'Monitoring',
                 href: monitoring.index.url(),
-                roles: ['admin'],
+            },
+            {
+                title: 'Beban Dosen',
+                href: bebanDosen.index.url(),
+            },
+            {
+                title: 'Export',
+                href: exportRoutes.index.url(),
             },
         ],
     },

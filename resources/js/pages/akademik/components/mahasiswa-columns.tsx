@@ -27,6 +27,11 @@ export type DosenOption = {
     nama: string;
 };
 
+export type ProdiOption = {
+    id: number;
+    nama: string;
+};
+
 export type MahasiswaRow = {
     id: number;
     nama: string;
@@ -34,6 +39,7 @@ export type MahasiswaRow = {
     dosen_pa_id: number;
     dosen_pa_nama: string | null;
     user_email: string | null;
+    prodi_id: number | null;
     prodi: string | null;
     angkatan: number | null;
     created_at: string;
@@ -41,10 +47,11 @@ export type MahasiswaRow = {
 
 /**
  * Kolom tabel mahasiswa — dibuat via factory supaya dialog edit bisa
- * menerima daftar opsi dosen PA dari halaman yang memakainya.
+ * menerima daftar opsi dosen PA & prodi dari halaman yang memakainya.
  */
 export const mahasiswaColumns = (
     dosenOptions: DosenOption[],
+    prodiOptions: ProdiOption[],
 ): Column<MahasiswaRow>[] => [
     {
         key: 'nama',
@@ -80,16 +87,24 @@ export const mahasiswaColumns = (
     {
         key: 'actions',
         label: 'Aksi',
-        render: (m) => <ActionCell mahasiswa={m} dosenOptions={dosenOptions} />,
+        render: (m) => (
+            <ActionCell
+                mahasiswa={m}
+                dosenOptions={dosenOptions}
+                prodiOptions={prodiOptions}
+            />
+        ),
     },
 ];
 
 function ActionCell({
     mahasiswa,
     dosenOptions,
+    prodiOptions,
 }: {
     mahasiswa: MahasiswaRow;
     dosenOptions: DosenOption[];
+    prodiOptions: ProdiOption[];
 }) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -104,7 +119,7 @@ function ActionCell({
         nama: mahasiswa.nama,
         nim: mahasiswa.nim,
         dosen_pa_id: String(mahasiswa.dosen_pa_id),
-        prodi: mahasiswa.prodi ?? '',
+        prodi_id: mahasiswa.prodi_id ? String(mahasiswa.prodi_id) : '',
         angkatan: mahasiswa.angkatan ? String(mahasiswa.angkatan) : '',
     });
 
@@ -226,17 +241,31 @@ function ActionCell({
                                 >
                                     Prodi
                                 </Label>
-                                <Input
-                                    id={`edit-mhs-prodi-${mahasiswa.id}`}
-                                    value={data.prodi}
-                                    onChange={(e) =>
-                                        setData('prodi', e.target.value)
+                                <Select
+                                    value={data.prodi_id}
+                                    onValueChange={(v) =>
+                                        setData('prodi_id', v)
                                     }
-                                    disabled={processing}
-                                />
-                                {errors.prodi && (
+                                >
+                                    <SelectTrigger
+                                        id={`edit-mhs-prodi-${mahasiswa.id}`}
+                                    >
+                                        <SelectValue placeholder="Pilih prodi" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {prodiOptions.map((p) => (
+                                            <SelectItem
+                                                key={p.id}
+                                                value={String(p.id)}
+                                            >
+                                                {p.nama}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.prodi_id && (
                                     <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.prodi}
+                                        {errors.prodi_id}
                                     </p>
                                 )}
                             </div>

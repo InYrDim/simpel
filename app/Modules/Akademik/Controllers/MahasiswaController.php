@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
+use App\Modules\Akademik\Models\Prodi;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,8 +27,8 @@ class MahasiswaController extends Controller
 
         /** @var Builder<Mahasiswa> $query */
         $query = Mahasiswa::query()
-            ->with(['user:id,name,email', 'dosenPa:id,nama'])
-            ->select(['id', 'user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi', 'angkatan', 'created_at'])
+            ->with(['user:id,name,email', 'dosenPa:id,nama', 'prodiRef:id,nama'])
+            ->select(['id', 'user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan', 'created_at'])
             ->orderBy('nama');
 
         if ($search !== '') {
@@ -46,7 +47,8 @@ class MahasiswaController extends Controller
                 'dosen_pa_id' => $m->dosen_pa_id,
                 'dosen_pa_nama' => $m->dosenPa->nama,
                 'user_email' => $m->user->email,
-                'prodi' => $m->prodi,
+                'prodi_id' => $m->prodi_id,
+                'prodi' => $m->prodiRef?->nama,
                 'angkatan' => $m->angkatan,
                 'created_at' => $m->created_at?->toISOString(),
             ],
@@ -63,6 +65,7 @@ class MahasiswaController extends Controller
             'mahasiswas' => $mahasiswas,
             'filters' => ['search' => $search],
             'dosenOptions' => Dosen::query()->orderBy('nama')->get(['id', 'nama']),
+            'prodiOptions' => Prodi::query()->orderBy('nama')->get(['id', 'nama']),
             'userOptions' => $userOptions,
         ]);
     }
@@ -98,11 +101,11 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @return array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi: string|null, angkatan: int|null}
+     * @return array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi_id: int|null, angkatan: int|null}
      */
     private function validateMahasiswa(Request $request, ?int $ignoreId = null): array
     {
-        /** @var array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi: string|null, angkatan: int|null} $validated */
+        /** @var array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi_id: int|null, angkatan: int|null} $validated */
         $validated = $request->validate([
             'user_id' => [
                 'required',
@@ -118,7 +121,7 @@ class MahasiswaController extends Controller
                 Rule::unique('akademik_mahasiswas', 'nim')->ignore($ignoreId),
             ],
             'dosen_pa_id' => ['required', 'integer', Rule::exists('akademik_dosens', 'id')],
-            'prodi' => ['nullable', 'string', 'max:255'],
+            'prodi_id' => ['nullable', 'integer', Rule::exists('akademik_prodis', 'id')],
             'angkatan' => ['nullable', 'integer', 'min:2000', 'max:2100'],
         ]);
 

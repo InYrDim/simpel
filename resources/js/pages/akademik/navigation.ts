@@ -2,6 +2,7 @@ import { GraduationCap } from 'lucide-react';
 import akademik from '@/routes/akademik';
 import dosen from '@/routes/akademik/dosen';
 import mahasiswa from '@/routes/akademik/mahasiswa';
+import prodi from '@/routes/akademik/prodi';
 import type { NavItem } from '@/types';
 
 /**
@@ -26,6 +27,10 @@ export const navigation: NavItem[] = [
             {
                 title: 'Mahasiswa',
                 href: mahasiswa.index.url(),
+            },
+            {
+                title: 'Prodi',
+                href: prodi.index.url(),
             },
         ],
     },

@@ -2,11 +2,15 @@
 
 ## Owns
 
-- Database tables: `akademik_dosens`, `akademik_mahasiswas`
-- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji) dan profil akademik mahasiswa (NIM, prodi, angkatan, dosen PA)## Public interface (Contracts/)
+- Database tables: `akademik_dosens`, `akademik_mahasiswas`, `akademik_prodis`
+- Core domain concepts: data referensi akademik — dosen (Dosen PA, validator, pembimbing, penguji), profil akademik mahasiswa (NIM, angkatan, dosen PA), dan program studi (Prodi, kaprodi)
+
+## Public interface (Contracts/)
+
 - `AkademikContract` — resolusi profil mahasiswa (by user / by NIM), daftar dosen, detail dosen by ID / by user, untuk konsumsi modul lain (mis. Skripsi)
 - `MahasiswaDTO`, `DosenDTO`, `DosenDTOList` — bentuk data yang melintasi batas modul
 - `DosenDTO->userId` — akun login dosen (biasanya role `validator`); modul lain memakai ini untuk resolusi penerima notifikasi tanpa menyentuh Akademik
+- `MahasiswaDTO->prodi` tetap string (nama prodi, di-resolve dari relasi `prodi_id`) agar konsumen Skripsi tidak ikut berubah saat kolom beralih ke FK
 
 ## Allowed dependencies
 
@@ -30,3 +34,4 @@
 - `users` adalah tabel core, jadi FK `akademik_mahasiswas.user_id → users` diperbolehkan (PRD §3.1). FK ke tabel modul lain tetap dilarang.
 - Saat modul Skripsi dibangun, ia mengonsumsi `AkademikContract` ini untuk daftar dosen (penugasan validator) dan data mahasiswa — bukan mengimpor model di sini.
 - CRUD admin dosen & mahasiswa dipagari `role:admin` di `routes.php`; Skripsi nanti menambah guard role-nya sendiri.
+- `mahasiswaByUserIds()` adalah jalur BATCH (satu query `whereIn`) untuk konsumen yang memetakan identitas per baris — dipakai halaman Riwayat Pengajuan agar tidak N+1 (PRD ketahanan-teknis §3.2, keputusan #3). Daftar `user_id` kosong tidak menembak query sama sekali.

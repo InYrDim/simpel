@@ -1,20 +1,28 @@
 <?php
 
+use App\Modules\Skripsi\Controllers\BebanDosenController;
 use App\Modules\Skripsi\Controllers\DaftarJudulController;
+use App\Modules\Skripsi\Controllers\ExportController;
 use App\Modules\Skripsi\Controllers\MonitoringController;
 use App\Modules\Skripsi\Controllers\PengajuanJudulController;
 use App\Modules\Skripsi\Controllers\PutusanValidatorController;
 use App\Modules\Skripsi\Controllers\RiwayatPengajuanController;
+use App\Modules\Skripsi\Controllers\StatistikController;
 use App\Modules\Skripsi\Controllers\VerifikasiAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Mahasiswa (§5.1): panel status + submit pengajuan + template DOCX.
 // Resubmit (alur revisi, sesi 3) mengirim ulang pengajuan yang sama saat
-// statusnya `direvisi`.
+// statusnya `direvisi`. Submit & resubmit dibatasi rate limiter
+// `pengajuan-submit` (5/menit per akun, PRD ketahanan-teknis §3.3).
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('skripsi/pengajuan')->name('skripsi.pengajuan.')->group(function (): void {
     Route::get('/', [PengajuanJudulController::class, 'status'])->name('status');
-    Route::post('/', [PengajuanJudulController::class, 'store'])->name('store');
-    Route::post('/{pengajuan}/resubmit', [PengajuanJudulController::class, 'resubmit'])->name('resubmit');
+    Route::post('/', [PengajuanJudulController::class, 'store'])
+        ->middleware('throttle:pengajuan-submit')
+        ->name('store');
+    Route::post('/{pengajuan}/resubmit', [PengajuanJudulController::class, 'resubmit'])
+        ->middleware('throttle:pengajuan-submit')
+        ->name('resubmit');
     Route::get('/template', [PengajuanJudulController::class, 'template'])->name('template');
 });
 
@@ -44,10 +52,14 @@ Route::middleware(['auth', 'verified', 'role:admin|validator'])->prefix('skripsi
         ->name('assign');
 });
 
-// Admin (PR 3 sesi 3): dashboard monitoring — statistik pengajuan & beban
-// validator.
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/monitoring')->name('skripsi.monitoring.')->group(function (): void {
-    Route::get('/', [MonitoringController::class, 'index'])->name('index');
+// Admin (PR 3 sesi 3 — dipecah jadi menu Laporan): statistik ringkasan,
+// monitoring per pengajuan, dan sebaran beban dosen.
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi')->name('skripsi.')->group(function (): void {
+    Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
+    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('/beban-dosen', [BebanDosenController::class, 'index'])->name('beban-dosen.index');
+    Route::get('/export', [ExportController::class, 'index'])->name('export.index');
+    Route::get('/export.csv', [ExportController::class, 'download'])->name('export.csv');
 });
 
 // Admin & mahasiswa (PR 4 sesi 3): riwayat pengajuan — daftar baca-saja

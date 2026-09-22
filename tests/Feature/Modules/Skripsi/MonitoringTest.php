@@ -96,25 +96,43 @@ function monitoringTolakAdmin(PengajuanJudul $pengajuan): void
         ]);
 }
 
-test('hanya admin yang bisa membuka halaman monitoring', function () {
-    $this->get(route('skripsi.monitoring.index'))
-        ->assertRedirect(route('login'));
+test('hanya admin yang bisa membuka halaman laporan (statistik, monitoring, beban dosen)', function () {
+    $halaman = array_merge(
+        ...array_map(
+            fn (string $route): array => [
+                $route => route("skripsi.{$route}.index"),
+            ],
+            ['statistik', 'monitoring', 'beban-dosen'],
+        ),
+    );
 
-    $this->actingAs(monitoringMahasiswa())
-        ->get(route('skripsi.monitoring.index'))
-        ->assertForbidden();
+    $this->actingAs(monitoringMahasiswa());
+    foreach ($halaman as $route => $url) {
+        $this->get($url)->assertForbidden();
+    }
 
-    $this->actingAs(monitoringValidator())
-        ->get(route('skripsi.monitoring.index'))
-        ->assertForbidden();
+    $this->actingAs(monitoringValidator());
+    foreach ($halaman as $url) {
+        $this->get($url)->assertForbidden();
+    }
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.statistik.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('skripsi/statistik/index'));
 
     $this->actingAs(monitoringAdmin())
         ->get(route('skripsi.monitoring.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('skripsi/monitoring/index'));
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.beban-dosen.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('skripsi/beban-dosen/index'));
 });
 
-test('angka agregasi mencerminkan keadaan seluruh pengajuan', function () {
+test('statistik mencerminkan keadaan seluruh pengajuan', function () {
     $validator1 = monitoringValidator();
     $validator2 = monitoringValidator();
     $dosen1 = Dosen::factory()->create(['user_id' => $validator1->id]);
@@ -138,10 +156,9 @@ test('angka agregasi mencerminkan keadaan seluruh pengajuan', function () {
     monitoringPutusanSetujui($validator2, $m5);
 
     $this->actingAs(monitoringAdmin())
-        ->get(route('skripsi.monitoring.index'))
+        ->get(route('skripsi.statistik.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('skripsi/monitoring/index')
             ->where('total', 5)
             ->where('bulan_ini', 5)
             ->where('per_status', [
@@ -152,10 +169,30 @@ test('angka agregasi mencerminkan keadaan seluruh pengajuan', function () {
                 ['status' => 'diverifikasi_validator', 'status_label' => 'Diverifikasi Validator', 'jumlah' => 0],
                 ['status' => 'disetujui', 'status_label' => 'Disetujui', 'jumlah' => 1],
                 ['status' => 'ditolak_validator', 'status_label' => 'Ditolak Validator', 'jumlah' => 0],
-            ])
-            ->where('per_validator', [
-                ['dosen_id' => $dosen1->id, 'dosen_nama' => $dosen1->nama, 'beban' => 1],
             ]));
+});
+
+test('monitoring menampilkan daftar pengajuan dan filter per status', function () {
+    $validator = monitoringValidator();
+    $dosen = Dosen::factory()->create(['user_id' => $validator->id]);
+
+    $m1 = monitoringAjukan(monitoringMahasiswa());
+    $m2 = monitoringAjukan(monitoringMahasiswa());
+    monitoringVerifikasi($m2, $dosen);
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.monitoring.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('pengajuans.total', 2)
+            ->has('pengajuans.data', 2));
+
+    $this->actingAs(monitoringAdmin())
+        ->get(route('skripsi.monitoring.index', ['status' => 'diajukan']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('pengajuans.total', 1)
+            ->where('pengajuans.data.0.id', $m1->id));
 });
 
 test('sebaran beban dosen mencakup semua dosen dengan rincian per peran', function () {
@@ -196,7 +233,7 @@ test('sebaran beban dosen mencakup semua dosen dengan rincian per peran', functi
     monitoringVerifikasi(monitoringAjukan(monitoringMahasiswa(dosenPaId: $dosenKosong->id)), $dosenValidator);
 
     $this->actingAs(monitoringAdmin())
-        ->get(route('skripsi.monitoring.index'))
+        ->get(route('skripsi.beban-dosen.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('beban_dosen', [
             ['dosen_id' => $dosenProlifik->id, 'dosen_nama' => $dosenProlifik->nama,
@@ -224,7 +261,7 @@ test('dosen tanpa akun tetap tampil dan dosen tak terdaftar tampil sebagai "-"',
     ]);
 
     $this->actingAs(monitoringAdmin())
-        ->get(route('skripsi.monitoring.index'))
+        ->get(route('skripsi.beban-dosen.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('beban_dosen', function ($rows) use ($dosenTanpaAkun): bool {
             $perId = $rows->keyBy('dosen_id');
@@ -253,7 +290,7 @@ test('sebaran beban dosen diurutkan dari total tertinggi lalu nama', function ()
     ]);
 
     $this->actingAs(monitoringAdmin())
-        ->get(route('skripsi.monitoring.index'))
+        ->get(route('skripsi.beban-dosen.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('beban_dosen', fn ($rows): bool => $rows->pluck('dosen_nama')->values()->all() === ['Budi', 'Andi', 'Cici']));
 });
@@ -272,11 +309,10 @@ test('beban validator diurutkan dari penugasan terbanyak', function () {
     monitoringVerifikasi($c, $dosen2);
 
     $this->actingAs(monitoringAdmin())
-        ->get(route('skripsi.monitoring.index'))
+        ->get(route('skripsi.beban-dosen.index'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('per_validator', [
-                ['dosen_id' => $dosen1->id, 'dosen_nama' => $dosen1->nama, 'beban' => 2],
-                ['dosen_id' => $dosen2->id, 'dosen_nama' => $dosen2->nama, 'beban' => 1],
-            ]));
+        ->assertInertia(fn ($page) => $page->where('per_validator', [
+            ['dosen_id' => $dosen1->id, 'dosen_nama' => $dosen1->nama, 'beban' => 2],
+            ['dosen_id' => $dosen2->id, 'dosen_nama' => $dosen2->nama, 'beban' => 1],
+        ]));
 });

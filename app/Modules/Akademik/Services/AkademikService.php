@@ -8,6 +8,7 @@ use App\Modules\Contracts\AkademikContract;
 use App\Modules\Contracts\DosenDTO;
 use App\Modules\Contracts\DosenDTOList;
 use App\Modules\Contracts\MahasiswaDTO;
+use App\Modules\Contracts\MahasiswaDTOList;
 
 /**
  * Implementasi `AkademikContract` — satu-satunya jembatan dari modul lain
@@ -18,16 +19,39 @@ class AkademikService implements AkademikContract
 {
     public function mahasiswaByUserId(int $userId): ?MahasiswaDTO
     {
-        $mahasiswa = Mahasiswa::query()->where('user_id', $userId)->first();
+        $mahasiswa = Mahasiswa::query()
+            ->with('prodiRef:id,nama')
+            ->where('user_id', $userId)
+            ->first();
 
         return $mahasiswa === null ? null : $this->toMahasiswaDTO($mahasiswa);
     }
 
     public function mahasiswaByNim(string $nim): ?MahasiswaDTO
     {
-        $mahasiswa = Mahasiswa::query()->where('nim', $nim)->first();
+        $mahasiswa = Mahasiswa::query()
+            ->with('prodiRef:id,nama')
+            ->where('nim', $nim)
+            ->first();
 
         return $mahasiswa === null ? null : $this->toMahasiswaDTO($mahasiswa);
+    }
+
+    public function mahasiswaByUserIds(array $userIds): MahasiswaDTOList
+    {
+        if ($userIds === []) {
+            return new MahasiswaDTOList([]);
+        }
+
+        $mahasiswa = Mahasiswa::query()->whereIn('user_id', $userIds)->get();
+
+        $items = array_values(
+            $mahasiswa
+                ->map(fn (Mahasiswa $m): MahasiswaDTO => $this->toMahasiswaDTO($m))
+                ->all()
+        );
+
+        return new MahasiswaDTOList($items);
     }
 
     public function daftarDosen(): DosenDTOList
@@ -66,7 +90,7 @@ class AkademikService implements AkademikContract
             nama: $m->nama,
             nim: $m->nim,
             dosenPaId: $m->dosen_pa_id,
-            prodi: $m->prodi,
+            prodi: $m->prodiRef?->nama,
             angkatan: $m->angkatan,
         );
     }

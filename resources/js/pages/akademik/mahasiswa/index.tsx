@@ -39,6 +39,11 @@ type DosenOption = {
     nama: string;
 };
 
+type ProdiOption = {
+    id: number;
+    nama: string;
+};
+
 type PaginatedMahasiswas = {
     data: MahasiswaRow[];
     total: number;
@@ -52,6 +57,7 @@ type MahasiswaIndexPageProps = {
     filters: { search: string };
     userOptions: UserOption[];
     dosenOptions: DosenOption[];
+    prodiOptions: ProdiOption[];
 };
 
 export default function MahasiswaIndex({
@@ -59,6 +65,7 @@ export default function MahasiswaIndex({
     filters,
     userOptions,
     dosenOptions,
+    prodiOptions,
 }: MahasiswaIndexPageProps) {
     return (
         <>
@@ -69,6 +76,7 @@ export default function MahasiswaIndex({
                     <CreateMahasiswaDialog
                         userOptions={userOptions}
                         dosenOptions={dosenOptions}
+                        prodiOptions={prodiOptions}
                     />
                 </div>
 
@@ -95,7 +103,7 @@ export default function MahasiswaIndex({
                     </form>
 
                     <DataTable
-                        columns={mahasiswaColumns(dosenOptions)}
+                        columns={mahasiswaColumns(dosenOptions, prodiOptions)}
                         data={mahasiswas.data}
                         getRowKey={(m) => m.id}
                     />
@@ -113,9 +121,11 @@ export default function MahasiswaIndex({
 function CreateMahasiswaDialog({
     userOptions,
     dosenOptions,
+    prodiOptions,
 }: {
     userOptions: UserOption[];
     dosenOptions: DosenOption[];
+    prodiOptions: ProdiOption[];
 }) {
     const [open, setOpen] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -123,7 +133,7 @@ function CreateMahasiswaDialog({
         nama: '',
         nim: '',
         dosen_pa_id: '',
-        prodi: '',
+        prodi_id: '',
         angkatan: '',
     });
 
@@ -241,17 +251,29 @@ function CreateMahasiswaDialog({
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="mhs-prodi">Prodi</Label>
-                                <Input
-                                    id="mhs-prodi"
-                                    value={data.prodi}
-                                    onChange={(e) =>
-                                        setData('prodi', e.target.value)
+                                <Select
+                                    value={data.prodi_id}
+                                    onValueChange={(v) =>
+                                        setData('prodi_id', v)
                                     }
-                                    disabled={processing}
-                                />
-                                {errors.prodi && (
+                                >
+                                    <SelectTrigger id="mhs-prodi">
+                                        <SelectValue placeholder="Pilih prodi" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {prodiOptions.map((p) => (
+                                            <SelectItem
+                                                key={p.id}
+                                                value={String(p.id)}
+                                            >
+                                                {p.nama}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.prodi_id && (
                                     <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.prodi}
+                                        {errors.prodi_id}
                                     </p>
                                 )}
                             </div>

@@ -2,7 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { navigation as akademik } from '@/pages/akademik/navigation';
 import { navigation as manajemen } from '@/pages/manajemen/navigation';
 import { navigation as skripsi } from '@/pages/skripsi/navigation';
-import type { NavItem } from '@/types';
+import type { NavChild, NavItem } from '@/types';
 
 /**
  * Composition root navigasi frontend: satu baris per modul.
@@ -20,6 +20,24 @@ function isVisibleFor(item: { roles?: string[] }, roles: string[]): boolean {
     );
 }
 
+function filterChildren(
+    children: NavChild[] | undefined,
+    roles: string[],
+): NavChild[] | undefined {
+    if (!children?.length) {
+        return children;
+    }
+
+    const visible = children
+        .filter((child) => isVisibleFor(child, roles))
+        .map((child) => ({
+            ...child,
+            children: filterChildren(child.children, roles),
+        }));
+
+    return visible.length > 0 ? visible : undefined;
+}
+
 export function useModuleNavigation(): NavItem[] {
     const { auth } = usePage().props;
 
@@ -27,8 +45,6 @@ export function useModuleNavigation(): NavItem[] {
         .filter((item) => isVisibleFor(item, auth.roles))
         .map((item) => ({
             ...item,
-            children: item.children?.filter((child) =>
-                isVisibleFor(child, auth.roles),
-            ),
+            children: filterChildren(item.children, auth.roles),
         }));
 }

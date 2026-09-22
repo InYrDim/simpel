@@ -1,39 +1,51 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Column, DataTable } from '@/components/data-table';
 import monitoring from '@/routes/skripsi/monitoring';
-import skripsi from '@/routes/skripsi';
 
-type StatusStat = {
+type PengajuanRow = {
+    id: number;
+    nama_mahasiswa: string;
+    nim: string;
+    judul: string;
+    topik: string;
     status: string;
     status_label: string;
-    jumlah: number;
+    validator_nama: string;
+    berkas_original_name: string;
+    submitted_at: string | null;
+    decided_at: string | null;
 };
 
-type ValidatorStat = {
-    dosen_id: number;
-    dosen_nama: string;
-    beban: number;
-};
-
-type BebanDosenRow = {
-    dosen_id: number;
-    dosen_nama: string;
-    validator_aktif: number;
-    pembimbing_1: number;
-    pembimbing_2: number;
-    penguji_1: number;
-    penguji_2: number;
+type PaginatedPengajuan = {
+    data: PengajuanRow[];
     total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+};
+
+type StatusOption = {
+    value: string;
+    label: string;
 };
 
 type MonitoringPageProps = {
-    total: number;
-    per_status: StatusStat[];
-    per_validator: ValidatorStat[];
-    bulan_ini: number;
-    beban_dosen: BebanDosenRow[];
+    pengajuans: PaginatedPengajuan;
+    filters: { status: string | null };
+    statusOptions: StatusOption[];
 };
 
 const STATUS_VARIANT: Record<
@@ -49,146 +61,132 @@ const STATUS_VARIANT: Record<
     ditolak_validator: 'destructive',
 };
 
-const bebanDosenColumns: Column<BebanDosenRow>[] = [
-    { key: 'dosen_nama', label: 'Dosen' },
-    { key: 'validator_aktif', label: 'Validator aktif' },
-    { key: 'pembimbing_1', label: 'Pembimbing 1' },
-    { key: 'pembimbing_2', label: 'Pembimbing 2' },
-    { key: 'penguji_1', label: 'Penguji 1' },
-    { key: 'penguji_2', label: 'Penguji 2' },
+const pengajuanColumns: Column<PengajuanRow>[] = [
     {
-        key: 'total',
-        label: 'Total',
+        key: 'nama_mahasiswa',
+        label: 'Mahasiswa',
         render: (row) => (
-            <span className="font-semibold tabular-nums">{row.total}</span>
+            <div className="flex flex-col">
+                <span>{row.nama_mahasiswa}</span>
+                <span className="text-muted-foreground text-xs">{row.nim}</span>
+            </div>
         ),
+    },
+    {
+        key: 'judul',
+        label: 'Judul',
+        render: (row) => (
+            <div className="flex flex-col">
+                <span>{row.judul}</span>
+                <span className="text-muted-foreground text-xs">
+                    {row.topik}
+                </span>
+            </div>
+        ),
+    },
+    {
+        key: 'status',
+        label: 'Status',
+        render: (row) => (
+            <Badge variant={STATUS_VARIANT[row.status] ?? 'outline'}>
+                {row.status_label}
+            </Badge>
+        ),
+    },
+    { key: 'validator_nama', label: 'Validator' },
+    {
+        key: 'submitted_at',
+        label: 'Diajukan',
+        render: (row) =>
+            row.submitted_at
+                ? new Date(row.submitted_at).toLocaleDateString('id-ID')
+                : '-',
     },
 ];
 
 export default function MonitoringIndex({
-    total,
-    per_status,
-    per_validator,
-    bulan_ini,
-    beban_dosen,
+    pengajuans,
+    filters,
+    statusOptions,
 }: MonitoringPageProps) {
-    const jumlahStatus = (status: string) =>
-        per_status.find((s) => s.status === status)?.jumlah ?? 0;
-    const maxJumlah = Math.max(...per_status.map((s) => s.jumlah), 1);
+    const filter = (status: string) =>
+        router.get(monitoring.index.url(), { status });
+
+    const goto = (page: number) =>
+        router.get(monitoring.index.url(), { status: filters.status, page });
 
     return (
         <>
-            <Head title="Skripsi - Monitoring" />
+            <Head title="Laporan - Monitoring" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <h1 className="text-2xl font-bold">Monitoring Pengajuan</h1>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard title="Total Pengajuan" value={total} />
-                    <StatCard title="Bulan Ini" value={bulan_ini} />
-                    <StatCard
-                        title="Menunggu Verifikasi"
-                        value={jumlahStatus('diajukan')}
-                    />
-                    <StatCard
-                        title="Menunggu Putusan"
-                        value={jumlahStatus('diverifikasi_admin')}
-                    />
-                </div>
+                <Card className="p-4">
+                    <div className="mb-4 grid max-w-xs gap-2">
+                        <Label htmlFor="mntr-status">Status</Label>
+                        <Select
+                            value={filters.status ?? 'semua'}
+                            onValueChange={filter}
+                        >
+                            <SelectTrigger id="mntr-status" className="w-full">
+                                <SelectValue placeholder="Semua status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="semua">
+                                    Semua status
+                                </SelectItem>
+                                {statusOptions.map((o) => (
+                                    <SelectItem key={o.value} value={o.value}>
+                                        {o.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Pengajuan per Status</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3">
-                        {per_status.map((s) => (
-                            <div
-                                key={s.status}
-                                className="flex items-center gap-3 text-sm"
+                    <DataTable
+                        columns={pengajuanColumns}
+                        data={pengajuans.data}
+                        getRowKey={(row) => row.id}
+                    />
+
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                            Menampilkan {pengajuans.data.length} dari{' '}
+                            {pengajuans.total} pengajuan
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={!pengajuans.prev_page_url}
+                                onClick={() =>
+                                    goto(pengajuans.current_page - 1)
+                                }
                             >
-                                <Badge
-                                    variant={
-                                        STATUS_VARIANT[s.status] ?? 'outline'
-                                    }
-                                    className="w-44 justify-center"
-                                >
-                                    {s.status_label}
-                                </Badge>
-                                <div className="bg-muted h-4 flex-1 overflow-hidden rounded-full">
-                                    <div
-                                        className="bg-primary h-full rounded-full"
-                                        style={{
-                                            width: `${(s.jumlah / maxJumlah) * 100}%`,
-                                        }}
-                                    />
-                                </div>
-                                <span className="w-8 text-right tabular-nums">
-                                    {s.jumlah}
-                                </span>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Sebaran Beban Dosen</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <DataTable
-                            columns={bebanDosenColumns}
-                            data={beban_dosen}
-                            getRowKey={(row) => row.dosen_id}
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Beban Validator</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3">
-                        {per_validator.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">
-                                Tidak ada penugasan review aktif.
-                            </p>
-                        ) : (
-                            per_validator.map((v) => (
-                                <div
-                                    key={v.dosen_id}
-                                    className="flex items-center justify-between text-sm"
-                                >
-                                    <span>{v.dosen_nama}</span>
-                                    <Badge variant="secondary">
-                                        {v.beban} pengajuan
-                                    </Badge>
-                                </div>
-                            ))
-                        )}
-                    </CardContent>
+                                Sebelumnya
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={!pengajuans.next_page_url}
+                                onClick={() =>
+                                    goto(pengajuans.current_page + 1)
+                                }
+                            >
+                                Berikutnya
+                            </Button>
+                        </div>
+                    </div>
                 </Card>
             </div>
         </>
     );
 }
 
-function StatCard({ title, value }: { title: string; value: number }) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-muted-foreground text-sm font-medium">
-                    {title}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-3xl font-bold tabular-nums">{value}</p>
-            </CardContent>
-        </Card>
-    );
-}
-
 MonitoringIndex.layout = () => ({
     breadcrumbs: [
-        { title: 'Skripsi', href: skripsi.daftarJudul.index.url() },
+        { title: 'Laporan', href: monitoring.index.url() },
         { title: 'Monitoring', href: monitoring.index.url() },
     ],
 });

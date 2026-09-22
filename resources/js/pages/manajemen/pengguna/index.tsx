@@ -72,7 +72,7 @@ PenggunaIndex.layout = () => ({
             href: manajemen.index.url(),
         },
         {
-            title: 'Pengguna',
+            title: 'Akun',
             href: pengguna.index.url(),
         },
     ],
