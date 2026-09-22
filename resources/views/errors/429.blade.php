@@ -35,7 +35,7 @@
                 --foreground: oklch(0 0 0);
                 --muted-foreground: oklch(0.4386 0 0);
                 --border: oklch(0.93 0.0094 286.2156);
-                --primary: oklch(0.6404 0.2153 35.9003);
+                --primary: oklch(0.6609 0.158 243.9173);
                 --primary-foreground: oklch(1 0 0);
             }
 
@@ -44,7 +44,7 @@
                 --foreground: oklch(0.9551 0 0);
                 --muted-foreground: oklch(0.6731 0 0);
                 --border: oklch(0.2393 0 0);
-                --primary: oklch(0.6404 0.2153 35.9003);
+                --primary: oklch(0.6609 0.158 243.9173);
                 --primary-foreground: oklch(1 0 0);
             }
 
