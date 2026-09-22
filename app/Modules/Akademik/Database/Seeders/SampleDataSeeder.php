@@ -5,6 +5,7 @@ namespace App\Modules\Akademik\Database\Seeders;
 use App\Models\User;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
+use App\Modules\Akademik\Models\Prodi;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -87,13 +88,18 @@ class SampleDataSeeder extends Seeder
 
         $dosenPa = Dosen::query()->where('nip', '198001012005011001')->firstOrFail();
 
+        $prodiTif = Prodi::query()->updateOrCreate(
+            ['nama' => 'Teknik Informatika'],
+            ['kaprodi_id' => $dosenPa->id],
+        );
+
         Mahasiswa::query()->updateOrCreate(
             ['user_id' => $mahasiswaUser->id],
             [
                 'nama' => 'Dewi Lestari',
                 'nim' => '2110512001',
                 'dosen_pa_id' => $dosenPa->id,
-                'prodi' => 'Teknik Informatika',
+                'prodi_id' => $prodiTif->id,
                 'angkatan' => 2021,
             ],
         );

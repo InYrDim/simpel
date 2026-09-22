@@ -6,6 +6,7 @@ use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
@@ -160,6 +161,24 @@ test('admin melihat semua pengajuan beserta kronologi lengkapnya', function () {
             ->where('pengajuans.data.0.riwayat.1.catatan', 'Perbaiki berkas.')
             ->where('pengajuans.data.0.riwayat.2.aktor_nama', $mahasiswa->name)
             ->where('pengajuans.data.0.riwayat.4.aktor_nama', $validator->name));
+});
+
+test('resolusi identitas mahasiswa memakai satu query batch per halaman, bukan N+1', function () {
+    // 12 pengajuan dari 12 akun berbeda → halaman pertama memuat 10 baris.
+    PengajuanJudul::factory()->count(12)->create();
+
+    DB::enableQueryLog();
+
+    $this->actingAs(rwyPgAdmin())
+        ->get(route('skripsi.riwayat.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('pengajuans.data', 10));
+
+    $queryIdentitas = collect(DB::getQueryLog())
+        ->filter(fn (array $log): bool => str_contains($log['query'], 'akademik_mahasiswas'))
+        ->count();
+
+    expect($queryIdentitas)->toBe(1);
 });
 
 test('pengajuan terbaru muncul pertama', function () {

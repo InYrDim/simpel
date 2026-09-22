@@ -76,6 +76,7 @@ class PengajuanJudulController extends Controller
     /**
      * Submit pengajuan baru — tepat 3 judul + PDF maks 5 MB (§6.1, §6.2).
      * Aturan "satu pengajuan aktif" dicek ulang di SubmitPengajuan (§6.4).
+     * Route dilindungi rate limiter `pengajuan-submit` (PRD ketahanan-teknis §3.3).
      */
     public function store(
         Request $request,
@@ -83,13 +84,7 @@ class PengajuanJudulController extends Controller
     ): RedirectResponse {
         /** @var User $user */
         $user = auth()->user();
-        $validated = $request->validate([
-            'juduls' => ['required', 'array', 'min:3', 'max:3'],
-            'juduls.*.judul' => ['required', 'string', 'max:255'],
-            'juduls.*.deskripsi' => ['required', 'string'],
-            'juduls.*.topik' => ['required', 'string', 'max:255'],
-            'berkas' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-        ]);
+        $validated = $request->validate($this->aturanPengajuan());
 
         $action->handle($user, $validated['juduls'], $request->file('berkas'));
 
@@ -109,13 +104,7 @@ class PengajuanJudulController extends Controller
     ): RedirectResponse {
         /** @var User $user */
         $user = auth()->user();
-        $validated = $request->validate([
-            'juduls' => ['required', 'array', 'min:3', 'max:3'],
-            'juduls.*.judul' => ['required', 'string', 'max:255'],
-            'juduls.*.deskripsi' => ['required', 'string'],
-            'juduls.*.topik' => ['required', 'string', 'max:255'],
-            'berkas' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-        ]);
+        $validated = $request->validate($this->aturanPengajuan());
 
         $action->handle($user, $pengajuan, $validated['juduls'], $request->file('berkas'));
 
@@ -130,5 +119,36 @@ class PengajuanJudulController extends Controller
     public function template(): StreamedResponse
     {
         return Storage::disk('local')->download('template/template-pengajuan.docx', 'template-pengajuan.docx');
+    }
+
+    /**
+     * Aturan berkas & judul — SAMA untuk submit dan resubmit, jadi
+     * dikonsolidasikan di sini agar tidak terduplikasi (PRD ketahanan-teknis
+     * §3.3). `mimetypes` menolak berkas ber-ekstensi `.pdf` yang isinya bukan
+     * PDF; `mimes` tetap dipertahankan sebagai lapisan ekstensi.
+     *
+     * Lima MIME yang diizinkan adalah yang dipetakan Symfony
+     * (`vendor/symfony/mime/MimeTypes.php`) ke ekstensi `pdf` — PDF asli tidak
+     * boleh tertolak hanya karena terdeteksi sebagai alias. Sebaliknya
+     * `application/octet-stream` sengaja TIDAK diizinkan: itu akan meloloskan
+     * berkas yang MIME-nya tak terdeteksi sama sekali (§8 #7).
+     *
+     * @return array<string, list<string>>
+     */
+    private function aturanPengajuan(): array
+    {
+        return [
+            'juduls' => ['required', 'array', 'min:3', 'max:3'],
+            'juduls.*.judul' => ['required', 'string', 'max:255'],
+            'juduls.*.deskripsi' => ['required', 'string'],
+            'juduls.*.topik' => ['required', 'string', 'max:255'],
+            'berkas' => [
+                'required',
+                'file',
+                'mimes:pdf',
+                'mimetypes:application/pdf,application/acrobat,application/nappdf,application/x-pdf,image/pdf',
+                'max:5120',
+            ],
+        ];
     }
 }

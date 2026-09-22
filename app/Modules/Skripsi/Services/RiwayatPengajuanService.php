@@ -4,6 +4,7 @@ namespace App\Modules\Skripsi\Services;
 
 use App\Models\User;
 use App\Modules\Contracts\AkademikContract;
+use App\Modules\Contracts\MahasiswaDTOList;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Models\JudulPengajuan;
 use App\Modules\Skripsi\Models\PengajuanJudul;
@@ -40,17 +41,31 @@ class RiwayatPengajuanService
             $query->where('user_id', $aktor->id);
         }
 
-        return $query->paginate(10)->withQueryString()->through(fn (PengajuanJudul $p): array => $this->barisPengajuan($p));
+        $pengajuans = $query->paginate(10)->withQueryString();
+
+        // Identitas mahasiswa di-resolusi SEKALI per halaman lewat kontrak
+        // batch — bukan satu panggilan kontrak per baris (PRD ketahanan-
+        // teknis §3.2). `user_id` tak dikenal absen dari hasil, dan tiap
+        // baris memetakannya sendiri.
+        $mahasiswa = $this->akademik->mahasiswaByUserIds(array_values(
+            $pengajuans->getCollection()
+                ->map(fn (PengajuanJudul $p): int => $p->user_id)
+                ->unique()
+                ->values()
+                ->all()
+        ));
+
+        return $pengajuans->through(fn (PengajuanJudul $p): array => $this->barisPengajuan($p, $mahasiswa));
     }
 
     /**
      * @return array{id: int, status: string, status_label: string, submitted_at: string|null, nama_mahasiswa: string, nim: string, jumlah_judul: int, judul_list: list<string>, catatan_admin: string|null, catatan_validator: string|null, riwayat: list<array{aksi: string, dari_status: string|null, dari_status_label: string|null, ke_status: string, ke_status_label: string, aktor_nama: string, catatan: string|null, created_at: string|null}>}
      */
-    private function barisPengajuan(PengajuanJudul $p): array
+    private function barisPengajuan(PengajuanJudul $p, MahasiswaDTOList $mahasiswaList): array
     {
-        // Identitas via kontrak — satu panggilan per baris, hasilnya dipakai
-        // untuk nama sekaligus NIM.
-        $mahasiswa = $this->akademik->mahasiswaByUserId($p->user_id);
+        // Identitas berasal dari hasil batch yang sudah di-resolusi sekali
+        // untuk seluruh halaman — dipakai untuk nama sekaligus NIM.
+        $mahasiswa = $mahasiswaList->byUserId($p->user_id);
 
         return [
             'id' => $p->id,

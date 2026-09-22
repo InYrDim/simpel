@@ -6,6 +6,8 @@ use App\Modules\Contracts\AkademikContract;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Models\JudulPengajuan;
 use App\Modules\Skripsi\Models\PengajuanJudul;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Agregasi statistik pengajuan untuk dashboard monitoring admin (PR 3
@@ -17,6 +19,90 @@ class SkripsiMonitoringService
     public function __construct(
         private readonly AkademikContract $akademik,
     ) {}
+
+    /**
+     * Daftar pengajuan untuk halaman Monitoring (admin), dipaginasi — kolom
+     * identitas mahasiswa di-resolusi via kontrak Akademik.
+     *
+     * @return LengthAwarePaginator<int, array{id: int, nama_mahasiswa: string, nim: string, judul: string, topik: string, status: string, status_label: string, validator_nama: string, berkas_original_name: string, submitted_at: string|null, decided_at: string|null}>
+     */
+    public function daftarPengajuan(?string $status): LengthAwarePaginator
+    {
+        $paginator = $this->queryPengajuan($status)
+            ->paginate(10)
+            ->withQueryString();
+
+        /** @var LengthAwarePaginator<int, array{id: int, nama_mahasiswa: string, nim: string, judul: string, topik: string, status: string, status_label: string, validator_nama: string, berkas_original_name: string, submitted_at: string|null, decided_at: string|null}> $mapped */
+        $mapped = $paginator->through(fn (PengajuanJudul $p): array => $this->barisPengajuan($p));
+
+        return $mapped;
+    }
+
+    /**
+     * Daftar lengkap pengajuan (tanpa paginasi) untuk export CSV.
+     *
+     * @return list<array{id: int, nama_mahasiswa: string, nim: string, judul: string, topik: string, status: string, status_label: string, validator_nama: string, berkas_original_name: string, submitted_at: string|null, decided_at: string|null}>
+     */
+    public function daftarPengajuanForExport(?string $status): array
+    {
+        $baris = [];
+
+        foreach ($this->queryPengajuan($status)->get() as $pengajuan) {
+            $baris[] = $this->barisPengajuan($pengajuan);
+        }
+
+        return $baris;
+    }
+
+    /**
+     * @return Builder<PengajuanJudul>
+     */
+    private function queryPengajuan(?string $status): Builder
+    {
+        $query = PengajuanJudul::query()
+            ->with('juduls')
+            ->select([
+                'id',
+                'user_id',
+                'berkas_original_name',
+                'status',
+                'validator_id',
+                'submitted_at',
+                'decided_at',
+            ])
+            ->orderByDesc('submitted_at');
+
+        if ($status !== null && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @return array{id: int, nama_mahasiswa: string, nim: string, judul: string, topik: string, status: string, status_label: string, validator_nama: string, berkas_original_name: string, submitted_at: string|null, decided_at: string|null}
+     */
+    private function barisPengajuan(PengajuanJudul $p): array
+    {
+        $judulUtama = $p->juduls->first();
+        $mahasiswa = $this->akademik->mahasiswaByUserId($p->user_id);
+
+        return [
+            'id' => $p->id,
+            'nama_mahasiswa' => $mahasiswa->nama ?? '-',
+            'nim' => $mahasiswa->nim ?? '-',
+            'judul' => $judulUtama->judul ?? '-',
+            'topik' => $judulUtama->topik ?? '-',
+            'status' => $p->status->value,
+            'status_label' => $p->status->label(),
+            'validator_nama' => $p->validator_id !== null
+                ? ($this->akademik->dosenById($p->validator_id)->nama ?? '-')
+                : '-',
+            'berkas_original_name' => $p->berkas_original_name,
+            'submitted_at' => $p->submitted_at?->toISOString(),
+            'decided_at' => $p->decided_at?->toISOString(),
+        ];
+    }
 
     /**
      * Ringkasan statistik: total pengajuan, jumlah per status (semua status

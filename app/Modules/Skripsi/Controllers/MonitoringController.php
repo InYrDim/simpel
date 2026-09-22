@@ -3,15 +3,16 @@
 namespace App\Modules\Skripsi\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Skripsi\Enums\StatusPengajuan;
 use App\Modules\Skripsi\Services\SkripsiMonitoringService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 /**
- * Dashboard monitoring admin (PR 3 sesi 3): ringkasan statistik pengajuan —
- * total, per status, beban validator, dan pengajuan bulan berjalan — plus
- * sebaran beban penugasan per dosen (PRD Beban Dosen). Angka agregat hanya
- * bacaan; transisi status tetap di Services (§7.2).
+ * Halaman Monitoring (menu Laporan, role:admin): daftar pengajuan per status,
+ * difilter per status via query string. Hanya bacaan — transisi status tetap
+ * di Services (§7.2).
  */
 class MonitoringController extends Controller
 {
@@ -19,11 +20,23 @@ class MonitoringController extends Controller
         private readonly SkripsiMonitoringService $monitoring,
     ) {}
 
-    public function index(): InertiaResponse
+    public function index(Request $request): InertiaResponse
     {
+        $status = $request->string('status')->value();
+        $status = $status !== '' && StatusPengajuan::tryFrom($status) !== null
+            ? $status
+            : null;
+
         return Inertia::render('skripsi/monitoring/index', [
-            ...$this->monitoring->ringkasan(),
-            'beban_dosen' => $this->monitoring->bebanDosen(),
+            'pengajuans' => $this->monitoring->daftarPengajuan($status),
+            'filters' => ['status' => $status],
+            'statusOptions' => collect(StatusPengajuan::cases())
+                ->map(fn (StatusPengajuan $s): array => [
+                    'value' => $s->value,
+                    'label' => $s->label(),
+                ])
+                ->values()
+                ->all(),
         ]);
     }
 }

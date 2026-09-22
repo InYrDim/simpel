@@ -21,12 +21,13 @@ use Illuminate\Support\Carbon;
  * @property string $nama
  * @property string $nim
  * @property int $dosen_pa_id
- * @property string|null $prodi
+ * @property int|null $prodi_id
  * @property int|null $angkatan
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
  * @property-read Dosen $dosenPa
+ * @property-read Prodi|null $prodiRef
  */
 class Mahasiswa extends Model
 {
@@ -35,7 +36,7 @@ class Mahasiswa extends Model
 
     protected $table = 'akademik_mahasiswas';
 
-    protected $fillable = ['user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi', 'angkatan'];
+    protected $fillable = ['user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan'];
 
     /**
      * Factory modul tidak di bawah namespace `Database\Factories`, jadi
@@ -64,5 +65,15 @@ class Mahasiswa extends Model
     public function dosenPa(): BelongsTo
     {
         return $this->belongsTo(Dosen::class, 'dosen_pa_id');
+    }
+
+    /**
+     * Program studi milik mahasiswa ini — dapat null bila belum ditetapkan.
+     *
+     * @return BelongsTo<Prodi, $this>
+     */
+    public function prodiRef(): BelongsTo
+    {
+        return $this->belongsTo(Prodi::class, 'prodi_id');
     }
 }
