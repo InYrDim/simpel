@@ -191,74 +191,51 @@
 }
 
 /*
- * Sidebar "deep navy": panel SELALU gelap (light & dark mode) dengan gradient
- * navy yang kaya, teks putih, dan item aktif berupa pill gradient brand solid.
- * Pola: konten terang, sidebar menjadi anchor visual gelap (Slack/Discord/Notion).
+ * Sidebar "ink flat": panel SELALU gelap (light & dark mode) dengan warna
+ * solid tanpa gradient/glow/dekorasi. Satu ide: kontras panel gelap vs konten
+ * terang, ditangani lewat tipografi, spacing, dan pill aktif solid.
  *
- * Semua nilai dioverride ter-scope ke [data-slot='sidebar'] sehingga card
- * dashboard dan drawer nav mobile yang memakai token sidebar TIDAK ikut berubah.
- * Deklarasi custom properties di sini memengaruhi juga elemen turunan seperti
- * SheetContent mobile ([data-slot='sidebar']) yang membaca utility bg-sidebar.
+ * Nilai dioverride ter-scope ke [data-slot='sidebar'] sehingga card dashboard
+ * dan token global tidak terdampak. Drawer mobile (Sheet) ikut karena
+ * memakai atribut data-slot yang sama.
  */
 @layer components {
     [data-slot='sidebar'] {
-        /* Override token hanya di dalam panel sidebar. */
-        --sidebar: oklch(0.2 0.035 264);
-        --sidebar-foreground: oklch(0.96 0.004 260);
-        --sidebar-accent: oklch(0.29 0.045 262);
-        --sidebar-accent-foreground: oklch(0.97 0.004 260);
-        --sidebar-border: oklch(0.31 0.04 264);
+        --sidebar: oklch(0.19 0.014 264);
+        --sidebar-foreground: oklch(0.93 0.004 260);
+        --sidebar-accent: oklch(0.27 0.018 263);
+        --sidebar-accent-foreground: oklch(0.96 0.004 260);
+        --sidebar-border: oklch(0.28 0.016 264);
 
-        background-image: linear-gradient(
-            160deg,
-            oklch(0.26 0.05 262) 0%,
-            oklch(0.2 0.04 264) 42%,
-            oklch(0.14 0.035 266) 100%
-        );
+        background-color: var(--sidebar);
         color: var(--sidebar-foreground);
     }
 
-    /* Hover item: highlight putih transparan (bukan accent brand). */
+    /* Hover item: permukaan sedikit terang, netral (bukan accent brand). */
     [data-slot='sidebar'] [data-sidebar='menu-button']:hover,
     [data-slot='sidebar'] [data-sidebar='menu-sub-button']:hover {
-        background-color: oklch(1 0 0 / 0.07);
-        color: oklch(0.99 0.002 260);
+        background-color: oklch(1 0 0 / 0.06);
+        color: oklch(0.97 0.004 260);
     }
 
     /*
-     * Item aktif: pill gradient brand solid dengan teks putih
-     * (kontras AA di atas gradient biru) + shadow ber-tint navy.
+     * Item aktif: pill solid biru brand yang diperdalam (L 0.42) agar teks
+     * putih lolos kontras AA, tanpa gradient/shadow/glow.
      */
     [data-slot='sidebar']
         [data-sidebar='menu-button'][data-active='true'],
     [data-slot='sidebar']
         [data-sidebar='menu-sub-button'][data-active='true'] {
-        background-image: linear-gradient(
-            135deg,
-            oklch(0.62 0.16 245) 0%,
-            oklch(0.55 0.19 262) 100%
-        );
+        background-color: oklch(0.42 0.13 258);
         color: white;
         font-weight: 500;
-        box-shadow:
-            0 6px 16px -6px oklch(0.55 0.19 262 / 0.55),
-            inset 0 1px 0 oklch(1 0 0 / 0.18);
     }
 
     [data-slot='sidebar']
         [data-sidebar='menu-button'][data-active='true']:hover,
     [data-slot='sidebar']
         [data-sidebar='menu-sub-button'][data-active='true']:hover {
-        background-image: linear-gradient(
-            135deg,
-            oklch(0.66 0.16 245) 0%,
-            oklch(0.59 0.19 262) 100%
-        );
-    }
-
-    /* Garis pemisah submenu: putih transparan halus di atas navy. */
-    [data-slot='sidebar'] [data-sidebar='menu-sub'] {
-        border-color: oklch(1 0 0 / 0.12);
+        background-color: oklch(0.47 0.13 258);
     }
 
     /* Tactile feedback saat ditekan. */

@@ -42,7 +42,7 @@ export function AppSidebar() {
     const moduleNavItems = useModuleNavigation();
 
     return (
-        <Sidebar collapsible="icon" variant="floating">
+        <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -61,7 +61,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <div className="bg-sidebar-border/60 h-px" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

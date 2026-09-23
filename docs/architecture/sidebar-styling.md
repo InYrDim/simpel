@@ -22,11 +22,11 @@ Panduan untuk siapa pun (manusia maupun agent) yang ingin mengubah tampilan side
 Styling sidebar dibagi dua lapis:
 
 1. **Token global di `app.css` (`:root` / `.dark`).** Nilai netral yang ikut tema. Dipakai konsumen token sidebar DI LUAR panel (card dashboard, topbar, drawer nav mobile).
-2. **Override ter-scope di `app.css` (`@layer components`).** Gaya desain aktif adalah **"deep navy"**: panel sidebar SELALU gelap (light & dark mode) dengan gradient navy, teks putih, dan item aktif berupa pill gradient brand solid (pola Slack/Discord/Notion). Ini dicapai dengan me-override `--sidebar`, `--sidebar-foreground`, `--sidebar-accent`, `--sidebar-accent-foreground`, `--sidebar-border` **hanya di dalam** `[data-slot='sidebar']`, plus gradient panel dan treatment state (hover putih transparan, pill aktif, garis submenu) di blok yang sama.
+2. **Override ter-scope di `app.css` (`@layer components`).** Gaya desain aktif adalah **"ink flat"**: panel sidebar SELALU gelap (light & dark mode) dengan warna solid — tanpa gradient, glow, atau shadow dekoratif. Satu ide: kontras panel gelap vs konten terang; identitas datang dari pill aktif solid biru brand dan tipografi. Panel memakai `variant="sidebar"` (attached, flat border, tanpa rounded). Ini dicapai dengan me-override `--sidebar`, `--sidebar-foreground`, `--sidebar-accent`, `--sidebar-accent-foreground`, `--sidebar-border` **hanya di dalam** `[data-slot='sidebar']`, plus treatment state di blok yang sama.
 
 Konsekuensi desain ini: di light mode aplikasi terlihat seperti "konten terang + panel navigasi gelap" — itu disengaja. Card dashboard tidak ikut gelap karena override-nya ter-scope.
 
-Pola restyle yang disarankan: **ubah blok komponen ter-scope dulu** (itu sumber kebenaran visual panel), dan jaga token global tetap netral agar konsumen luar tidak terdampak. Hindari hardcode warna di TSX.
+Pola restyle yang disarankan: **ubah blok komponen ter-scope dulu** (itu sumber kebenaran visual panel), dan jaga token global tetap netral agar konsumen luar tidak terdampak. Hindari hardcode warna di TSX. Prinsip anti-slop yang dipakai: satu ide jelas, nol gradient dekoratif, satu warna aksen.
 
 ## Token Referensi
 
@@ -36,7 +36,7 @@ Didefinisikan di `:root` dan `.dark` dalam `app.css` (format `oklch()`):
 |---|---|---|
 | `--sidebar` | Latar panel (di-override navy di dalam `[data-slot='sidebar']`) | `bg-sidebar` di `ui/sidebar.tsx` |
 | `--sidebar-foreground` | Teks normal (di-override putih di dalam panel) | `text-sidebar-foreground`, ikon nav |
-| `--sidebar-primary` / `--sidebar-primary-foreground` | Tidak lagi dipakai komponen sidebar | kotak logo memakai gradient Tailwind di `app-logo.tsx` |
+| `--sidebar-primary` / `--sidebar-primary-foreground` | Tidak dipakai komponen sidebar saat ini | kotak logo memakai `bg-primary` (token umum) di `app-logo.tsx` |
 | `--sidebar-accent` | Latar hover & state terbuka (di-override; di panel dipakai via override) | `ui/sidebar.tsx` (menu action, trigger dropdown) |
 | `--sidebar-accent-foreground` | Teks saat hover | idem |
 | `--sidebar-border` | Border panel floating, garis submenu, divider, **card dashboard & topbar** | lihat relasi; nilai global dijaga netral |
@@ -44,11 +44,10 @@ Didefinisikan di `:root` dan `.dark` dalam `app.css` (format `oklch()`):
 
 Perilaku aktif/hover saat ini (didefinisikan di blok komponen ter-scope, jangan diubah lewat TSX):
 
-- Panel: gradient navy `linear-gradient(160deg, ...)` + teks putih, di kedua mode.
-- Hover: putih transparan `oklch(1 0 0 / 0.07)` (bukan accent brand).
-- Aktif: **pill gradient brand solid** (`135deg`, biru → indigo) + teks putih + `font-weight: 500` + shadow ber-tint navy dan inset highlight.
-- Aktif + hover: gradient varian sedikit lebih terang.
-- Garis submenu: putih transparan `oklch(1 0 0 / 0.12)`.
+- Panel: solid `oklch(0.19 0.014 264)` (ink) + teks `0.93 L`, di kedua mode.
+- Hover: putih transparan `oklch(1 0 0 / 0.06)` (bukan accent brand).
+- Aktif: **pill solid biru diperdalam** `oklch(0.42 0.13 258)` + teks putih + `font-weight: 500`, tanpa gradient/shadow/glow (kontras AA terjaga).
+- Aktif + hover: `oklch(0.47 0.13 258)`.
 - Tekan (`:active`): `scale(0.98)`.
 
 ## Limitasi
@@ -58,8 +57,8 @@ Perilaku aktif/hover saat ini (didefinisikan di blok komponen ter-scope, jangan 
 3. **Collapse ke mode ikon (`collapsible="icon"`)** menuntut ikon berukuran tetap dan tooltip. Kalau menambah item nav baru, pastikan punya `icon` dan judul pendek; label tidak ikut terpotong rapi saat collapse.
 4. **Nested submenu didukung rekursif** (`NavSubItem` memanggil dirinya untuk `NavChild.children`). Treatment CSS aktif harus tetap berlaku untuk `menu-sub-button`, bukan hanya `menu-button` — lihat selektor di blok komponen.
 5. **Aksen tunggal.** Warna aksen hanya untuk status aktif; jangan menambah warna kedua untuk hover/badge/divider. Hover memakai accent netral, bukan aksen brand.
-6. **Kontras AA wajib** di semua kombinasi (teks putih atas pill gradient brand, teks putih atas navy panel, hover putih transparan). Kalau mengganti nilai gradient, cek ulang.
-7. **Mobile drawer** di-render sebagai Sheet dengan `[data-slot='sidebar']` + `data-mobile="true"`; karena override token ter-scope ke atribut itu, drawer mobile **ikut tema deep navy**. Uji restyle di mobile juga.
+6. **Kontras AA wajib** di semua kombinasi (teks putih atas pill biru `0.42 L`, teks `0.93 L` atas panel `0.19 L`, hover putih transparan). Kalau mengganti nilai, cek ulang.
+7. **Mobile drawer** di-render sebagai Sheet dengan `[data-slot='sidebar']` + `data-mobile="true"`; karena override token ter-scope ke atribut itu, drawer mobile **ikut tema ink gelap**. Uji restyle di mobile juga.
 8. **Panel selalu gelap adalah keputusan desain, bukan bug light mode.** Jangan "memperbaiki" dengan menghapus override ter-scope tanpa keputusan desain baru; card dashboard & topbar mengandalkan token global yang netral.
 9. **Tidak ada animasi masuk/keluar panel**; satu-satunya transksi adalah lebar saat collapse dan `:active` scale. Tambah animasi hanya kalau bermotif (feedback/hierarki) dan hormati `prefers-reduced-motion`.
 
@@ -84,7 +83,7 @@ Mengubah token `--sidebar-*` tidak hanya mengubah sidebar. Konsumen lain dari to
 | `ui/sidebar.tsx` | Primitives: semua warna panel/hover/border di dalam drawer ini juga dari token | Ikon toggle, trigger, dsb. ikut |
 | `nav-user.tsx` | `text-sidebar-accent-foreground` + `data-[state=open]:bg-sidebar-accent` pada trigger dropdown user | Dropdown trigger ikut bergeser |
 | `user-info.tsx` | Avatar fallback `bg-muted text-foreground` (netral, token umum) | Tidak terpengaruh token sidebar |
-| `app-logo.tsx` | Kotak logo memakai gradient Tailwind (`from-sky-400 to-blue-600`) + teks putih, bagian dari desain deep navy | Tidak terpengaruh token sidebar; ganti lewat class di komponen ini |
+| `app-logo.tsx` | Kotak logo memakai `bg-primary`/`text-primary-foreground` (token umum) | Tidak terpengaruh token sidebar; berubah kalau `--primary` berubah |
 | Blok `@layer components` di `app.css` | Selektor ter-scope `[data-slot='sidebar']` | Tidak memengaruhi area di luar sidebar |
 
 ## Checklist Sebelum Merge
@@ -92,7 +91,7 @@ Mengubah token `--sidebar-*` tidak hanya mengubah sidebar. Konsumen lain dari to
 1. `npm run types:check` dan `npm run build` lolos.
 2. Sidebar dicek di **kedua mode** (light/dark; panel memang selalu navy) dan di **mobile drawer** (juga navy).
 3. Status collapse (ikon-only) masih rapi; tooltip muncul.
-4. Item aktif masih satu aksen (pill gradient brand); tidak ada warna hardcode baru di TSX selain yang memang bagian desain deep navy (`app-logo.tsx`, `nav-user.tsx`).
+4. Item aktif masih satu aksen (pill solid biru brand); tidak ada warna hardcode baru di TSX.
 5. Card dashboard & topbar tidak berubah warna (kalau `--sidebar-border` berubah, ini di luar batas, lihat tabel relasi).
 6. Cookie `sidebar_state` dan prop `sidebarOpen` tidak berubah.
-7. Treatment baru harus punya alasan (feedback/hierarki); gradient panel dan pill aktif adalah bagian identitas desain deep navy, bukan dekorasi lepas.
+7. Tanpa gradient/glow/shadow dekoratif — panel solid, pill aktif solid. Treatment baru harus punya alasan (feedback/hierarki), satu ide desain yang jelas.
