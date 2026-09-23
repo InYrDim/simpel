@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/collapsible';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
@@ -22,7 +21,6 @@ import type { NavChild, NavItem } from '@/types';
 export function NavMain({ items }: { items: NavItem[] }) {
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => (
                     <NavMainItem key={item.title} item={item} />

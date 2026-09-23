@@ -32,14 +32,16 @@
     --chart-3: oklch(0.7522 0.1333 228.4664);
     --chart-4: oklch(0.5828 0.1809 259.7276);
     --chart-5: oklch(0.8752 0.1382 155.7858);
-    --sidebar: oklch(0.994 0 0);
-    --sidebar-foreground: oklch(0 0 0);
+    --sidebar: oklch(0.973 0.003 247);
+    --sidebar-foreground: oklch(0.24 0.012 255);
     --sidebar-primary: oklch(0.6609 0.158 243.9173);
     --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.9782 0.0167 215.4555);
-    --sidebar-accent-foreground: oklch(0.6334 0.1238 229.6187);
+    --sidebar-accent: oklch(0.938 0.006 250);
+    --sidebar-accent-foreground: oklch(0.26 0.012 255);
     --sidebar-border: oklch(0.93 0.0094 286.2156);
     --sidebar-ring: oklch(0.6441 0.1755 249.2498);
+    --sidebar-active-bg: oklch(0.6609 0.158 243.9173 / 0.12);
+    --sidebar-active-fg: oklch(0.42 0.15 245);
     --font-sans: Plus Jakarta Sans, sans-serif;
     --font-serif: Lora, serif;
     --font-mono: IBM Plex Mono, monospace;
@@ -92,14 +94,16 @@
     --chart-3: oklch(0.7522 0.1333 228.4664);
     --chart-4: oklch(0.6691 0.1569 260.1063);
     --chart-5: oklch(0.8752 0.1382 155.7858);
-    --sidebar: oklch(0.1822 0 0);
-    --sidebar-foreground: oklch(0.9551 0 0);
+    --sidebar: oklch(0.16 0.006 260);
+    --sidebar-foreground: oklch(0.93 0.005 260);
     --sidebar-primary: oklch(0.6609 0.158 243.9173);
     --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.3173 0.1246 243.9173);
-    --sidebar-accent-foreground: oklch(0.9551 0 0);
-    --sidebar-border: oklch(0.3289 0.0092 268.3843);
+    --sidebar-accent: oklch(0.27 0.012 260);
+    --sidebar-accent-foreground: oklch(0.96 0.004 260);
+    --sidebar-border: oklch(0.28 0.008 260);
     --sidebar-ring: oklch(0.6441 0.1755 249.2498);
+    --sidebar-active-bg: oklch(0.6609 0.158 243.9173 / 0.22);
+    --sidebar-active-fg: oklch(0.86 0.09 245);
     --font-sans: Plus Jakarta Sans, sans-serif;
     --font-serif: Lora, serif;
     --font-mono: IBM Plex Mono, monospace;
@@ -185,5 +189,44 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/*
+ * Sidebar mengikuti tema (light/dark) lewat token --sidebar-* di :root dan
+ * .dark. Blok ini hanya menambahkan treatment yang tidak bisa diekspresikan
+ * token: status hover lembut, status aktif berupa pill dengan tint aksen
+ * brand + text aktif berkontras AA di kedua mode.
+ */
+@layer components {
+    [data-slot='sidebar'] [data-sidebar='menu-button']:hover,
+    [data-slot='sidebar'] [data-sidebar='menu-sub-button']:hover {
+        background-color: var(--sidebar-accent);
+        color: var(--sidebar-accent-foreground);
+    }
+
+    [data-slot='sidebar']
+        [data-sidebar='menu-button'][data-active='true'],
+    [data-slot='sidebar']
+        [data-sidebar='menu-sub-button'][data-active='true'] {
+        background-color: var(--sidebar-active-bg);
+        color: var(--sidebar-active-fg);
+        font-weight: 500;
+    }
+
+    [data-slot='sidebar']
+        [data-sidebar='menu-button'][data-active='true']:hover,
+    [data-slot='sidebar']
+        [data-sidebar='menu-sub-button'][data-active='true']:hover {
+        background-color: color-mix(
+            in oklab,
+            var(--sidebar-active-bg) 88%,
+            var(--sidebar-accent)
+        );
+    }
+
+    /* Tactile feedback saat ditekan. */
+    [data-slot='sidebar'] [data-sidebar='menu-button']:active {
+        transform: scale(0.98);
     }
 }
