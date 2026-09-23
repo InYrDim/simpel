@@ -68,4 +68,5 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi')->name('
 // kedua.
 Route::middleware(['auth', 'verified', 'role:admin|mahasiswa'])->prefix('skripsi/riwayat')->name('skripsi.riwayat.')->group(function (): void {
     Route::get('/', [RiwayatPengajuanController::class, 'index'])->name('index');
+    Route::get('/{pengajuan}/berkas', [RiwayatPengajuanController::class, 'berkas'])->name('berkas');
 });

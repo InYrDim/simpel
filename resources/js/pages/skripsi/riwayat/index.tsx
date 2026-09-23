@@ -2,6 +2,12 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ChevronDown, FileText } from 'lucide-react';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     Dialog,
     DialogContent,
@@ -31,7 +37,8 @@ type PengajuanRow = {
     nama_mahasiswa: string;
     nim: string;
     jumlah_judul: number;
-    judul_list: string[];
+    judul_list: { judul: string; deskripsi: string }[];
+    berkas_original_name: string;
     catatan_admin: string | null;
     catatan_validator: string | null;
     riwayat: RiwayatStatusItem[];
@@ -200,7 +207,7 @@ function DetailDialog({
 }) {
     return (
         <Dialog open={pengajuan !== null} onOpenChange={(v) => !v && onClose()}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Detail Pengajuan</DialogTitle>
                     <DialogDescription>
@@ -211,7 +218,7 @@ function DetailDialog({
                 </DialogHeader>
 
                 {pengajuan && (
-                    <div className="grid gap-4 text-sm">
+                    <div className="grid gap-6 text-sm">
                         <div className="flex flex-wrap items-center gap-2">
                             <Badge
                                 variant={
@@ -253,63 +260,109 @@ function DetailDialog({
                             </div>
                         )}
 
-                        <div className="grid gap-2">
+                        <div className="grid gap-3">
+                            <Label>Berkas yang Diajukan</Label>
+                            <div className="flex items-center gap-2 text-sm">
+                                <FileText className="text-muted-foreground size-4" />
+                                <a
+                                    href={riwayat.berkas.url({
+                                        pengajuan: pengajuan.id,
+                                    })}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary hover:underline"
+                                >
+                                    {pengajuan.berkas_original_name}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-3">
                             <Label>
                                 Judul diajukan ({pengajuan.jumlah_judul})
                             </Label>
-                            {pengajuan.judul_list.map((judul, i) => (
-                                <div key={i} className="flex items-start gap-2">
-                                    <Badge variant="outline">{i + 1}</Badge>
-                                    <span>{judul}</span>
-                                </div>
-                            ))}
+                            <div className="flex flex-col gap-4">
+                                {pengajuan.judul_list.map((j, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex flex-col gap-1"
+                                    >
+                                        <div className="flex items-start gap-2">
+                                            <Badge variant="outline">
+                                                {i + 1}
+                                            </Badge>
+                                            <span className="font-medium">
+                                                {j.judul}
+                                            </span>
+                                        </div>
+                                        <p className="text-muted-foreground ml-9 text-xs leading-relaxed">
+                                            {j.deskripsi}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {pengajuan.riwayat.length > 0 && (
-                            <div>
-                                <Label className="mb-2">
-                                    Kronologi pengajuan
-                                </Label>
-                                <ol className="border-l-border ml-3 space-y-4 border-l-2 pl-5">
-                                    {pengajuan.riwayat.map((r, i) => (
-                                        <li
-                                            key={i}
-                                            className="relative text-sm"
-                                        >
-                                            <span className="bg-primary absolute top-1.5 -left-[27px] size-2.5 rounded-full" />
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-medium">
-                                                    {AKSI_RIWAYAT_LABEL[
-                                                        r.aksi
-                                                    ] ?? r.aksi}
-                                                </span>
-                                                <Badge
-                                                    variant={
-                                                        STATUS_VARIANT[
-                                                            r.ke_status
-                                                        ] ?? 'outline'
-                                                    }
-                                                >
-                                                    {r.ke_status_label}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-muted-foreground mt-0.5 text-xs">
-                                                {r.aktor_nama} ·{' '}
-                                                {r.created_at
-                                                    ? new Date(
-                                                          r.created_at,
-                                                      ).toLocaleString('id-ID')
-                                                    : '-'}
-                                            </p>
-                                            {r.catatan && (
-                                                <p className="text-muted-foreground mt-1">
-                                                    “{r.catatan}”
+                            <Collapsible>
+                                <CollapsibleTrigger asChild>
+                                    <button
+                                        type="button"
+                                        aria-label="Tampilkan kronologi"
+                                        className="group hover:bg-accent/50 flex w-full items-center justify-between rounded-md px-1 py-1 text-left"
+                                    >
+                                        <Label className="cursor-pointer">
+                                            Kronologi pengajuan
+                                        </Label>
+                                        <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                                    </button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="pt-4">
+                                    <ol className="border-l-border ml-3 space-y-4 border-l-2 pl-5">
+                                        {pengajuan.riwayat.map((r, i) => (
+                                            <li
+                                                key={i}
+                                                className="relative text-sm"
+                                            >
+                                                <span className="bg-primary absolute top-1.5 -left-[27px] size-2.5 rounded-full" />
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="font-medium">
+                                                        {AKSI_RIWAYAT_LABEL[
+                                                            r.aksi
+                                                        ] ?? r.aksi}
+                                                    </span>
+                                                    <Badge
+                                                        variant={
+                                                            STATUS_VARIANT[
+                                                                r.ke_status
+                                                            ] ?? 'outline'
+                                                        }
+                                                    >
+                                                        {r.dari_status_label
+                                                            ? `${r.dari_status_label} → ${r.ke_status_label}`
+                                                            : r.ke_status_label}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-muted-foreground mt-0.5 text-xs">
+                                                    {r.aktor_nama} ·{' '}
+                                                    {r.created_at
+                                                        ? new Date(
+                                                              r.created_at,
+                                                          ).toLocaleString(
+                                                              'id-ID',
+                                                          )
+                                                        : '-'}
                                                 </p>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
+                                                {r.catatan && (
+                                                    <p className="text-muted-foreground mt-1">
+                                                        “{r.catatan}”
+                                                    </p>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </CollapsibleContent>
+                            </Collapsible>
                         )}
                     </div>
                 )}
