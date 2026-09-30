@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import type { HTMLAttributes } from 'react';
+import type {
+    HTMLAttributes,
+    TdHTMLAttributes,
+    ThHTMLAttributes,
+} from 'react';
 
 function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
     return (
@@ -56,7 +60,7 @@ function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) 
     );
 }
 
-function TableHead({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
+function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
     return (
         <th
             data-slot="table-head"
@@ -69,7 +73,7 @@ function TableHead({ className, ...props }: HTMLAttributes<HTMLTableCellElement>
     );
 }
 
-function TableCell({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
+function TableCell({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
     return (
         <td
             data-slot="table-cell"
