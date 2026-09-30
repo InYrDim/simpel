@@ -2,7 +2,7 @@
 
 ## Owns
 
-- Database tables: `skripsi_pengajuan_juduls`, `skripsi_judul_pengajuans`, `skripsi_pengajuan_riwayats`
+- Database tables: `skripsi_pengajuan_juduls`, `skripsi_judul_pengajuans`, `skripsi_pengajuan_riwayats`, `skripsi_kategoris` (master kategori judul, dikelola admin; `skripsi_judul_pengajuans.kategori_id` FK intra-modul)
 - Core domain concepts: alur pengajuan judul skripsi — mahasiswa mengajukan tepat 3 judul + berkas, admin memverifikasi kelengkapan & menugaskan validator, validator memutuskan persetujuan satu judul; jejak audit transisi status
 
 ## Public interface (Contracts/)
@@ -54,3 +54,7 @@
     - Identitas mahasiswa di halaman Riwayat di-resolusi lewat SATU panggilan `AkademikContract::mahasiswaByUserIds()` per halaman (sebelumnya satu panggilan per baris) — jangan kembalikan ke per-baris.
     - Berkas pengajuan divalidasi `mimes:pdf` + allow-list `mimetypes` (maks 5 MB), dikonsolidasikan di `aturanPengajuan()`. Allow-list memuat LIMA MIME yang dipetakan Symfony ke ekstensi `pdf` (`application/pdf`, `application/acrobat`, `application/nappdf`, `application/x-pdf`, `image/pdf`) supaya PDF asli tidak tertolak; `application/octet-stream` sengaja TIDAK diizinkan (PRD §8 #7). `store` & `resubmit` dipagari rate limiter core `pengajuan-submit` (5/menit per akun, didaftarkan di `AppServiceProvider`).
 - Hak akses aksi tulis (30 Sep 2026): halaman tetap dipagari `role:`, sedangkan setiap aksi tulis juga dipagari `permission:` — submit/resubmit → `skripsi.pengajuan.submit`, verifikasi admin → `skripsi.pengajuan.verify`, putusan validator → `skripsi.pengajuan.decide`, minta revisi (admin & validator) → `skripsi.pengajuan.revise`. Mencabut permission lewat Manajemen > Peran langsung menolak aksi terkait (403) — kecuali untuk role `admin`, yang melewati semua pemeriksaan lewat `Gate::before` di `AppServiceProvider`.
+
+## TODO — template pengajuan terisi otomatis
+
+`Services/Template/PembuatTemplatePengajuan` (dipanggil `POST skripsi/pengajuan/template`) saat ini diikat ke `TemplateStatis` yang mengembalikan template kosong. Implementasi pengisi otomatis (nama, NIM dari `AkademikContract`, judul dari draft, dosen) menyusul; sumber dosen dan placeholder template belum diputuskan, dan library DOCX butuh persetujuan dependency.

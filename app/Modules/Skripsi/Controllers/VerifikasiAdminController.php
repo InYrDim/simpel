@@ -31,7 +31,7 @@ class VerifikasiAdminController extends Controller
     {
         $pengajuans = PengajuanJudul::query()
             ->where('status', 'diajukan')
-            ->with('juduls')
+            ->with('juduls.kategori')
             ->orderBy('submitted_at')
             ->get()
             ->map(fn (PengajuanJudul $p): array => [
@@ -40,7 +40,7 @@ class VerifikasiAdminController extends Controller
                 'nim' => $this->akademik->mahasiswaByUserId($p->user_id)->nim ?? '-',
                 'submitted_at' => $p->submitted_at?->toISOString(),
                 'berkas_original_name' => $p->berkas_original_name,
-                'juduls' => $p->juduls->map(fn ($j): array => $j->only(['id', 'urutan', 'judul', 'topik']))->all(),
+                'juduls' => $p->juduls->map(fn ($j): array => [...$j->only(['id', 'urutan', 'judul', 'topik']), 'kategori_nama' => $j->kategori?->nama])->all(),
             ]);
 
         return Inertia::render('skripsi/verifikasi/index', [

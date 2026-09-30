@@ -2,6 +2,8 @@
 
 namespace App\Modules\Skripsi;
 
+use App\Modules\Skripsi\Services\Template\PembuatTemplatePengajuan;
+use App\Modules\Skripsi\Services\Template\TemplateStatis;
 use App\Modules\Support\ModuleServiceProvider;
 use Illuminate\Support\Facades\Event;
 
@@ -46,6 +48,8 @@ class SkripsiServiceProvider extends ModuleServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(PembuatTemplatePengajuan::class, TemplateStatis::class);
+
         foreach ($this->listens() as $event => $listeners) {
             foreach ($listeners as $listener) {
                 Event::listen($event, $listener);

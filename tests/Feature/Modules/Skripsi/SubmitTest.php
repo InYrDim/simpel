@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
+use App\Modules\Skripsi\Models\Kategori;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Notifications\PengajuanDiajukan as PengajuanDiajukanNotification;
 use Database\Seeders\RolePermissionSeeder;
@@ -31,9 +32,9 @@ function validPayload(): array
 {
     return [
         'juduls' => [
-            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi'],
-            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning'],
-            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing'],
+            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
         ],
         'berkas' => UploadedFile::fake()->create('surat-pengajuan.pdf', 500, 'application/pdf'),
     ];
@@ -245,4 +246,51 @@ test('status page shows belum mengajukan when none exists', function () {
     $response = $this->actingAs($user)->get(route('skripsi.pengajuan.status'));
 
     $response->assertOk()->assertInertia(fn ($page) => $page->component('skripsi/pengajuan/index')->where('pengajuan', null));
+});
+
+test('kategori wajib diisi dan harus kategori aktif yang ada', function () {
+    $user = mahasiswaWithProfile();
+
+    $tanpaKategori = validPayload();
+    unset($tanpaKategori['juduls'][0]['kategori_id']);
+
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), $tanpaKategori)
+        ->assertSessionHasErrors('juduls.0.kategori_id');
+
+    $nonaktif = validPayload();
+    $nonaktif['juduls'][1]['kategori_id'] = Kategori::factory()->nonaktif()->create()->id;
+
+    $this->actingAs($user)
+        ->post(route('skripsi.pengajuan.store'), $nonaktif)
+        ->assertSessionHasErrors('juduls.1.kategori_id');
+
+    expect(PengajuanJudul::count())->toBe(0);
+});
+
+test('kategori tersimpan pada judul dan tampil di panel status', function () {
+    $user = mahasiswaWithProfile();
+    $kategori = Kategori::factory()->create(['nama' => 'Pengembangan Sistem']);
+
+    $payload = validPayload();
+    $payload['juduls'][0]['kategori_id'] = $kategori->id;
+
+    $this->actingAs($user)->post(route('skripsi.pengajuan.store'), $payload);
+
+    $this->actingAs($user)
+        ->get(route('skripsi.pengajuan.status'))
+        ->assertInertia(fn ($page) => $page
+            ->where('judulTerkini.0.kategori_nama', 'Pengembangan Sistem')
+            ->has('kategoriOptions', 4));
+});
+
+test('template dari draft mengembalikan berkas docx untuk mahasiswa', function () {
+    Storage::disk('local')->put('template/template-pengajuan.docx', 'docx');
+
+    $this->actingAs(mahasiswaWithProfile())
+        ->post(route('skripsi.pengajuan.template.draft'), [
+            'juduls' => [['judul' => 'Draft', 'deskripsi' => '', 'topik' => '', 'kategori_id' => '']],
+        ])
+        ->assertOk()
+        ->assertDownload('template-pengajuan.docx');
 });

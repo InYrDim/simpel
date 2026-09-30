@@ -27,7 +27,7 @@ use Illuminate\Validation\ValidationException;
 class ResubmitPengajuan
 {
     /**
-     * @param  array<int, array{judul: string, deskripsi: string, topik: string}>  $juduls
+     * @param  array<int, array{judul: string, deskripsi: string, topik: string, kategori_id: int}>  $juduls
      *
      * @throws ValidationException
      */
