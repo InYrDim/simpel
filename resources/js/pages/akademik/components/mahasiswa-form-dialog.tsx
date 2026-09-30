@@ -142,6 +142,9 @@ export function MahasiswaFormDialog({
         }));
     };
 
+    // Dosen PA wajib kecuali mahasiswa sudah lulus atau nonaktif.
+    const paOptional = data.status === 'lulus' || data.status === 'nonaktif';
+
     const invalid = (name: keyof typeof errors) => Boolean(errors[name]);
 
     return (
@@ -288,16 +291,28 @@ export function MahasiswaFormDialog({
                         <div className="grid gap-2">
                             <Label htmlFor={fieldId('dosen_pa_id')}>
                                 Dosen PA (penasehat akademik)
+                                {!paOptional && (
+                                    <span className="text-muted-foreground font-normal">
+                                        {' '}
+                                        (wajib)
+                                    </span>
+                                )}
                             </Label>
                             <SearchableSelect
                                 id={fieldId('dosen_pa_id')}
                                 value={data.dosen_pa_id}
                                 onChange={(v) => setData('dosen_pa_id', v)}
                                 options={dosenChoices}
-                                placeholder="Belum ditentukan"
+                                placeholder={
+                                    paOptional
+                                        ? 'Belum ditentukan'
+                                        : 'Pilih dosen PA'
+                                }
                                 searchPlaceholder="Cari nama dosen..."
                                 emptyText="Dosen tidak ditemukan."
-                                clearLabel="Belum ditentukan"
+                                clearLabel={
+                                    paOptional ? 'Belum ditentukan' : undefined
+                                }
                                 disabled={processing}
                                 invalid={invalid('dosen_pa_id')}
                             />

@@ -456,7 +456,6 @@ MahasiswaIndex.layout = () => ({
     breadcrumbs: [
         {
             title: 'Akademik',
-            href: akademik.mahasiswa.index.url(),
         },
         {
             title: 'Mahasiswa',

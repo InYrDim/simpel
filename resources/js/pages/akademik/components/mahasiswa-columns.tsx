@@ -35,6 +35,7 @@ export type MahasiswaRow = {
     prodi: string | null;
     angkatan: number | null;
     status: string;
+    punya_pengajuan: boolean;
     created_at: string;
 };
 

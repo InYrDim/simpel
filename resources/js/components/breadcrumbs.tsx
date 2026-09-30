@@ -30,6 +30,8 @@ export function Breadcrumbs({
                                             <BreadcrumbPage>
                                                 {item.title}
                                             </BreadcrumbPage>
+                                        ) : item.href === undefined ? (
+                                            <span>{item.title}</span>
                                         ) : (
                                             <BreadcrumbLink asChild>
                                                 <Link href={item.href}>

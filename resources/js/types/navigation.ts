@@ -3,7 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 
 export type BreadcrumbItem = {
     title: string;
-    href: InertiaLinkProps['href'];
+    /** Kosong untuk grup menu yang tidak punya halaman sendiri. */
+    href?: InertiaLinkProps['href'];
 };
 
 export type NavChild = {

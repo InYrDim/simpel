@@ -1,32 +1,33 @@
-import { useForm } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import type { Column } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { destroy, update } from '@/routes/akademik/dosen';
 
 export type DosenRow = {
     id: number;
     nama: string;
     nip: string;
     bidang: string;
+    jumlah_mahasiswa_pa: number;
     created_at: string;
 };
 
-export const dosenColumns: Column<DosenRow>[] = [
+type ColumnHandlers = {
+    onEdit: (dosen: DosenRow) => void;
+    onDelete: (dosen: DosenRow) => void;
+};
+
+/**
+ * Kolom tabel dosen. Dialog ubah/hapus dimiliki halaman (satu instans
+ * bersama), jadi kolom hanya memanggil `onEdit` / `onDelete` dengan barisnya.
+ */
+export const dosenColumns = ({
+    onEdit,
+    onDelete,
+}: ColumnHandlers): Column<DosenRow>[] => [
     {
         key: 'nama',
         label: 'Dosen',
+        sortKey: 'nama',
         render: (d) => (
             <div className="flex flex-col">
                 <span className="font-medium">{d.nama}</span>
@@ -37,6 +38,12 @@ export const dosenColumns: Column<DosenRow>[] = [
     {
         key: 'bidang',
         label: 'Bidang',
+        sortKey: 'bidang',
+    },
+    {
+        key: 'jumlah_mahasiswa_pa',
+        label: 'Mahasiswa PA',
+        render: (d) => d.jumlah_mahasiswa_pa,
     },
     {
         key: 'created_at',
@@ -46,48 +53,14 @@ export const dosenColumns: Column<DosenRow>[] = [
     {
         key: 'actions',
         label: 'Aksi',
-        render: (d) => <ActionCell dosen={d} />,
-    },
-];
-
-function ActionCell({ dosen }: { dosen: DosenRow }) {
-    const [editOpen, setEditOpen] = useState(false);
-    const [deleteOpen, setDeleteOpen] = useState(false);
-    const {
-        data,
-        setData,
-        put,
-        delete: deleteForm,
-        processing,
-        errors,
-    } = useForm({
-        nama: dosen.nama,
-        nip: dosen.nip,
-        bidang: dosen.bidang,
-    });
-
-    const handleEdit = (e: React.FormEvent) => {
-        e.preventDefault();
-        put(update.url({ dosen: dosen.id }), {
-            onSuccess: () => setEditOpen(false),
-        });
-    };
-
-    const handleDelete = () => {
-        deleteForm(destroy.url({ dosen: dosen.id }), {
-            onSuccess: () => setDeleteOpen(false),
-        });
-    };
-
-    return (
-        <>
+        render: (d) => (
             <div className="flex justify-end gap-1">
                 <Button
                     variant="ghost"
                     size="icon"
-                    title="Edit"
-                    aria-label="Edit"
-                    onClick={() => setEditOpen(true)}
+                    title="Ubah"
+                    aria-label={`Ubah ${d.nama}`}
+                    onClick={() => onEdit(d)}
                 >
                     <Pencil className="size-4" />
                 </Button>
@@ -95,117 +68,12 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                     variant="ghost"
                     size="icon"
                     title="Hapus"
-                    aria-label="Hapus"
-                    onClick={() => setDeleteOpen(true)}
+                    aria-label={`Hapus ${d.nama}`}
+                    onClick={() => onDelete(d)}
                 >
                     <Trash2 className="text-destructive size-4" />
                 </Button>
             </div>
-
-            <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit dosen</DialogTitle>
-                        <DialogDescription>
-                            Ubah data dosen <strong>{dosen.nama}</strong>.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleEdit} className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-nama-${dosen.id}`}>
-                                Nama
-                            </Label>
-                            <Input
-                                id={`edit-nama-${dosen.id}`}
-                                value={data.nama}
-                                onChange={(e) =>
-                                    setData('nama', e.target.value)
-                                }
-                                disabled={processing}
-                            />
-                            {errors.nama && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nama}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-nip-${dosen.id}`}>NIP</Label>
-                            <Input
-                                id={`edit-nip-${dosen.id}`}
-                                value={data.nip}
-                                onChange={(e) => setData('nip', e.target.value)}
-                                disabled={processing}
-                            />
-                            {errors.nip && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nip}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-bidang-${dosen.id}`}>
-                                Bidang
-                            </Label>
-                            <Input
-                                id={`edit-bidang-${dosen.id}`}
-                                value={data.bidang}
-                                onChange={(e) =>
-                                    setData('bidang', e.target.value)
-                                }
-                                disabled={processing}
-                            />
-                            {errors.bidang && (
-                                <p className="text-destructive text-sm">
-                                    {errors.bidang}
-                                </p>
-                            )}
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setEditOpen(false)}
-                                disabled={processing}
-                            >
-                                Batal
-                            </Button>
-                            <Button type="submit" disabled={processing}>
-                                Simpan
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Hapus dosen</DialogTitle>
-                        <DialogDescription>
-                            Apakah Anda yakin ingin menghapus{' '}
-                            <strong>{dosen.nama}</strong>? Aksi ini tidak dapat
-                            dibatalkan.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteOpen(false)}
-                            disabled={processing}
-                        >
-                            Batal
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={processing}
-                        >
-                            Hapus
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
-}
+        ),
+    },
+];

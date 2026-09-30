@@ -1,182 +1,170 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+    TablePagination,
+    type PaginationMeta,
+} from '@/components/table-pagination';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useListQuery, type ListFilters } from '@/hooks/use-list-query';
 import {
     dosenColumns,
     type DosenRow,
 } from '@/pages/akademik/components/dosen-columns';
+import { DosenDeleteDialog } from '@/pages/akademik/components/dosen-delete-dialog';
+import { DosenFormDialog } from '@/pages/akademik/components/dosen-form-dialog';
 import akademik from '@/routes/akademik';
-import { store } from '@/routes/akademik/dosen';
-
-type PaginatedDosens = {
-    data: DosenRow[];
-    total: number;
-    per_page: number;
-    current_page: number;
-    last_page: number;
-};
 
 type DosenIndexPageProps = {
-    dosens: PaginatedDosens;
-    filters: { search: string };
+    dosens: PaginationMeta & { data: DosenRow[] };
+    filters: ListFilters;
+    perPageOptions: number[];
 };
 
-export default function DosenIndex({ dosens, filters }: DosenIndexPageProps) {
+type DialogState =
+    | { type: 'none' }
+    | { type: 'create' }
+    | { type: 'edit'; dosen: DosenRow }
+    | { type: 'delete'; dosen: DosenRow };
+
+export default function DosenIndex({
+    dosens,
+    filters,
+    perPageOptions,
+}: DosenIndexPageProps) {
+    const [dialog, setDialog] = useState<DialogState>({ type: 'none' });
+    const list = useListQuery({
+        url: akademik.dosen.index.url(),
+        filters,
+        defaultSort: { key: 'nama', direction: 'asc' },
+    });
+
+    const columns = dosenColumns({
+        onEdit: (dosen) => setDialog({ type: 'edit', dosen }),
+        onDelete: (dosen) => setDialog({ type: 'delete', dosen }),
+    });
+
+    const closeDialog = () => setDialog({ type: 'none' });
+
     return (
         <>
             <Head title="Akademik - Dosen" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Dosen</h1>
-                    <CreateDosenDialog />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h1 className="text-2xl font-bold">Dosen</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Referensi dosen untuk PA, validator, pembimbing, dan
+                            penguji.
+                        </p>
+                    </div>
+                    <Button onClick={() => setDialog({ type: 'create' })}>
+                        <Plus />
+                        Tambah dosen
+                    </Button>
                 </div>
 
                 <section className="flex flex-col gap-4">
                     <form
-                        className="flex items-center gap-2"
-                        onChange={(e) => {
+                        role="search"
+                        className="relative w-full sm:max-w-xs"
+                        onSubmit={(e) => {
                             e.preventDefault();
-                            router.get(akademik.dosen.index.url(), {
-                                search: (e.target as HTMLFormElement).search
-                                    .value,
-                            });
+                            list.submitSearch();
                         }}
                     >
-                        <div className="relative max-w-sm flex-1">
-                            <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
-                            <Input
-                                name="search"
-                                placeholder="Cari nama, NIP, atau bidang..."
-                                defaultValue={filters.search}
-                                className="pl-9"
-                            />
-                        </div>
+                        <Label htmlFor="dosen-search" className="sr-only">
+                            Cari dosen berdasarkan nama, NIP, atau bidang
+                        </Label>
+                        <Search
+                            aria-hidden="true"
+                            className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                        />
+                        <Input
+                            id="dosen-search"
+                            type="search"
+                            name="search"
+                            placeholder="Cari nama, NIP, atau bidang..."
+                            value={list.search}
+                            onChange={(e) =>
+                                list.onSearchChange(e.target.value)
+                            }
+                            className="pl-9"
+                        />
                     </form>
 
                     <DataTable
-                        columns={dosenColumns}
+                        caption="Daftar dosen"
+                        columns={columns}
                         data={dosens.data}
-                        getRowKey={(dosen) => dosen.id}
+                        getRowKey={(d) => d.id}
+                        sort={{
+                            key: filters.sort,
+                            direction: filters.direction,
+                        }}
+                        onSort={list.onSort}
+                        isLoading={list.loading}
+                        emptyState={
+                            filters.search ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <p>
+                                        Tidak ada dosen yang cocok dengan “
+                                        {filters.search}”.
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={list.resetSearch}
+                                    >
+                                        Reset pencarian
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-1">
+                                    <p>Belum ada dosen.</p>
+                                    <p className="text-muted-foreground text-sm">
+                                        Pilih “Tambah dosen” untuk membuat dosen
+                                        pertama.
+                                    </p>
+                                </div>
+                            )
+                        }
                     />
 
-                    <div className="text-muted-foreground text-sm">
-                        Menampilkan {dosens.data.length} dari {dosens.total}{' '}
-                        dosen
-                    </div>
+                    <TablePagination
+                        meta={dosens}
+                        perPageOptions={perPageOptions}
+                        unit="dosen"
+                        onPageChange={(page) => list.visit({ page })}
+                        onPerPageChange={(per_page) => list.visit({ per_page })}
+                    />
                 </section>
             </div>
-        </>
-    );
-}
 
-function CreateDosenDialog() {
-    const [open, setOpen] = useState(false);
-    const { data, setData, post, processing, errors, reset } = useForm({
-        nama: '',
-        nip: '',
-        bidang: '',
-    });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(store.url(), {
-            onSuccess: () => {
-                reset();
-                setOpen(false);
-            },
-        });
-    };
-
-    return (
-        <>
-            <Button size="sm" onClick={() => setOpen(true)}>
-                Tambah Dosen
-            </Button>
-
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Tambah dosen</DialogTitle>
-                        <DialogDescription>
-                            Tambahkan dosen referensi baru untuk penugasan PA,
-                            validator, pembimbing, dan penguji.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={submit} className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="dosen-nama">Nama</Label>
-                            <Input
-                                id="dosen-nama"
-                                value={data.nama}
-                                onChange={(e) =>
-                                    setData('nama', e.target.value)
-                                }
-                                disabled={processing}
-                            />
-                            {errors.nama && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nama}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="dosen-nip">NIP</Label>
-                            <Input
-                                id="dosen-nip"
-                                value={data.nip}
-                                onChange={(e) => setData('nip', e.target.value)}
-                                disabled={processing}
-                            />
-                            {errors.nip && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nip}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="dosen-bidang">Bidang</Label>
-                            <Input
-                                id="dosen-bidang"
-                                value={data.bidang}
-                                onChange={(e) =>
-                                    setData('bidang', e.target.value)
-                                }
-                                disabled={processing}
-                            />
-                            {errors.bidang && (
-                                <p className="text-destructive text-sm">
-                                    {errors.bidang}
-                                </p>
-                            )}
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setOpen(false)}
-                                disabled={processing}
-                            >
-                                Batal
-                            </Button>
-                            <Button type="submit" disabled={processing}>
-                                {processing ? 'Menyimpan...' : 'Simpan'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            {dialog.type === 'create' && (
+                <DosenFormDialog
+                    key="create"
+                    dosen={null}
+                    onClose={closeDialog}
+                />
+            )}
+            {dialog.type === 'edit' && (
+                <DosenFormDialog
+                    key={dialog.dosen.id}
+                    dosen={dialog.dosen}
+                    onClose={closeDialog}
+                />
+            )}
+            {dialog.type === 'delete' && (
+                <DosenDeleteDialog
+                    key={dialog.dosen.id}
+                    dosen={dialog.dosen}
+                    onClose={closeDialog}
+                />
+            )}
         </>
     );
 }
@@ -185,7 +173,6 @@ DosenIndex.layout = () => ({
     breadcrumbs: [
         {
             title: 'Akademik',
-            href: akademik.dosen.index.url(),
         },
         {
             title: 'Dosen',

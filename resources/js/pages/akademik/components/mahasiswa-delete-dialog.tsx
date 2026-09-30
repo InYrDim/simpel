@@ -43,11 +43,9 @@ export function MahasiswaDeleteDialog({
                 <DialogHeader>
                     <DialogTitle>Hapus mahasiswa</DialogTitle>
                     <DialogDescription>
-                        Profil akademik <strong>{mahasiswa.nama}</strong> akan
-                        dihapus permanen. Akun login tetap ada, tetapi data di
-                        modul lain yang merujuk mahasiswa ini (misalnya
-                        pengajuan skripsi) tidak ikut terhapus. Bila hanya ingin
-                        menonaktifkan, ubah statusnya menjadi Nonaktif.
+                        {mahasiswa.punya_pengajuan
+                            ? 'Mahasiswa ini masih memiliki pengajuan skripsi sehingga profilnya tidak bisa dihapus. Ubah statusnya menjadi Nonaktif untuk menonaktifkannya.'
+                            : 'Profil akademik akan dihapus permanen. Akun login tetap ada. Bila hanya ingin menonaktifkan, ubah statusnya menjadi Nonaktif.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -79,6 +77,12 @@ export function MahasiswaDeleteDialog({
                             }
                         />
                         <InputError message={errors.konfirmasi_nim} />
+                        <InputError
+                            message={
+                                (errors as Record<string, string | undefined>)
+                                    .mahasiswa
+                            }
+                        />
                     </div>
 
                     <DialogFooter>
@@ -93,7 +97,11 @@ export function MahasiswaDeleteDialog({
                         <Button
                             type="submit"
                             variant="destructive"
-                            disabled={!matches || processing}
+                            disabled={
+                                mahasiswa.punya_pengajuan ||
+                                !matches ||
+                                processing
+                            }
                         >
                             {processing ? 'Menghapus...' : 'Hapus mahasiswa'}
                         </Button>
