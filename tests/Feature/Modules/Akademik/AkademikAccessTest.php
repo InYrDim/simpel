@@ -25,6 +25,19 @@ test('admin can visit the akademik pages', function () {
     $this->actingAs($admin)->get(route('akademik.prodi.index'))->assertOk();
 });
 
+test('mahasiswa without a dosen pa still appear in the admin list', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    Mahasiswa::factory()->create(['dosen_pa_id' => null]);
+
+    $this->actingAs($admin)
+        ->get(route('akademik.mahasiswa.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('mahasiswas.data.0.dosen_pa_id', null)
+            ->where('mahasiswas.data.0.dosen_pa_nama', null));
+});
+
 test('users without the admin role are forbidden', function (string $role) {
     $user = User::factory()->create();
     $user->assignRole($role);

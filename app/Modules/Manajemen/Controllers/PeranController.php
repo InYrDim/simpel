@@ -14,7 +14,13 @@ use Spatie\Permission\Models\Role;
 
 class PeranController extends Controller
 {
-    private const PROTECTED_ROLES = ['admin'];
+    /**
+     * Peran yang namanya dipakai kode: `admin` (`Gate::before` di
+     * `AppServiceProvider`) dan `mahasiswa` (peran default registrasi di
+     * `Akademik\Services\RegistrasiMahasiswa`). Tidak boleh diganti nama atau dihapus; permission-nya
+     * tetap boleh diatur.
+     */
+    private const PROTECTED_ROLES = ['admin', 'mahasiswa'];
 
     public function index(): Response
     {
@@ -30,7 +36,7 @@ class PeranController extends Controller
                 'name' => $role->name,
                 'jumlah_pengguna' => $role->users_count,
                 'permissions' => $role->permissions->pluck('name')->sort()->values()->all(),
-                'protected' => in_array($role->name, self::PROTECTED_ROLES, true),
+                'protected' => $this->isProtected($role),
             ],
         )->all();
 
@@ -79,6 +85,10 @@ class PeranController extends Controller
             'permissions.*' => ['string', Rule::exists(config('permission.table_names.permissions', 'permissions'), 'name')],
         ]);
 
+        if ($this->isProtected($peran) && $validated['name'] !== $peran->name) {
+            return back()->withErrors(['name' => "Nama peran {$peran->name} dipakai sistem dan tidak dapat diubah."]);
+        }
+
         $peran->update(['name' => $validated['name']]);
         $peran->syncPermissions($permissions);
 
@@ -88,7 +98,7 @@ class PeranController extends Controller
 
     public function destroy(Role $peran): RedirectResponse
     {
-        if (in_array($peran->name, self::PROTECTED_ROLES, true)) {
+        if ($this->isProtected($peran)) {
             return redirect()->route('manajemen.peran.index')
                 ->with('error', "Peran <strong>{$peran->name}</strong> tidak dapat dihapus.");
         }
@@ -102,6 +112,11 @@ class PeranController extends Controller
 
         return redirect()->route('manajemen.peran.index')
             ->with('success', 'Peran berhasil dihapus.');
+    }
+
+    private function isProtected(Role $role): bool
+    {
+        return in_array($role->name, self::PROTECTED_ROLES, true);
     }
 
     private function labelPermission(string $name): string

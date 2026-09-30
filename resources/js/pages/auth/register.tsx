@@ -5,19 +5,34 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useForm } from '@inertiajs/react';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-type Props = {
-    passwordRules: string;
+type ProdiOption = {
+    id: number;
+    nama: string;
 };
 
-export default function Register({ passwordRules }: Props) {
+type Props = {
+    passwordRules: string;
+    prodiOptions: ProdiOption[];
+};
+
+export default function Register({ passwordRules, prodiOptions }: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
+        nim: '',
+        prodi_id: '',
         password: '',
         password_confirmation: '',
     });
@@ -66,11 +81,48 @@ export default function Register({ passwordRules }: Props) {
                     </div>
 
                     <div className="grid gap-2">
+                        <Label htmlFor="nim">NIM</Label>
+                        <Input
+                            id="nim"
+                            type="text"
+                            required
+                            tabIndex={3}
+                            value={data.nim}
+                            onChange={(e) => setData('nim', e.target.value)}
+                            placeholder="Nomor induk mahasiswa"
+                        />
+                        <InputError message={errors.nim} />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="prodi_id">Prodi</Label>
+                        <Select
+                            value={data.prodi_id}
+                            onValueChange={(v) => setData('prodi_id', v)}
+                        >
+                            <SelectTrigger id="prodi_id" tabIndex={4}>
+                                <SelectValue placeholder="Pilih prodi" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {prodiOptions.map((prodi) => (
+                                    <SelectItem
+                                        key={prodi.id}
+                                        value={String(prodi.id)}
+                                    >
+                                        {prodi.nama}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <InputError message={errors.prodi_id} />
+                    </div>
+
+                    <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
                         <PasswordInput
                             id="password"
                             required
-                            tabIndex={3}
+                            tabIndex={5}
                             autoComplete="new-password"
                             value={data.password}
                             onChange={(e) =>
@@ -89,7 +141,7 @@ export default function Register({ passwordRules }: Props) {
                         <PasswordInput
                             id="password_confirmation"
                             required
-                            tabIndex={4}
+                            tabIndex={6}
                             autoComplete="new-password"
                             value={data.password_confirmation}
                             onChange={(e) =>
@@ -104,7 +156,7 @@ export default function Register({ passwordRules }: Props) {
                     <Button
                         type="submit"
                         className="mt-2 w-full"
-                        tabIndex={5}
+                        tabIndex={7}
                         data-test="register-user-button"
                     >
                         {processing && <Spinner />}
@@ -113,8 +165,12 @@ export default function Register({ passwordRules }: Props) {
                 </div>
 
                 <div className="text-muted-foreground text-center text-sm">
+                    Dosen? Akun dibuat oleh admin — hubungi admin akademik.
+                </div>
+
+                <div className="text-muted-foreground text-center text-sm">
                     Already have an account?{' '}
-                    <TextLink href={login()} tabIndex={6}>
+                    <TextLink href={login()} tabIndex={8}>
                         Log in
                     </TextLink>
                 </div>
@@ -125,5 +181,5 @@ export default function Register({ passwordRules }: Props) {
 
 Register.layout = {
     title: 'Create an account',
-    description: 'Enter your details below to create your account',
+    description: 'Pendaftaran khusus mahasiswa — isi data di bawah ini',
 };

@@ -199,8 +199,14 @@ function ActionCell({
                                 onChange={(e) =>
                                     setData('name', e.target.value)
                                 }
-                                disabled={processing}
+                                disabled={processing || peran.protected}
                             />
+                            {peran.protected && (
+                                <p className="text-muted-foreground text-xs">
+                                    Nama peran ini dipakai sistem dan tidak
+                                    dapat diubah.
+                                </p>
+                            )}
                             {errors.name && (
                                 <p className="text-sm text-red-600 dark:text-red-400">
                                     {errors.name}

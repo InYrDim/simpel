@@ -9,6 +9,7 @@ export type PaginatedUsers = {
         email: string;
         email_verified_at: string | null;
         created_at: string;
+        role: string | null;
     }[];
     total: number;
     per_page: number;

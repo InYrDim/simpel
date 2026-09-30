@@ -45,7 +45,7 @@ class MahasiswaController extends Controller
                 'nama' => $m->nama,
                 'nim' => $m->nim,
                 'dosen_pa_id' => $m->dosen_pa_id,
-                'dosen_pa_nama' => $m->dosenPa->nama,
+                'dosen_pa_nama' => $m->dosenPa?->nama,
                 'user_email' => $m->user->email,
                 'prodi_id' => $m->prodi_id,
                 'prodi' => $m->prodiRef?->nama,

@@ -6,7 +6,8 @@ namespace App\Modules\Contracts;
  * Data mahasiswa yang melintasi batas modul — bentuk datar, tanpa perilaku.
  *
  * `userId` merujuk tabel core `users`; `dosenPaId` merujuk dosen milik
- * Akademik (resolusi namanya via `AkademikContract::dosenById()`).
+ * Akademik (resolusi namanya via `AkademikContract::dosenById()`), null
+ * bila mahasiswa hasil registrasi mandiri belum diberi dosen PA.
  */
 final readonly class MahasiswaDTO
 {
@@ -15,7 +16,7 @@ final readonly class MahasiswaDTO
         public int $userId,
         public string $nama,
         public string $nim,
-        public int $dosenPaId,
+        public ?int $dosenPaId,
         public ?string $prodi,
         public ?int $angkatan,
     ) {}
