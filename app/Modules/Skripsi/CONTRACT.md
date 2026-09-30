@@ -7,7 +7,7 @@
 
 ## Public interface (Contracts/)
 
-- Belum ada — modul ini adalah ujung (consumer) yang mengonsumsi `AkademikContract` dari modul Akademik. Bila kelak modul lain perlu membaca data pengajuan, interface-nya ditempatkan di `App\Modules\Contracts\` (PRD §7.2).
+- `SkripsiContract::mahasiswaIdsDenganPengajuan(list<int>)` (implementasi `Services\SkripsiService`, di-bind di `SkripsiServiceProvider`) — subset ID mahasiswa yang punya pengajuan (status apa pun), satu query. Dipakai Akademik untuk memblokir hapus mahasiswa. Data lain tetap tidak dibuka.
 
 ## Allowed dependencies
 

@@ -109,3 +109,23 @@ test('non-admin cannot mutate prodi data', function () {
 
     expect(Prodi::find($prodi->id))->not->toBeNull();
 });
+
+test('prodi list sorts by an allowed column, falls back on unknown ones, and honours per_page', function () {
+    $besar = Prodi::factory()->create(['nama' => 'Bravo']);
+    Prodi::factory()->create(['nama' => 'Alpha']);
+    Mahasiswa::factory()->count(2)->create(['prodi_id' => $besar->id]);
+
+    $this->actingAs(prodiAdmin())
+        ->get(route('akademik.prodi.index', ['sort' => 'jumlah_mahasiswa', 'direction' => 'desc']))
+        ->assertInertia(fn ($page) => $page
+            ->where('prodis.data.0.nama', 'Bravo')
+            ->where('filters.sort', 'jumlah_mahasiswa')
+            ->where('filters.direction', 'desc'));
+
+    $this->actingAs(prodiAdmin())
+        ->get(route('akademik.prodi.index', ['sort' => 'created_at; drop', 'per_page' => 7]))
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.sort', 'nama')
+            ->where('filters.per_page', 10)
+            ->where('prodis.data.0.nama', 'Alpha'));
+});

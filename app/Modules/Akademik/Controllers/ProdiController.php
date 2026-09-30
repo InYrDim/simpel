@@ -3,6 +3,7 @@
 namespace App\Modules\Akademik\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Akademik\Controllers\Concerns\MembacaQueryDaftar;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Akademik\Models\Prodi;
@@ -21,16 +22,23 @@ use Inertia\Response;
  */
 class ProdiController extends Controller
 {
+    use MembacaQueryDaftar;
+
+    private const SORTABLE = ['nama', 'jumlah_mahasiswa'];
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->input('search', ''));
+        $sort = $this->sortColumn($request, self::SORTABLE, 'nama');
+        $direction = $this->sortDirection($request);
 
         /** @var Builder<Prodi> $query */
         $query = Prodi::query()
             ->select(['id', 'nama', 'kaprodi_id', 'created_at'])
             ->with('kaprodi:id,nama')
             ->withCount('mahasiswas')
-            ->orderBy('nama');
+            ->orderBy($sort === 'jumlah_mahasiswa' ? 'mahasiswas_count' : 'nama', $direction)
+            ->orderBy('id');
 
         if ($search !== '') {
             $query->where(function (Builder $q) use ($search): void {
@@ -39,7 +47,7 @@ class ProdiController extends Controller
             });
         }
 
-        $prodis = $query->paginate(10)->withQueryString()->through(
+        $prodis = $query->paginate($this->perPage($request))->withQueryString()->through(
             fn (Prodi $p): array => [
                 'id' => $p->id,
                 'nama' => $p->nama,
@@ -52,7 +60,13 @@ class ProdiController extends Controller
 
         return Inertia::render('akademik/prodi/index', [
             'prodis' => $prodis,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $this->perPage($request),
+            ],
+            'perPageOptions' => $this->perPageOptions(),
             'kaprodiOptions' => Dosen::query()->orderBy('nama')->get(['id', 'nama']),
         ]);
     }

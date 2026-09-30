@@ -7,6 +7,7 @@ use App\Modules\Akademik\Database\Factories\DosenFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -43,6 +44,16 @@ class Dosen extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Mahasiswa yang dibimbing dosen ini sebagai Dosen PA.
+     *
+     * @return HasMany<Mahasiswa, $this>
+     */
+    public function mahasiswaPa(): HasMany
+    {
+        return $this->hasMany(Mahasiswa::class, 'dosen_pa_id');
     }
 
     /**

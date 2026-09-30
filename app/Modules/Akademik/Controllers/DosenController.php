@@ -3,7 +3,9 @@
 namespace App\Modules\Akademik\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Akademik\Controllers\Concerns\MembacaQueryDaftar;
 use App\Modules\Akademik\Models\Dosen;
+use App\Modules\Akademik\Models\Mahasiswa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,14 +21,22 @@ use Inertia\Response;
  */
 class DosenController extends Controller
 {
+    use MembacaQueryDaftar;
+
+    private const SORTABLE = ['nama', 'nip', 'bidang'];
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->input('search', ''));
+        $sort = $this->sortColumn($request, self::SORTABLE, 'nama');
+        $direction = $this->sortDirection($request);
 
         /** @var Builder<Dosen> $query */
         $query = Dosen::query()
             ->select(['id', 'nama', 'nip', 'bidang', 'created_at'])
-            ->orderBy('nama');
+            ->withCount('mahasiswaPa')
+            ->orderBy($sort, $direction)
+            ->orderBy('id');
 
         if ($search !== '') {
             $query->where(function (Builder $q) use ($search): void {
@@ -36,11 +46,26 @@ class DosenController extends Controller
             });
         }
 
-        $dosens = $query->paginate(10)->withQueryString();
+        $dosens = $query->paginate($this->perPage($request))->withQueryString()->through(
+            fn (Dosen $d): array => [
+                'id' => $d->id,
+                'nama' => $d->nama,
+                'nip' => $d->nip,
+                'bidang' => $d->bidang,
+                'jumlah_mahasiswa_pa' => $d->mahasiswa_pa_count,
+                'created_at' => $d->created_at?->toISOString(),
+            ],
+        );
 
         return Inertia::render('akademik/dosen/index', [
             'dosens' => $dosens,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $this->perPage($request),
+            ],
+            'perPageOptions' => $this->perPageOptions(),
         ]);
     }
 
@@ -66,6 +91,13 @@ class DosenController extends Controller
 
     public function destroy(Dosen $dosen): RedirectResponse
     {
+        // FK `dosen_pa_id` bersifat cascade: menghapus dosen yang masih menjadi
+        // PA akan ikut menghapus profil mahasiswanya, jadi ditolak di sini.
+        if (Mahasiswa::query()->where('dosen_pa_id', $dosen->id)->exists()) {
+            return redirect()->route('akademik.dosen.index')
+                ->with('error', 'Dosen tidak bisa dihapus karena masih menjadi dosen PA mahasiswa.');
+        }
+
         $dosen->delete();
 
         return redirect()->route('akademik.dosen.index')

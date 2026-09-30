@@ -8,11 +8,13 @@ use App\Modules\Akademik\Enums\StatusMahasiswa;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Akademik\Models\Prodi;
+use App\Modules\Contracts\SkripsiContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,6 +32,8 @@ class MahasiswaController extends Controller
 
     /** @var list<string> */
     private const SORTABLE = ['nama', 'nim', 'angkatan'];
+
+    public function __construct(private SkripsiContract $skripsi) {}
 
     public function index(Request $request): Response
     {
@@ -73,6 +77,12 @@ class MahasiswaController extends Controller
         /** @var LengthAwarePaginator<int, Mahasiswa> $paginator */
         $paginator = $query->paginate($perPage)->withQueryString();
 
+        $idsDenganPengajuan = array_flip(
+            $this->skripsi->mahasiswaIdsDenganPengajuan(
+                array_values($paginator->getCollection()->map(fn (Mahasiswa $m): int => $m->id)->all()),
+            ),
+        );
+
         $mahasiswas = $paginator->through(
             fn (Mahasiswa $m): array => [
                 'id' => $m->id,
@@ -85,6 +95,7 @@ class MahasiswaController extends Controller
                 'prodi' => $m->prodiRef?->nama,
                 'angkatan' => $m->angkatan,
                 'status' => $m->status->value,
+                'punya_pengajuan' => isset($idsDenganPengajuan[$m->id]),
                 'created_at' => $m->created_at?->toISOString(),
             ],
         );
@@ -134,6 +145,10 @@ class MahasiswaController extends Controller
 
     public function update(Request $request, Mahasiswa $mahasiswa): RedirectResponse
     {
+        // Aturan dosen PA bergantung pada status; tanpa status di request,
+        // pakai status yang tersimpan.
+        $request->mergeIfMissing(['status' => $mahasiswa->status->value]);
+
         $mahasiswa->update($this->validateMahasiswa($request, $mahasiswa->id));
 
         return redirect()->route('akademik.mahasiswa.index')
@@ -150,6 +165,14 @@ class MahasiswaController extends Controller
             'konfirmasi_nim.required' => 'Ketik NIM mahasiswa untuk mengonfirmasi penghapusan.',
             'konfirmasi_nim.in' => 'NIM yang diketik tidak sesuai.',
         ]);
+
+        // Pengajuan skripsi merujuk mahasiswa tanpa FK, jadi penghapusan
+        // diblokir di sini agar tidak menyisakan pengajuan yatim.
+        if ($this->skripsi->mahasiswaIdsDenganPengajuan([$mahasiswa->id]) !== []) {
+            throw ValidationException::withMessages([
+                'mahasiswa' => 'Mahasiswa ini masih memiliki pengajuan skripsi sehingga tidak bisa dihapus. Ubah statusnya menjadi Nonaktif.',
+            ]);
+        }
 
         $mahasiswa->delete();
 
@@ -170,9 +193,15 @@ class MahasiswaController extends Controller
                 'max:255',
                 Rule::unique('akademik_mahasiswas', 'nim')->ignore($ignoreId),
             ],
-            // Secara bisnis dosen PA wajib; sementara dibolehkan kosong karena
-            // mahasiswa hasil registrasi mandiri belum punya PA.
-            'dosen_pa_id' => ['nullable', 'integer', Rule::exists('akademik_dosens', 'id')],
+            // Dosen PA wajib bagi mahasiswa yang masih berkuliah. Mahasiswa hasil
+            // registrasi mandiri memang belum punya PA, jadi profil yang sudah
+            // lulus/nonaktif tetap boleh disimpan tanpa PA.
+            'dosen_pa_id' => [
+                'nullable',
+                'required_unless:status,'.StatusMahasiswa::Lulus->value.','.StatusMahasiswa::Nonaktif->value,
+                'integer',
+                Rule::exists('akademik_dosens', 'id'),
+            ],
             'prodi_id' => ['nullable', 'integer', Rule::exists('akademik_prodis', 'id')],
             'angkatan' => ['nullable', 'integer', 'min:2000', 'max:2100'],
             'status' => ['sometimes', Rule::enum(StatusMahasiswa::class)],

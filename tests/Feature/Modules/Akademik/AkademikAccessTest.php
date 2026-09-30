@@ -80,6 +80,21 @@ test('admin can create, update, and delete a dosen', function () {
     expect(Dosen::find($dosen->id))->toBeNull();
 });
 
+test('dosen yang masih menjadi dosen pa tidak bisa dihapus', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $dosen = Dosen::factory()->create();
+    $mahasiswa = Mahasiswa::factory()->create(['dosen_pa_id' => $dosen->id]);
+
+    $this->actingAs($admin)
+        ->delete(route('akademik.dosen.destroy', $dosen))
+        ->assertRedirect(route('akademik.dosen.index'))
+        ->assertSessionHas('error');
+
+    expect(Dosen::find($dosen->id))->not->toBeNull()
+        ->and(Mahasiswa::find($mahasiswa->id))->not->toBeNull();
+});
+
 test('dosen nip must be unique', function () {
     $admin = User::factory()->create();
     $admin->assignRole('admin');
@@ -147,4 +162,19 @@ test('non-admin cannot mutate dosen or mahasiswa data', function () {
         ->assertForbidden();
 
     expect(Dosen::find($dosen->id))->not->toBeNull();
+});
+
+test('dosen list sorts by an allowed column and reports mahasiswa pa counts', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $pa = Dosen::factory()->create(['nama' => 'Zed', 'nip' => '111']);
+    Dosen::factory()->create(['nama' => 'Amir', 'nip' => '999']);
+    Mahasiswa::factory()->count(2)->create(['dosen_pa_id' => $pa->id]);
+
+    $this->actingAs($admin)
+        ->get(route('akademik.dosen.index', ['sort' => 'nip', 'direction' => 'asc', 'per_page' => 25]))
+        ->assertInertia(fn ($page) => $page
+            ->where('dosens.data.0.nip', '111')
+            ->where('dosens.data.0.jumlah_mahasiswa_pa', 2)
+            ->where('filters.per_page', 25));
 });

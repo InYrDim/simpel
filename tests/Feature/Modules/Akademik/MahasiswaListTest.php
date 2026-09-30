@@ -5,6 +5,7 @@ use App\Modules\Akademik\Enums\StatusMahasiswa;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Akademik\Models\Prodi;
+use App\Modules\Skripsi\Models\PengajuanJudul;
 use Database\Seeders\RolePermissionSeeder;
 
 beforeEach(function () {
@@ -119,12 +120,14 @@ test('angkatan options list each year once, newest first', function () {
 test('new mahasiswa is aktif by default and status can be chosen', function () {
     $userDefault = User::factory()->create();
     $userCuti = User::factory()->create();
+    $dosenPa = Dosen::factory()->create();
 
     $this->actingAs(mahasiswaListAdmin())
         ->post(route('akademik.mahasiswa.store'), [
             'user_id' => $userDefault->id,
             'nama' => 'Siti',
             'nim' => '2100000010',
+            'dosen_pa_id' => $dosenPa->id,
         ])
         ->assertRedirect(route('akademik.mahasiswa.index'));
 
@@ -133,13 +136,47 @@ test('new mahasiswa is aktif by default and status can be chosen', function () {
             'user_id' => $userCuti->id,
             'nama' => 'Rani',
             'nim' => '2100000011',
+            'dosen_pa_id' => $dosenPa->id,
             'status' => 'cuti',
         ])
         ->assertRedirect(route('akademik.mahasiswa.index'));
 
     expect(Mahasiswa::where('nim', '2100000010')->firstOrFail()->status)->toBe(StatusMahasiswa::Aktif)
-        ->and(Mahasiswa::where('nim', '2100000010')->firstOrFail()->dosen_pa_id)->toBeNull()
         ->and(Mahasiswa::where('nim', '2100000011')->firstOrFail()->status)->toBe(StatusMahasiswa::Cuti);
+});
+
+test('dosen pa is required unless the mahasiswa is lulus or nonaktif', function () {
+    $user = User::factory()->create();
+    $dosenPa = Dosen::factory()->create();
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->post(route('akademik.mahasiswa.store'), [
+            'user_id' => $user->id,
+            'nama' => 'Tanpa PA',
+            'nim' => '2100000020',
+        ])
+        ->assertSessionHasErrors('dosen_pa_id');
+
+    $aktif = Mahasiswa::factory()->create(['dosen_pa_id' => $dosenPa->id]);
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->put(route('akademik.mahasiswa.update', $aktif), [
+            'nama' => $aktif->nama,
+            'nim' => $aktif->nim,
+            'dosen_pa_id' => null,
+        ])
+        ->assertSessionHasErrors('dosen_pa_id');
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->put(route('akademik.mahasiswa.update', $aktif), [
+            'nama' => $aktif->nama,
+            'nim' => $aktif->nim,
+            'dosen_pa_id' => null,
+            'status' => 'nonaktif',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($aktif->refresh()->status)->toBe(StatusMahasiswa::Nonaktif);
 });
 
 test('an unknown status is rejected', function () {
@@ -206,4 +243,28 @@ test('deleting a mahasiswa requires typing their nim', function () {
         ->assertSessionHasNoErrors();
 
     expect(Mahasiswa::find($mahasiswa->id))->toBeNull();
+});
+
+test('a mahasiswa with a skripsi pengajuan cannot be deleted', function () {
+    $mahasiswa = Mahasiswa::factory()->create();
+    $lain = Mahasiswa::factory()->create();
+    PengajuanJudul::factory()->create(['mahasiswa_id' => $mahasiswa->id]);
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->get(route('akademik.mahasiswa.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('mahasiswas.data', fn ($rows) => collect($rows)->pluck('punya_pengajuan', 'id')->all() == [
+                $mahasiswa->id => true,
+                $lain->id => false,
+            ]));
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->delete(route('akademik.mahasiswa.destroy', $mahasiswa), ['konfirmasi_nim' => $mahasiswa->nim])
+        ->assertSessionHasErrors('mahasiswa');
+
+    expect(Mahasiswa::find($mahasiswa->id))->not->toBeNull();
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->delete(route('akademik.mahasiswa.destroy', $lain), ['konfirmasi_nim' => $lain->nim])
+        ->assertSessionHasNoErrors();
 });
