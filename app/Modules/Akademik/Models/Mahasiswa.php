@@ -20,13 +20,13 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property string $nama
  * @property string $nim
- * @property int $dosen_pa_id
+ * @property int|null $dosen_pa_id
  * @property int|null $prodi_id
  * @property int|null $angkatan
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
- * @property-read Dosen $dosenPa
+ * @property-read Dosen|null $dosenPa
  * @property-read Prodi|null $prodiRef
  */
 class Mahasiswa extends Model

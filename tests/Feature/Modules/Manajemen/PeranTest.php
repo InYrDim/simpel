@@ -65,15 +65,41 @@ test('permission yang tidak terdaftar ditolak', function () {
         ->assertSessionHasErrors('permissions.0');
 });
 
-test('peran admin tidak dapat dihapus', function () {
-    $admin = Role::findByName('admin');
+test('peran sistem tidak dapat dihapus', function (string $nama) {
+    $role = Role::findByName($nama);
 
     $this->actingAs(peranAdmin())
-        ->delete(route('manajemen.peran.destroy', $admin))
+        ->delete(route('manajemen.peran.destroy', $role))
         ->assertRedirect(route('manajemen.peran.index'))
         ->assertSessionHas('error');
 
-    expect(Role::findByName('admin'))->not->toBeNull();
+    expect(Role::findByName($nama))->not->toBeNull();
+})->with(['admin', 'mahasiswa']);
+
+test('nama peran sistem tidak dapat diubah', function (string $nama) {
+    $role = Role::findByName($nama);
+
+    $this->actingAs(peranAdmin())
+        ->put(route('manajemen.peran.update', $role), [
+            'name' => 'diganti',
+            'permissions' => [],
+        ])
+        ->assertSessionHasErrors(['name' => "Nama peran {$nama} dipakai sistem dan tidak dapat diubah."]);
+
+    expect($role->refresh()->name)->toBe($nama);
+})->with(['admin', 'mahasiswa']);
+
+test('permission peran sistem tetap dapat diatur', function () {
+    $role = Role::findByName('mahasiswa');
+
+    $this->actingAs(peranAdmin())
+        ->put(route('manajemen.peran.update', $role), [
+            'name' => 'mahasiswa',
+            'permissions' => [],
+        ])
+        ->assertRedirect(route('manajemen.peran.index'));
+
+    expect($role->refresh()->permissions)->toBeEmpty();
 });
 
 test('peran yang memiliki pengguna tidak dapat dihapus', function () {

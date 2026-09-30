@@ -11,6 +11,9 @@
 - `MahasiswaDTO`, `DosenDTO`, `DosenDTOList` — bentuk data yang melintasi batas modul
 - `DosenDTO->userId` — akun login dosen (biasanya role `validator`); modul lain memakai ini untuk resolusi penerima notifikasi tanpa menyentuh Akademik
 - `MahasiswaDTO->prodi` tetap string (nama prodi, di-resolve dari relasi `prodi_id`) agar konsumen Skripsi tidak ikut berubah saat kolom beralih ke FK
+- `MahasiswaDTO->dosenPaId` nullable: mahasiswa hasil registrasi mandiri belum punya dosen PA sampai admin mengisinya
+- Registrasi mandiri Fortify dimiliki modul ini: `AkademikServiceProvider` memasang `Fortify::createUsersUsing(Services\RegistrasiMahasiswa)` dan `Fortify::registerView` (props `prodiOptions`). Pendaftar mendapat peran `mahasiswa` + profil akademik (NIM, prodi, tanpa PA). Core tidak boleh bergantung pada modul, jadi logika ini tidak ada di `app/Actions/Fortify`.
+- Gate `akademik.mahasiswa-kita` (`?User`, `string $nim`, `int $prodiId`) — dipanggil registrasi sebelum akun dibuat. **Masih stub (selalu lolos)**; logika pengecekan NIM ke sumber data kampus menyusul di `AkademikServiceProvider::defineGates()`
 
 ## Allowed dependencies
 

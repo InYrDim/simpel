@@ -11,6 +11,9 @@ use App\Modules\Skripsi\Controllers\StatistikController;
 use App\Modules\Skripsi\Controllers\VerifikasiAdminController;
 use Illuminate\Support\Facades\Route;
 
+// Akses halaman dipagari `role:`; setiap aksi tulis juga dipagari
+// `permission:` agar pengaturan hak akses di Manajemen > Peran berlaku.
+
 // Mahasiswa (§5.1): panel status + submit pengajuan + template DOCX.
 // Resubmit (alur revisi, sesi 3) mengirim ulang pengajuan yang sama saat
 // statusnya `direvisi`. Submit & resubmit dibatasi rate limiter
@@ -18,10 +21,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('skripsi/pengajuan')->name('skripsi.pengajuan.')->group(function (): void {
     Route::get('/', [PengajuanJudulController::class, 'status'])->name('status');
     Route::post('/', [PengajuanJudulController::class, 'store'])
-        ->middleware('throttle:pengajuan-submit')
+        ->middleware(['permission:skripsi.pengajuan.submit', 'throttle:pengajuan-submit'])
         ->name('store');
     Route::post('/{pengajuan}/resubmit', [PengajuanJudulController::class, 'resubmit'])
-        ->middleware('throttle:pengajuan-submit')
+        ->middleware(['permission:skripsi.pengajuan.submit', 'throttle:pengajuan-submit'])
         ->name('resubmit');
     Route::get('/template', [PengajuanJudulController::class, 'template'])->name('template');
 });
@@ -30,15 +33,23 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('skripsi/penga
 // minta revisi (alur revisi, sesi 3).
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/verifikasi')->name('skripsi.verifikasi.')->group(function (): void {
     Route::get('/', [VerifikasiAdminController::class, 'index'])->name('index');
-    Route::post('/{pengajuan}', [VerifikasiAdminController::class, 'store'])->name('store');
-    Route::post('/{pengajuan}/revisi', [VerifikasiAdminController::class, 'revisi'])->name('revisi');
+    Route::post('/{pengajuan}', [VerifikasiAdminController::class, 'store'])
+        ->middleware('permission:skripsi.pengajuan.verify')
+        ->name('store');
+    Route::post('/{pengajuan}/revisi', [VerifikasiAdminController::class, 'revisi'])
+        ->middleware('permission:skripsi.pengajuan.revise')
+        ->name('revisi');
 });
 
 // Validator (§5.3): penugasan review + putusan setujui/tolak/minta revisi.
 Route::middleware(['auth', 'verified', 'role:validator'])->prefix('skripsi/putusan')->name('skripsi.putusan.')->group(function (): void {
     Route::get('/', [PutusanValidatorController::class, 'index'])->name('index');
-    Route::post('/{pengajuan}', [PutusanValidatorController::class, 'store'])->name('store');
-    Route::post('/{pengajuan}/revisi', [PutusanValidatorController::class, 'revisi'])->name('revisi');
+    Route::post('/{pengajuan}', [PutusanValidatorController::class, 'store'])
+        ->middleware('permission:skripsi.pengajuan.decide')
+        ->name('store');
+    Route::post('/{pengajuan}/revisi', [PutusanValidatorController::class, 'revisi'])
+        ->middleware('permission:skripsi.pengajuan.revise')
+        ->name('revisi');
 });
 
 // Admin & validator (§5.2): daftar judul; penugasan (assign) hanya admin.

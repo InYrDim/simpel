@@ -27,8 +27,9 @@
 ## Explicitly NOT exposed
 
 - Model `Jurusan` — internal modul; belum ada kontrak publik (akankan mencuat saat modul lain butuh referensi jurusan)
-- Manajemen role `admin` — terproteksi dari penghapusan (`PeranController::PROTECTED_ROLES`); role yang masih memiliki pengguna tidak dapat dihapus
+- Role `admin` & `mahasiswa` — terproteksi dari penghapusan dan ganti nama (`PeranController::PROTECTED_ROLES`) karena namanya dipakai kode (`Gate::before`, registrasi); permission-nya tetap bisa diatur. Role yang masih memiliki pengguna tidak dapat dihapus
 - Penetapan permission per modul dikelola di core `Database\Seeders\RolePermissionSeeder`, bukan oleh modul ini — modul Manajemen hanya menata-ulang assignment-nya lewat UI admin
+- Admin tidak dapat mencabut peran `admin` dari akun sendiri (mencegah terkunci dari Manajemen); satu akun tepat satu peran (dropdown, `syncRoles` menggantikan peran lama); akun buatan admin langsung terverifikasi
 
 ## Notes for maintainers
 
