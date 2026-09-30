@@ -14,15 +14,17 @@
     --card-foreground: oklch(0 0 0);
     --popover: oklch(0.9911 0 0);
     --popover-foreground: oklch(0 0 0);
-    --primary: oklch(0.6609 0.158 243.9173);
+    --primary: oklch(0.55 0.158 243.9173);
     --primary-foreground: oklch(1 0 0);
     --secondary: oklch(0.954 0.0063 255.4755);
     --secondary-foreground: oklch(0.1344 0 0);
     --muted: oklch(0.9702 0 0);
     --muted-foreground: oklch(0.4386 0 0);
     --accent: oklch(0.9782 0.0167 215.4555);
-    --accent-foreground: oklch(0.6334 0.1238 229.6187);
-    --destructive: oklch(0.629 0.1902 23.0704);
+    --accent-foreground: oklch(0.5 0.1238 229.6187);
+    --destructive: oklch(0.55 0.1902 23.0704);
+    --success: oklch(0.52 0.15 150);
+    --success-foreground: oklch(1 0 0);
     --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.93 0.0094 286.2156);
     --input: oklch(0.9401 0 0);
@@ -34,7 +36,7 @@
     --chart-5: oklch(0.8752 0.1382 155.7858);
     --sidebar: oklch(0.973 0.003 247);
     --sidebar-foreground: oklch(0.24 0.012 255);
-    --sidebar-primary: oklch(0.6609 0.158 243.9173);
+    --sidebar-primary: oklch(0.55 0.158 243.9173);
     --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent: oklch(0.938 0.006 250);
     --sidebar-accent-foreground: oklch(0.26 0.012 255);
@@ -75,16 +77,18 @@
     --card-foreground: oklch(0.9551 0 0);
     --popover: oklch(0.2138 0.0019 286.2347);
     --popover-foreground: oklch(0.9551 0 0);
-    --primary: oklch(0.6609 0.158 243.9173);
+    --primary: oklch(0.56 0.158 243.9173);
     --primary-foreground: oklch(1 0 0);
-    --secondary: oklch(0.5646 0.1905 243.9173);
+    --secondary: oklch(0.45 0.15 243.9173);
     --secondary-foreground: oklch(0.9551 0 0);
     --muted: oklch(0.257 0.0037 286.136);
     --muted-foreground: oklch(0.6731 0 0);
     --accent: oklch(0.3734 0.1246 243.9173);
     --accent-foreground: oklch(0.9551 0 0);
     --destructive: oklch(0.7043 0.1781 22.7836);
-    --destructive-foreground: oklch(1 0 0);
+    --success: oklch(0.76 0.15 150);
+    --success-foreground: oklch(0.15 0 0);
+    --destructive-foreground: oklch(0.15 0 0);
     --border: oklch(0.2393 0 0);
     --input: oklch(0.3523 0 0);
     --ring: oklch(0.6441 0.1755 249.2498);
@@ -95,7 +99,7 @@
     --chart-5: oklch(0.8752 0.1382 155.7858);
     --sidebar: oklch(0.16 0.006 260);
     --sidebar-foreground: oklch(0.93 0.005 260);
-    --sidebar-primary: oklch(0.6609 0.158 243.9173);
+    --sidebar-primary: oklch(0.56 0.158 243.9173);
     --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent: oklch(0.27 0.012 260);
     --sidebar-accent-foreground: oklch(0.96 0.004 260);
@@ -144,6 +148,8 @@
     --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -239,5 +245,29 @@
     /* Tactile feedback saat ditekan. */
     [data-slot='sidebar'] [data-sidebar='menu-button']:active {
         transform: scale(0.98);
+    }
+}
+
+/*
+ * Reduced motion: hilangkan gerak (slide/zoom/press) tetapi pertahankan
+ * perubahan state lewat fade, agar dialog, dropdown, dan drawer tetap
+ * terbaca muncul/hilang.
+ */
+@media (prefers-reduced-motion: reduce) {
+    [data-state] {
+        --tw-enter-translate-x: 0 !important;
+        --tw-enter-translate-y: 0 !important;
+        --tw-enter-scale: 1 !important;
+        --tw-enter-rotate: 0 !important;
+        --tw-enter-blur: 0 !important;
+        --tw-exit-translate-x: 0 !important;
+        --tw-exit-translate-y: 0 !important;
+        --tw-exit-scale: 1 !important;
+        --tw-exit-rotate: 0 !important;
+        --tw-exit-blur: 0 !important;
+    }
+
+    [data-slot='sidebar'] [data-sidebar='menu-button']:active {
+        transform: none;
     }
 }

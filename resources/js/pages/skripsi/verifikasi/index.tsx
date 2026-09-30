@@ -220,7 +220,7 @@ function PengajuanCard({
                             </SelectContent>
                         </Select>
                         {errors.validator_id && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {errors.validator_id}
                             </p>
                         )}
@@ -262,7 +262,7 @@ function PengajuanCard({
                             }
                         />
                         {errors.catatan_admin && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {errors.catatan_admin}
                             </p>
                         )}
@@ -310,7 +310,7 @@ function PengajuanCard({
                             }
                         />
                         {revisiForm.errors.catatan_admin && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {revisiForm.errors.catatan_admin}
                             </p>
                         )}

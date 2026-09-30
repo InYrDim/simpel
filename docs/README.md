@@ -5,6 +5,7 @@ Struktur folder ini mengorganisir dokumen proyek berdasarkan area:
 ```
 docs/
 ├── README.md              ← file ini
+├── notes.md               ← catatan proyek (single source of truth: dibuat kapan, status, diganti kapan)
 ├── architecture/          ← desain sistem, arsitektur modul
 │   └── sidebar-styling.md ← referensi styling sidebar (token, limitasi, relasi)
 ├── research/              ← materials untuk thesis (judul, referensi, justifikasi)

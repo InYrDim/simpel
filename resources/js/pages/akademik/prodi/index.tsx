@@ -141,7 +141,7 @@ function CreateProdiDialog({
                                 disabled={processing}
                             />
                             {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nama}
                                 </p>
                             )}
@@ -168,7 +168,7 @@ function CreateProdiDialog({
                                 </SelectContent>
                             </Select>
                             {errors.kaprodi_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.kaprodi_id}
                                 </p>
                             )}

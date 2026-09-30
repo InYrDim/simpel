@@ -34,7 +34,7 @@ export function LangkahPratinjau({
             </p>
 
             {galatUmum.length > 0 && (
-                <div className="rounded-lg border border-red-300 p-3 text-sm text-red-600 dark:text-red-400">
+                <div className="text-destructive rounded-lg border border-red-300 p-3 text-sm">
                     {galatUmum.map((g) => (
                         <p key={g}>{g}</p>
                     ))}

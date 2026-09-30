@@ -216,7 +216,7 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                             ))}
                         </div>
                         {errors.judul_id && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {errors.judul_id}
                             </p>
                         )}
@@ -258,7 +258,7 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                             }
                         />
                         {errors.catatan_validator && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {errors.catatan_validator}
                             </p>
                         )}
@@ -306,7 +306,7 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                             }
                         />
                         {revisiForm.errors.catatan_validator && (
-                            <p className="text-sm text-red-600">
+                            <p className="text-destructive text-sm">
                                 {revisiForm.errors.catatan_validator}
                             </p>
                         )}
