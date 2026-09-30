@@ -76,6 +76,18 @@ test('list can be filtered by prodi, angkatan, dosen pa, and status', function (
             ->where('mahasiswas.data.0.status', 'cuti'));
 });
 
+test('summary counts students who still need a dosen pa, ignoring lulus and nonaktif', function () {
+    Mahasiswa::factory()->create(['dosen_pa_id' => null]);
+    Mahasiswa::factory()->create(['dosen_pa_id' => null, 'status' => StatusMahasiswa::Cuti]);
+    Mahasiswa::factory()->create(['dosen_pa_id' => null, 'status' => StatusMahasiswa::Lulus]);
+    Mahasiswa::factory()->create(['dosen_pa_id' => null, 'status' => StatusMahasiswa::Nonaktif]);
+    Mahasiswa::factory()->create(['dosen_pa_id' => Dosen::factory()->create()->id]);
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->get(route('akademik.mahasiswa.index'))
+        ->assertInertia(fn ($page) => $page->where('ringkasan.tanpa_dosen_pa', 2));
+});
+
 test('list can be narrowed to mahasiswa without a dosen pa', function () {
     $tanpaPa = Mahasiswa::factory()->create(['dosen_pa_id' => null]);
     Mahasiswa::factory()->create();
@@ -104,6 +116,25 @@ test('list sorts by an allowed column and ignores unknown ones', function () {
         ->assertInertia(fn ($page) => $page
             ->where('filters.sort', 'nama')
             ->where('mahasiswas.data.0.nama', 'Budi'));
+});
+
+test('list sorts by dosen pa name and by status', function () {
+    $zed = Dosen::factory()->create(['nama' => 'Zed']);
+    $amir = Dosen::factory()->create(['nama' => 'Amir']);
+    Mahasiswa::factory()->create(['nama' => 'Satu', 'dosen_pa_id' => $zed->id, 'status' => StatusMahasiswa::Aktif]);
+    Mahasiswa::factory()->create(['nama' => 'Dua', 'dosen_pa_id' => $amir->id, 'status' => StatusMahasiswa::Nonaktif]);
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->get(route('akademik.mahasiswa.index', ['sort' => 'dosen_pa', 'direction' => 'asc']))
+        ->assertInertia(fn ($page) => $page
+            ->where('mahasiswas.data.0.nama', 'Dua')
+            ->where('filters.sort', 'dosen_pa'));
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->get(route('akademik.mahasiswa.index', ['sort' => 'status', 'direction' => 'desc']))
+        ->assertInertia(fn ($page) => $page
+            ->where('mahasiswas.data.0.nama', 'Dua')
+            ->where('filters.sort', 'status'));
 });
 
 test('angkatan options list each year once, newest first', function () {

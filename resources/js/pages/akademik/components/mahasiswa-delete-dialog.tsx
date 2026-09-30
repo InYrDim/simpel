@@ -17,6 +17,8 @@ import { destroy } from '@/routes/akademik/mahasiswa';
 type MahasiswaDeleteDialogProps = {
     mahasiswa: MahasiswaRow;
     onClose: () => void;
+    /** Dipakai saat penghapusan diblokir: arahkan ke dialog ubah (status Nonaktif). */
+    onUbahStatus: () => void;
 };
 
 /**
@@ -26,6 +28,7 @@ type MahasiswaDeleteDialogProps = {
 export function MahasiswaDeleteDialog({
     mahasiswa,
     onClose,
+    onUbahStatus,
 }: MahasiswaDeleteDialogProps) {
     const {
         data,
@@ -43,9 +46,10 @@ export function MahasiswaDeleteDialog({
                 <DialogHeader>
                     <DialogTitle>Hapus mahasiswa</DialogTitle>
                     <DialogDescription>
+                        <strong>{mahasiswa.nama}</strong> (NIM {mahasiswa.nim}){' '}
                         {mahasiswa.punya_pengajuan
-                            ? 'Mahasiswa ini masih memiliki pengajuan skripsi sehingga profilnya tidak bisa dihapus. Ubah statusnya menjadi Nonaktif untuk menonaktifkannya.'
-                            : 'Profil akademik akan dihapus permanen. Akun login tetap ada. Bila hanya ingin menonaktifkan, ubah statusnya menjadi Nonaktif.'}
+                            ? 'masih memiliki pengajuan skripsi sehingga profilnya tidak bisa dihapus. Ubah statusnya menjadi Nonaktif untuk menonaktifkannya.'
+                            : 'akan dihapus permanen. Akun login tetap ada. Bila hanya ingin menonaktifkan, ubah statusnya menjadi Nonaktif.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -59,31 +63,37 @@ export function MahasiswaDeleteDialog({
                     }}
                     className="grid gap-4 py-2"
                 >
-                    <div className="grid gap-2">
-                        <Label htmlFor="mhs-delete-nim">
-                            Ketik NIM <strong>{mahasiswa.nim}</strong> untuk
-                            mengonfirmasi
-                        </Label>
-                        <Input
-                            id="mhs-delete-nim"
-                            value={data.konfirmasi_nim}
-                            onChange={(e) =>
-                                setData('konfirmasi_nim', e.target.value)
-                            }
-                            autoComplete="off"
-                            disabled={processing}
-                            aria-invalid={
-                                Boolean(errors.konfirmasi_nim) || undefined
-                            }
-                        />
-                        <InputError message={errors.konfirmasi_nim} />
-                        <InputError
-                            message={
-                                (errors as Record<string, string | undefined>)
-                                    .mahasiswa
-                            }
-                        />
-                    </div>
+                    {!mahasiswa.punya_pengajuan && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="mhs-delete-nim">
+                                Ketik NIM <strong>{mahasiswa.nim}</strong> untuk
+                                mengonfirmasi
+                            </Label>
+                            <Input
+                                id="mhs-delete-nim"
+                                value={data.konfirmasi_nim}
+                                onChange={(e) =>
+                                    setData('konfirmasi_nim', e.target.value)
+                                }
+                                autoComplete="off"
+                                disabled={processing}
+                                aria-invalid={
+                                    Boolean(errors.konfirmasi_nim) || undefined
+                                }
+                            />
+                            <InputError message={errors.konfirmasi_nim} />
+                            <InputError
+                                message={
+                                    (
+                                        errors as Record<
+                                            string,
+                                            string | undefined
+                                        >
+                                    ).mahasiswa
+                                }
+                            />
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button
@@ -94,17 +104,21 @@ export function MahasiswaDeleteDialog({
                         >
                             Batal
                         </Button>
-                        <Button
-                            type="submit"
-                            variant="destructive"
-                            disabled={
-                                mahasiswa.punya_pengajuan ||
-                                !matches ||
-                                processing
-                            }
-                        >
-                            {processing ? 'Menghapus...' : 'Hapus mahasiswa'}
-                        </Button>
+                        {mahasiswa.punya_pengajuan ? (
+                            <Button type="button" onClick={onUbahStatus}>
+                                Ubah status
+                            </Button>
+                        ) : (
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                disabled={!matches || processing}
+                            >
+                                {processing
+                                    ? 'Menghapus...'
+                                    : 'Hapus mahasiswa'}
+                            </Button>
+                        )}
                     </DialogFooter>
                 </form>
             </DialogContent>

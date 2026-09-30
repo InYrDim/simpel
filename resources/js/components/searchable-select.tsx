@@ -34,6 +34,8 @@ type SearchableSelectProps = {
     clearLabel?: string;
     disabled?: boolean;
     invalid?: boolean;
+    /** Nama aksesibel bila tidak ada `<Label htmlFor>` yang menaut ke `id`. */
+    ariaLabel?: string;
     className?: string;
 };
 
@@ -53,6 +55,7 @@ export function SearchableSelect({
     clearLabel,
     disabled = false,
     invalid = false,
+    ariaLabel,
     className,
 }: SearchableSelectProps) {
     const [open, setOpen] = useState(false);
@@ -72,6 +75,11 @@ export function SearchableSelect({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
+                    aria-label={
+                        ariaLabel
+                            ? `${ariaLabel}: ${selected ? selected.label : placeholder}`
+                            : undefined
+                    }
                     aria-invalid={invalid || undefined}
                     disabled={disabled}
                     className={cn(

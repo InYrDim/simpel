@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import type { Column } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,9 @@ export type MahasiswaRow = {
     created_at: string;
 };
 
+/** Status yang boleh tanpa dosen PA (lihat aturan di MahasiswaController). */
+const PA_OPSIONAL = ['lulus', 'nonaktif'];
+
 type ColumnHandlers = {
     statusOptions: StatusOption[];
     onEdit: (mahasiswa: MahasiswaRow) => void;
@@ -59,8 +62,14 @@ export const mahasiswaColumns = ({
         label: 'Mahasiswa',
         sortKey: 'nama',
         render: (m) => (
-            <div className="flex flex-col">
-                <span className="font-medium">{m.nama}</span>
+            <div className="flex flex-col items-start">
+                <button
+                    type="button"
+                    onClick={() => onEdit(m)}
+                    className="focus-visible:ring-ring/50 rounded-sm text-left font-medium underline-offset-4 hover:underline focus-visible:ring-[3px] focus-visible:outline-none"
+                >
+                    {m.nama}
+                </button>
                 <span className="text-muted-foreground text-xs">
                     {m.user_email ?? '-'}
                 </span>
@@ -86,14 +95,24 @@ export const mahasiswaColumns = ({
     {
         key: 'dosen_pa_nama',
         label: 'Dosen PA',
+        sortKey: 'dosen_pa',
         render: (m) =>
             m.dosen_pa_nama ?? (
-                <span className="text-muted-foreground">Belum ditentukan</span>
+                <span
+                    className={
+                        PA_OPSIONAL.includes(m.status)
+                            ? 'text-muted-foreground'
+                            : 'text-destructive font-medium'
+                    }
+                >
+                    Belum ditentukan
+                </span>
             ),
     },
     {
         key: 'status',
         label: 'Status',
+        sortKey: 'status',
         render: (m) => (
             <StatusBadge status={m.status} options={statusOptions} />
         ),
@@ -114,10 +133,6 @@ export const mahasiswaColumns = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => onEdit(m)}>
-                            <Pencil />
-                            Ubah
-                        </DropdownMenuItem>
                         <DropdownMenuItem
                             variant="destructive"
                             onSelect={() => onDelete(m)}

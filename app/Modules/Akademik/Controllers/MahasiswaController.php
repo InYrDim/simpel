@@ -31,7 +31,7 @@ class MahasiswaController extends Controller
     private const TANPA_DOSEN_PA = 'kosong';
 
     /** @var list<string> */
-    private const SORTABLE = ['nama', 'nim', 'angkatan'];
+    private const SORTABLE = ['nama', 'nim', 'angkatan', 'dosen_pa', 'status'];
 
     public function __construct(private SkripsiContract $skripsi) {}
 
@@ -54,7 +54,14 @@ class MahasiswaController extends Controller
         $query = Mahasiswa::query()
             ->with(['user:id,name,email', 'dosenPa:id,nama', 'prodiRef:id,nama'])
             ->select(['id', 'user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan', 'status', 'created_at'])
-            ->orderBy($sort, $direction)
+            ->when(
+                $sort === 'dosen_pa',
+                fn (Builder $q) => $q->orderBy(
+                    Dosen::query()->select('nama')->whereColumn('akademik_dosens.id', 'akademik_mahasiswas.dosen_pa_id'),
+                    $direction,
+                ),
+                fn (Builder $q) => $q->orderBy($sort, $direction),
+            )
             ->orderBy('id');
 
         if ($search !== '') {
@@ -121,6 +128,12 @@ class MahasiswaController extends Controller
                 'sort' => $sort,
                 'direction' => $direction,
                 'per_page' => $perPage,
+            ],
+            'ringkasan' => [
+                'tanpa_dosen_pa' => Mahasiswa::query()
+                    ->whereNull('dosen_pa_id')
+                    ->whereNotIn('status', [StatusMahasiswa::Lulus, StatusMahasiswa::Nonaktif])
+                    ->count(),
             ],
             'perPageOptions' => $this->perPageOptions(),
             'statusOptions' => StatusMahasiswa::options(),
