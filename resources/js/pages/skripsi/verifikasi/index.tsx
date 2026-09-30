@@ -23,7 +23,13 @@ import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
 import { revisi, store } from '@/routes/skripsi/verifikasi';
 
-type JudulItem = { id: number; urutan: number; judul: string; topik: string };
+type JudulItem = {
+    id: number;
+    urutan: number;
+    judul: string;
+    topik: string;
+    kategori_nama: string | null;
+};
 
 type PengajuanItem = {
     id: number;
@@ -174,7 +180,7 @@ function PengajuanCard({
                                 <Badge variant="outline">{j.urutan}</Badge>
                                 <span>{j.judul}</span>
                                 <span className="text-muted-foreground">
-                                    ({j.topik})
+                                    ({j.topik} · {j.kategori_nama ?? '-'})
                                 </span>
                             </div>
                         ))}

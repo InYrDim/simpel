@@ -19,12 +19,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $judul
  * @property string $deskripsi
  * @property string $topik
+ * @property int|null $kategori_id
  * @property int $urutan
  * @property int|null $dosen_pembimbing_1
  * @property int|null $dosen_pembimbing_2
  * @property int|null $dosen_penguji_1
  * @property int|null $dosen_penguji_2
  * @property-read PengajuanJudul $pengajuan
+ * @property-read Kategori|null $kategori
  */
 class JudulPengajuan extends Model
 {
@@ -38,6 +40,7 @@ class JudulPengajuan extends Model
         'judul',
         'deskripsi',
         'topik',
+        'kategori_id',
         'urutan',
         'dosen_pembimbing_1',
         'dosen_pembimbing_2',
@@ -51,6 +54,14 @@ class JudulPengajuan extends Model
     public function pengajuan(): BelongsTo
     {
         return $this->belongsTo(PengajuanJudul::class, 'pengajuan_judul_id');
+    }
+
+    /**
+     * @return BelongsTo<Kategori, $this>
+     */
+    public function kategori(): BelongsTo
+    {
+        return $this->belongsTo(Kategori::class, 'kategori_id');
     }
 
     /**

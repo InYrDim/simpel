@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Skripsi\Models\Kategori;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +48,12 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * ID kategori judul aktif untuk payload pengajuan (kategori_id wajib).
+ */
+function kategoriAktifId(): int
+{
+    return Kategori::factory()->create()->id;
 }

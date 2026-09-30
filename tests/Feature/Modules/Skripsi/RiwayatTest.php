@@ -46,9 +46,9 @@ function submitRiwayan(User $user): PengajuanJudul
 {
     test()->actingAs($user)->post(route('skripsi.pengajuan.store'), [
         'juduls' => [
-            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi'],
-            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning'],
-            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing'],
+            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
         ],
         'berkas' => UploadedFile::fake()->create('surat-pengajuan.pdf', 500, 'application/pdf'),
     ]);

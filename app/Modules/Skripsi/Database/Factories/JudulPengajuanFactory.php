@@ -3,6 +3,7 @@
 namespace App\Modules\Skripsi\Database\Factories;
 
 use App\Modules\Skripsi\Models\JudulPengajuan;
+use App\Modules\Skripsi\Models\Kategori;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -30,6 +31,7 @@ class JudulPengajuanFactory extends Factory
                 'Mobile Computing',
                 'Rekayasa Perangkat Lunak',
             ]),
+            'kategori_id' => Kategori::factory(),
             'urutan' => fake()->numberBetween(1, 3),
         ];
     }

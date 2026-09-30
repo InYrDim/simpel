@@ -47,9 +47,9 @@ function ajukanRevisi(User $user): PengajuanJudul
 {
     test()->actingAs($user)->post(route('skripsi.pengajuan.store'), [
         'juduls' => [
-            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi'],
-            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning'],
-            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing'],
+            ['judul' => 'Judul Satu', 'deskripsi' => 'Deskripsi satu.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Dua', 'deskripsi' => 'Deskripsi dua.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Tiga', 'deskripsi' => 'Deskripsi tiga.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
         ],
         'berkas' => UploadedFile::fake()->create('surat-pengajuan.pdf', 500, 'application/pdf'),
     ]);
@@ -70,9 +70,9 @@ function resubmitRevisi(User $mahasiswa, PengajuanJudul $pengajuan, ?string $nam
 {
     test()->actingAs($mahasiswa)->post(route('skripsi.pengajuan.resubmit', $pengajuan), [
         'juduls' => [
-            ['judul' => 'Judul Revisi Satu', 'deskripsi' => 'Deskripsi revisi satu.', 'topik' => 'Sistem Informasi'],
-            ['judul' => 'Judul Revisi Dua', 'deskripsi' => 'Deskripsi revisi dua.', 'topik' => 'Machine Learning'],
-            ['judul' => 'Judul Revisi Tiga', 'deskripsi' => 'Deskripsi revisi tiga.', 'topik' => 'Mobile Computing'],
+            ['judul' => 'Judul Revisi Satu', 'deskripsi' => 'Deskripsi revisi satu.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Revisi Dua', 'deskripsi' => 'Deskripsi revisi dua.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Revisi Tiga', 'deskripsi' => 'Deskripsi revisi tiga.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
         ],
         'berkas' => UploadedFile::fake()->create($namaBerkas, 500, 'application/pdf'),
     ]);
@@ -237,9 +237,9 @@ function resubmitPayload(): array
 {
     return [
         'juduls' => [
-            ['judul' => 'Judul Revisi Satu', 'deskripsi' => 'Deskripsi.', 'topik' => 'Sistem Informasi'],
-            ['judul' => 'Judul Revisi Dua', 'deskripsi' => 'Deskripsi.', 'topik' => 'Machine Learning'],
-            ['judul' => 'Judul Revisi Tiga', 'deskripsi' => 'Deskripsi.', 'topik' => 'Mobile Computing'],
+            ['judul' => 'Judul Revisi Satu', 'deskripsi' => 'Deskripsi.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Revisi Dua', 'deskripsi' => 'Deskripsi.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+            ['judul' => 'Judul Revisi Tiga', 'deskripsi' => 'Deskripsi.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
         ],
         'berkas' => UploadedFile::fake()->create('revisi.pdf', 500, 'application/pdf'),
     ];
@@ -257,9 +257,9 @@ test('pengajuan berstatus direvisi tetap menghalangi pengajuan baru', function (
     $this->actingAs($mahasiswa)
         ->post(route('skripsi.pengajuan.store'), [
             'juduls' => [
-                ['judul' => 'Judul Baru Satu', 'deskripsi' => 'Deskripsi.', 'topik' => 'Sistem Informasi'],
-                ['judul' => 'Judul Baru Dua', 'deskripsi' => 'Deskripsi.', 'topik' => 'Machine Learning'],
-                ['judul' => 'Judul Baru Tiga', 'deskripsi' => 'Deskripsi.', 'topik' => 'Mobile Computing'],
+                ['judul' => 'Judul Baru Satu', 'deskripsi' => 'Deskripsi.', 'topik' => 'Sistem Informasi', 'kategori_id' => kategoriAktifId()],
+                ['judul' => 'Judul Baru Dua', 'deskripsi' => 'Deskripsi.', 'topik' => 'Machine Learning', 'kategori_id' => kategoriAktifId()],
+                ['judul' => 'Judul Baru Tiga', 'deskripsi' => 'Deskripsi.', 'topik' => 'Mobile Computing', 'kategori_id' => kategoriAktifId()],
             ],
             'berkas' => UploadedFile::fake()->create('surat-baru.pdf', 500, 'application/pdf'),
         ])

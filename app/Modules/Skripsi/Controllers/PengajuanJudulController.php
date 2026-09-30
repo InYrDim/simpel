@@ -5,13 +5,16 @@ namespace App\Modules\Skripsi\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Skripsi\Enums\StatusPengajuan;
+use App\Modules\Skripsi\Models\Kategori;
 use App\Modules\Skripsi\Models\PengajuanJudul;
 use App\Modules\Skripsi\Models\PengajuanRiwayat;
 use App\Modules\Skripsi\Services\ResubmitPengajuan;
 use App\Modules\Skripsi\Services\SubmitPengajuan;
+use App\Modules\Skripsi\Services\Template\PembuatTemplatePengajuan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -33,7 +36,7 @@ class PengajuanJudulController extends Controller
 
         $pengajuans = PengajuanJudul::query()
             ->where('user_id', $user->id)
-            ->with(['juduls', 'riwayat.aktor'])
+            ->with(['juduls.kategori', 'riwayat.aktor'])
             ->orderByDesc('submitted_at')
             ->get();
 
@@ -46,9 +49,10 @@ class PengajuanJudulController extends Controller
             'pengajuan' => $terkini?->only([
                 'id', 'status', 'catatan_admin', 'catatan_validator', 'berkas_original_name', 'submitted_at', 'verified_at', 'decided_at',
             ]),
-            'judulTerkini' => $terkini?->juduls->map(fn ($j): array => $j->only(['id', 'urutan', 'judul', 'deskripsi', 'topik']))->all(),
+            'judulTerkini' => $terkini?->juduls->map(fn ($j): array => [...$j->only(['id', 'urutan', 'judul', 'deskripsi', 'topik', 'kategori_id']), 'kategori_nama' => $j->kategori?->nama])->all(),
             // Jejak audit pengajuan terkini (PR 1 sesi 3): kronologi aksi
             // submit → verifikasi → putusan beserta aktor dan catatannya.
+            'kategoriOptions' => Kategori::query()->where('aktif', true)->orderBy('nama')->get(['id', 'nama']),
             'riwayatStatus' => $terkini?->riwayat->map(fn (PengajuanRiwayat $r): array => [
                 'aksi' => $r->aksi,
                 'dari_status' => $r->dari_status,
@@ -122,6 +126,32 @@ class PengajuanJudulController extends Controller
     }
 
     /**
+     * Template pengajuan yang dibangun dari isian draft mahasiswa. Saat ini
+     * implementasi pembuatnya masih statis; kelak mengisi nama, NIM, judul,
+     * dan dosen otomatis (lihat PembuatTemplatePengajuan).
+     */
+    public function templateDariDraft(
+        Request $request,
+        PembuatTemplatePengajuan $pembuat,
+    ): StreamedResponse {
+        /** @var User $user */
+        $user = auth()->user();
+
+        /** @var array{juduls?: list<array{judul?: string, deskripsi?: string, topik?: string, kategori_id?: int|string|null}>} $validated */
+        $validated = $request->validate([
+            'juduls' => ['nullable', 'array', 'max:3'],
+            'juduls.*.judul' => ['nullable', 'string', 'max:255'],
+            'juduls.*.deskripsi' => ['nullable', 'string'],
+            'juduls.*.topik' => ['nullable', 'string', 'max:255'],
+            'juduls.*.kategori_id' => ['nullable'],
+        ]);
+
+        $path = $pembuat->buat($user, $validated['juduls'] ?? []);
+
+        return Storage::disk('local')->download($path, 'template-pengajuan.docx');
+    }
+
+    /**
      * Aturan berkas & judul — SAMA untuk submit dan resubmit, jadi
      * dikonsolidasikan di sini agar tidak terduplikasi (PRD ketahanan-teknis
      * §3.3). `mimetypes` menolak berkas ber-ekstensi `.pdf` yang isinya bukan
@@ -142,6 +172,7 @@ class PengajuanJudulController extends Controller
             'juduls.*.judul' => ['required', 'string', 'max:255'],
             'juduls.*.deskripsi' => ['required', 'string'],
             'juduls.*.topik' => ['required', 'string', 'max:255'],
+            'juduls.*.kategori_id' => ['required', 'integer', Rule::exists('skripsi_kategoris', 'id')->where('aktif', true)],
             'berkas' => [
                 'required',
                 'file',

@@ -22,6 +22,7 @@ type JudulItem = {
     judul: string;
     deskripsi: string;
     topik: string;
+    kategori_nama: string | null;
 };
 
 type PengajuanItem = {
@@ -162,7 +163,8 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                                     {j.deskripsi}
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-xs">
-                                    Topik: {j.topik}
+                                    Topik: {j.topik} · Kategori:{' '}
+                                    {j.kategori_nama ?? '-'}
                                 </p>
                             </div>
                         ))}
