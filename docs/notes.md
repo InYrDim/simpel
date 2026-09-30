@@ -318,11 +318,18 @@ Kontrak publik modul tetap hidup di `CONTRACT.md` masing-masing modul (aturan `.
 
 - **Dibuat:** 2026-10-01
 - **Status:** aktif
-- **Isi:** Critique kedua (snapshot `.impeccable/critique/2026-09-30T16-23-11Z__...mahasiswa-index-tsx.md`, 22 menjadi 27/40). Dikerjakan dua P1: (1) nama baris membuka Ubah, tombol "Ubah" tampak, menu hanya berisi Hapus yang dinonaktifkan dengan penjelasan bila `punya_pengajuan`, dialog hapus terblokir menyembunyikan kolom NIM; (2) toolbar hanya pencarian, status, dan popover "Filter" (prodi, angkatan, dosen PA) dengan chip filter aktif. Tambahan karakter akademik: prop `ringkasan.tanpa_dosen_pa` (aktif/cuti tanpa PA) menjadi tautan yang menerapkan filter "Belum ada dosen PA", dan "Belum ditentukan" ditekankan untuk status yang mewajibkan PA. `SearchableSelect` mendapat prop `ariaLabel`. Belum: status visual berbasis pengecualian, region live jumlah hasil, target sentuh Select/Input 44px, dan verifikasi browser popover bersarang (Select dan SearchableSelect di dalam Popover).
+- **Isi:** Critique kedua (snapshot `.impeccable/critique/2026-09-30T16-23-11Z__...mahasiswa-index-tsx.md`, 22 menjadi 27/40). Dikerjakan dua P1: (1) nama baris membuka Ubah, tombol "Ubah" tampak, menu hanya berisi Hapus yang dinonaktifkan dengan penjelasan bila `punya_pengajuan`, dialog hapus terblokir menyembunyikan kolom NIM; (2) toolbar hanya pencarian, status, dan popover "Filter" (prodi, angkatan, dosen PA) dengan chip filter aktif. Tambahan karakter akademik: prop `ringkasan.tanpa_dosen_pa` (aktif/cuti tanpa PA) menjadi tautan yang menerapkan filter "Belum ada dosen PA", dan "Belum ditentukan" ditekankan untuk status yang mewajibkan PA. `SearchableSelect` mendapat prop `ariaLabel`. Belum: status visual berbasis pengecualian, region live jumlah hasil, target sentuh Select/Input 44px, dan (popover bersarang dan dialog sudah dikonfirmasi user aman di browser pada 2026-10-01).
 
 ### N-044 Critique ketiga (27/40): satu pemicu edit, blokir hapus terjangkau, status di popover
 
 - **Dibuat:** 2026-10-01
 - **Status:** aktif
 - **Menggantikan:** sebagian N-043 (bagian aksi baris dan toolbar)
-- **Isi:** Nama mahasiswa adalah satu-satunya pemicu edit; menu baris hanya berisi Hapus dan selalu aktif. Untuk `punya_pengajuan`, dialog hapus menampilkan nama+NIM, penjelasan, dan tombol "Ubah status" (membuka dialog ubah), bukan kolom NIM. Status pindah ke popover Filter dan di-chip bersama filter lain. Sort Dosen PA (subquery nama dosen) dan Status ditambahkan (`SORTABLE`). Belum: aksi massal tetapkan PA, toast sukses/gagal dan `onError` daftar, bobot visual status, target sentuh Select/Input 44px, `aria-describedby` galat, verifikasi browser popover bersarang. Snapshot: `.impeccable/critique/2026-09-30T16-30-33Z__...`.
+- **Isi:** Nama mahasiswa adalah satu-satunya pemicu edit; menu baris hanya berisi Hapus dan selalu aktif. Untuk `punya_pengajuan`, dialog hapus menampilkan nama+NIM, penjelasan, dan tombol "Ubah status" (membuka dialog ubah), bukan kolom NIM. Status pindah ke popover Filter dan di-chip bersama filter lain. Sort Dosen PA (subquery nama dosen) dan Status ditambahkan (`SORTABLE`). Belum: aksi massal tetapkan PA, toast sukses/gagal dan `onError` daftar, bobot visual status, target sentuh Select/Input 44px, `aria-describedby` galat. Popover bersarang, combobox, dan dialog sudah dikonfirmasi user aman di browser (2026-10-01). Snapshot: `.impeccable/critique/2026-09-30T16-30-33Z__...`.
+
+### N-045 Verifikasi browser pekerjaan 2026-09-30 sampai 2026-10-01
+
+- **Dibuat:** 2026-10-01
+- **Status:** selesai
+- **Selesai pada:** 2026-10-01
+- **Isi:** User mengonfirmasi aman di browser: halaman Mahasiswa (popover, combobox, dialog), Prodi, Dosen, panel auth `bg-primary`, dan breadcrumb Akademik. Mode gelap dan mobile tidak dirinci user; dianggap tercakup oleh konfirmasi "sudah aman".
