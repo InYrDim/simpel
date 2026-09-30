@@ -4,6 +4,7 @@ namespace App\Modules\Akademik\Models;
 
 use App\Models\User;
 use App\Modules\Akademik\Database\Factories\MahasiswaFactory;
+use App\Modules\Akademik\Enums\StatusMahasiswa;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $dosen_pa_id
  * @property int|null $prodi_id
  * @property int|null $angkatan
+ * @property StatusMahasiswa $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
@@ -36,7 +38,17 @@ class Mahasiswa extends Model
 
     protected $table = 'akademik_mahasiswas';
 
-    protected $fillable = ['user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan'];
+    protected $fillable = ['user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan', 'status'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => StatusMahasiswa::class,
+        ];
+    }
 
     /**
      * Factory modul tidak di bawah namespace `Database\Factories`, jadi
