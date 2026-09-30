@@ -222,10 +222,8 @@
      * Item aktif: pill solid biru brand yang diperdalam (L 0.42) agar teks
      * putih lolos kontras AA, tanpa gradient/shadow/glow.
      */
-    [data-slot='sidebar']
-        [data-sidebar='menu-button'][data-active='true'],
-    [data-slot='sidebar']
-        [data-sidebar='menu-sub-button'][data-active='true'] {
+    [data-slot='sidebar'] [data-sidebar='menu-button'][data-active='true'],
+    [data-slot='sidebar'] [data-sidebar='menu-sub-button'][data-active='true'] {
         background-color: oklch(0.42 0.13 258);
         color: white;
         font-weight: 500;

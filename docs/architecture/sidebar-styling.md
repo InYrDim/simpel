@@ -4,18 +4,18 @@ Panduan untuk siapa pun (manusia maupun agent) yang ingin mengubah tampilan side
 
 ## Peta File
 
-| File | Peran | Boleh diubah? |
-|---|---|---|
-| `resources/css/app.css` | Definisi token `--sidebar-*` (`:root` dan `.dark`) + treatment state di `@layer components` | Ya, ini titik masuk utama restyle |
-| `resources/js/components/app-sidebar.tsx` | Komposisi sidebar: pilihan `variant`, urutan header/content/footer, divider | Ya |
-| `resources/js/components/nav-main.tsx` | Item nav tingkat atas + submenu (collapsible, rekursif) | Ya, tapi lihat restriction hook |
-| `resources/js/components/nav-footer.tsx` | Tautan eksternal di footer (Repository, Documentation) | Ya |
-| `resources/js/components/nav-user.tsx` | Kartu user + dropdown menu di footer | Ya |
-| `resources/js/components/app-logo.tsx` | Logo + nama aplikasi di header sidebar | Ya |
-| `resources/js/components/user-info.tsx` | Avatar + nama user (dipakai sidebar **dan** dropdown menu) | Hati-hati, lihat relasi |
-| `resources/js/components/ui/sidebar.tsx` | Primitives shadcn/ui (Sidebar, SidebarMenuButton, dsb.) | Hindari; lihat limitasi |
-| `resources/js/components/app-sidebar-header.tsx` | Topbar (bukan bagian sidebar, tapi bersebelahan visual) | Di luar lingkup dokumen ini |
-| `resources/js/components/app-header.tsx` | Header varian `header` + drawer nav mobile | Terpengaruh via token, jangan diubah untuk restyle sidebar |
+| File                                             | Peran                                                                                       | Boleh diubah?                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `resources/css/app.css`                          | Definisi token `--sidebar-*` (`:root` dan `.dark`) + treatment state di `@layer components` | Ya, ini titik masuk utama restyle                          |
+| `resources/js/components/app-sidebar.tsx`        | Komposisi sidebar: pilihan `variant`, urutan header/content/footer, divider                 | Ya                                                         |
+| `resources/js/components/nav-main.tsx`           | Item nav tingkat atas + submenu (collapsible, rekursif)                                     | Ya, tapi lihat restriction hook                            |
+| `resources/js/components/nav-footer.tsx`         | Tautan eksternal di footer (Repository, Documentation)                                      | Ya                                                         |
+| `resources/js/components/nav-user.tsx`           | Kartu user + dropdown menu di footer                                                        | Ya                                                         |
+| `resources/js/components/app-logo.tsx`           | Logo + nama aplikasi di header sidebar                                                      | Ya                                                         |
+| `resources/js/components/user-info.tsx`          | Avatar + nama user (dipakai sidebar **dan** dropdown menu)                                  | Hati-hati, lihat relasi                                    |
+| `resources/js/components/ui/sidebar.tsx`         | Primitives shadcn/ui (Sidebar, SidebarMenuButton, dsb.)                                     | Hindari; lihat limitasi                                    |
+| `resources/js/components/app-sidebar-header.tsx` | Topbar (bukan bagian sidebar, tapi bersebelahan visual)                                     | Di luar lingkup dokumen ini                                |
+| `resources/js/components/app-header.tsx`         | Header varian `header` + drawer nav mobile                                                  | Terpengaruh via token, jangan diubah untuk restyle sidebar |
 
 ## Arsitektur Styling (Cara Kerja Saat Ini)
 
@@ -32,15 +32,15 @@ Pola restyle yang disarankan: **ubah blok komponen ter-scope dulu** (itu sumber 
 
 Didefinisikan di `:root` dan `.dark` dalam `app.css` (format `oklch()`):
 
-| Token | Peran | Dipakai oleh |
-|---|---|---|
-| `--sidebar` | Latar panel (di-override navy di dalam `[data-slot='sidebar']`) | `bg-sidebar` di `ui/sidebar.tsx` |
-| `--sidebar-foreground` | Teks normal (di-override putih di dalam panel) | `text-sidebar-foreground`, ikon nav |
-| `--sidebar-primary` / `--sidebar-primary-foreground` | Tidak dipakai komponen sidebar saat ini | kotak logo memakai `bg-primary` (token umum) di `app-logo.tsx` |
-| `--sidebar-accent` | Latar hover & state terbuka (di-override; di panel dipakai via override) | `ui/sidebar.tsx` (menu action, trigger dropdown) |
-| `--sidebar-accent-foreground` | Teks saat hover | idem |
-| `--sidebar-border` | Border panel floating, garis submenu, divider, **card dashboard & topbar** | lihat relasi; nilai global dijaga netral |
-| `--sidebar-ring` | Focus ring | `ui/sidebar.tsx` |
+| Token                                                | Peran                                                                      | Dipakai oleh                                                   |
+| ---------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `--sidebar`                                          | Latar panel (di-override navy di dalam `[data-slot='sidebar']`)            | `bg-sidebar` di `ui/sidebar.tsx`                               |
+| `--sidebar-foreground`                               | Teks normal (di-override putih di dalam panel)                             | `text-sidebar-foreground`, ikon nav                            |
+| `--sidebar-primary` / `--sidebar-primary-foreground` | Tidak dipakai komponen sidebar saat ini                                    | kotak logo memakai `bg-primary` (token umum) di `app-logo.tsx` |
+| `--sidebar-accent`                                   | Latar hover & state terbuka (di-override; di panel dipakai via override)   | `ui/sidebar.tsx` (menu action, trigger dropdown)               |
+| `--sidebar-accent-foreground`                        | Teks saat hover                                                            | idem                                                           |
+| `--sidebar-border`                                   | Border panel floating, garis submenu, divider, **card dashboard & topbar** | lihat relasi; nilai global dijaga netral                       |
+| `--sidebar-ring`                                     | Focus ring                                                                 | `ui/sidebar.tsx`                                               |
 
 Perilaku aktif/hover saat ini (didefinisikan di blok komponen ter-scope, jangan diubah lewat TSX):
 
@@ -75,16 +75,16 @@ Perilaku aktif/hover saat ini (didefinisikan di blok komponen ter-scope, jangan 
 
 Mengubah token `--sidebar-*` tidak hanya mengubah sidebar. Konsumen lain dari token/utility yang sama:
 
-| Bagian | Kepentingan | Efek jika token berubah |
-|---|---|---|
-| `pages/dashboard.tsx` + `pages/manajemen/index.tsx` | Card memakai `border-sidebar-border/70 dark:border-sidebar-border` (bawaan starter kit) | Border card ikut bergeser mengikuti `--sidebar-border`; jalur aman: nilai `--sidebar-border` dibiarkan sama dengan `--border` |
-| `app-sidebar-header.tsx` (topbar) | Border bawah memakai `border-sidebar-border/50` | Border topbar ikut bergeser |
-| `app-header.tsx` | Drawer mobile varian `header`: `bg-sidebar` + border `sidebar-border` | Panel drawer ikut bergeser warna |
-| `ui/sidebar.tsx` | Primitives: semua warna panel/hover/border di dalam drawer ini juga dari token | Ikon toggle, trigger, dsb. ikut |
-| `nav-user.tsx` | `text-sidebar-accent-foreground` + `data-[state=open]:bg-sidebar-accent` pada trigger dropdown user | Dropdown trigger ikut bergeser |
-| `user-info.tsx` | Avatar fallback `bg-muted text-foreground` (netral, token umum) | Tidak terpengaruh token sidebar |
-| `app-logo.tsx` | Kotak logo memakai `bg-primary`/`text-primary-foreground` (token umum) | Tidak terpengaruh token sidebar; berubah kalau `--primary` berubah |
-| Blok `@layer components` di `app.css` | Selektor ter-scope `[data-slot='sidebar']` | Tidak memengaruhi area di luar sidebar |
+| Bagian                                              | Kepentingan                                                                                         | Efek jika token berubah                                                                                                       |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `pages/dashboard.tsx` + `pages/manajemen/index.tsx` | Card memakai `border-sidebar-border/70 dark:border-sidebar-border` (bawaan starter kit)             | Border card ikut bergeser mengikuti `--sidebar-border`; jalur aman: nilai `--sidebar-border` dibiarkan sama dengan `--border` |
+| `app-sidebar-header.tsx` (topbar)                   | Border bawah memakai `border-sidebar-border/50`                                                     | Border topbar ikut bergeser                                                                                                   |
+| `app-header.tsx`                                    | Drawer mobile varian `header`: `bg-sidebar` + border `sidebar-border`                               | Panel drawer ikut bergeser warna                                                                                              |
+| `ui/sidebar.tsx`                                    | Primitives: semua warna panel/hover/border di dalam drawer ini juga dari token                      | Ikon toggle, trigger, dsb. ikut                                                                                               |
+| `nav-user.tsx`                                      | `text-sidebar-accent-foreground` + `data-[state=open]:bg-sidebar-accent` pada trigger dropdown user | Dropdown trigger ikut bergeser                                                                                                |
+| `user-info.tsx`                                     | Avatar fallback `bg-muted text-foreground` (netral, token umum)                                     | Tidak terpengaruh token sidebar                                                                                               |
+| `app-logo.tsx`                                      | Kotak logo memakai `bg-primary`/`text-primary-foreground` (token umum)                              | Tidak terpengaruh token sidebar; berubah kalau `--primary` berubah                                                            |
+| Blok `@layer components` di `app.css`               | Selektor ter-scope `[data-slot='sidebar']`                                                          | Tidak memengaruhi area di luar sidebar                                                                                        |
 
 ## Checklist Sebelum Merge
 
