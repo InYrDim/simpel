@@ -126,7 +126,7 @@ function CreateDosenDialog() {
                                 disabled={processing}
                             />
                             {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nama}
                                 </p>
                             )}
@@ -140,7 +140,7 @@ function CreateDosenDialog() {
                                 disabled={processing}
                             />
                             {errors.nip && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nip}
                                 </p>
                             )}
@@ -156,7 +156,7 @@ function CreateDosenDialog() {
                                 disabled={processing}
                             />
                             {errors.bidang && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.bidang}
                                 </p>
                             )}

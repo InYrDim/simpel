@@ -11,7 +11,8 @@
 - `MahasiswaDTO`, `DosenDTO`, `DosenDTOList` — bentuk data yang melintasi batas modul
 - `DosenDTO->userId` — akun login dosen (biasanya role `validator`); modul lain memakai ini untuk resolusi penerima notifikasi tanpa menyentuh Akademik
 - `MahasiswaDTO->prodi` tetap string (nama prodi, di-resolve dari relasi `prodi_id`) agar konsumen Skripsi tidak ikut berubah saat kolom beralih ke FK
-- `MahasiswaDTO->dosenPaId` nullable: mahasiswa hasil registrasi mandiri belum punya dosen PA sampai admin mengisinya
+- `MahasiswaDTO->dosenPaId` nullable: mahasiswa hasil registrasi mandiri belum punya dosen PA sampai admin mengisinya. Secara bisnis dosen PA wajib; validasi admin sementara `nullable` sampai alur pengisian PA ada
+- `akademik_mahasiswas.status` (enum internal `Enums\StatusMahasiswa`: aktif, cuti, lulus, nonaktif; default `aktif`) **tidak** masuk `MahasiswaDTO`, jadi kontrak publik tidak berubah
 - Registrasi mandiri Fortify dimiliki modul ini: `AkademikServiceProvider` memasang `Fortify::createUsersUsing(Services\RegistrasiMahasiswa)` dan `Fortify::registerView` (props `prodiOptions`). Pendaftar mendapat peran `mahasiswa` + profil akademik (NIM, prodi, tanpa PA). Core tidak boleh bergantung pada modul, jadi logika ini tidak ada di `app/Actions/Fortify`.
 - Gate `akademik.mahasiswa-kita` (`?User`, `string $nim`, `int $prodiId`) — dipanggil registrasi sebelum akun dibuat. **Masih stub (selalu lolos)**; logika pengecekan NIM ke sumber data kampus menyusul di `AkademikServiceProvider::defineGates()`
 
@@ -27,7 +28,10 @@
 
 ## Events consumed
 
-- Tidak ada## Explicitly NOT exposed
+- Tidak ada
+
+## Explicitly NOT exposed
+
 - Model Eloquent `Dosen` dan `Mahasiswa` — internal modul. Modul lain wajib lewat `AkademikContract`.
 - Tabel `akademik_*` — jangan di-query langsung dari modul lain (boundary rule #2).
 - Penugasan role validator pada akun dosen — dikelola di luar modul (core seeder/admin), Akademik hanya menyimpan tautan `user_id`.
@@ -38,3 +42,6 @@
 - Saat modul Skripsi dibangun, ia mengonsumsi `AkademikContract` ini untuk daftar dosen (penugasan validator) dan data mahasiswa — bukan mengimpor model di sini.
 - CRUD admin dosen & mahasiswa dipagari `role:admin` di `routes.php`; Skripsi nanti menambah guard role-nya sendiri.
 - `mahasiswaByUserIds()` adalah jalur BATCH (satu query `whereIn`) untuk konsumen yang memetakan identitas per baris — dipakai halaman Riwayat Pengajuan agar tidak N+1 (PRD ketahanan-teknis §3.2, keputusan #3). Daftar `user_id` kosong tidak menembak query sama sekali.
+- Daftar admin mahasiswa (`MahasiswaController::index`) menerima `search`, `prodi_id`, `angkatan`, `dosen_pa_id` (angka atau `kosong`), `status`, `sort` (`nama|nim|angkatan`), `direction`, `per_page` (10/25/50). Nilai tak sah jatuh ke default, bukan galat validasi.
+- Hapus mahasiswa menuntut `konfirmasi_nim` yang sama dengan NIM-nya (dicek di server). Hapus permanen dan tidak menyentuh akun `users`. Modul lain (mis. `skripsi_pengajuan.mahasiswa_id`) merujuk mahasiswa tanpa FK, jadi barisnya **tidak** ikut terhapus dan bisa menjadi yatim; belum ada mekanisme pencegahan.
+- `update()` tidak memvalidasi `user_id`: tautan akun ditetapkan saat pembuatan profil dan tidak bisa diubah.

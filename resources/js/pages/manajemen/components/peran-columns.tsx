@@ -166,6 +166,7 @@ function ActionCell({
                     variant="ghost"
                     size="icon"
                     title="Edit"
+                    aria-label="Edit"
                     onClick={() => setEditOpen(true)}
                 >
                     <Pencil className="size-4" />
@@ -174,6 +175,9 @@ function ActionCell({
                     variant="ghost"
                     size="icon"
                     title={cannotDelete ? 'Peran tidak dapat dihapus' : 'Hapus'}
+                    aria-label={
+                        cannotDelete ? 'Peran tidak dapat dihapus' : 'Hapus'
+                    }
                     onClick={() => setDeleteOpen(true)}
                     disabled={cannotDelete}
                 >
@@ -208,7 +212,7 @@ function ActionCell({
                                 </p>
                             )}
                             {errors.name && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.name}
                                 </p>
                             )}
@@ -220,7 +224,7 @@ function ActionCell({
                             disabled={processing}
                         />
                         {errors.permissions?.[0] && (
-                            <p className="text-sm text-red-600 dark:text-red-400">
+                            <p className="text-destructive text-sm">
                                 {errors.permissions[0]}
                             </p>
                         )}

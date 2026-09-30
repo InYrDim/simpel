@@ -3,6 +3,7 @@
 namespace App\Modules\Akademik\Database\Factories;
 
 use App\Models\User;
+use App\Modules\Akademik\Enums\StatusMahasiswa;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -32,6 +33,7 @@ class MahasiswaFactory extends Factory
             'dosen_pa_id' => Dosen::factory(),
             'prodi_id' => null,
             'angkatan' => fake()->numberBetween(2020, 2025),
+            'status' => StatusMahasiswa::Aktif,
         ];
     }
 }

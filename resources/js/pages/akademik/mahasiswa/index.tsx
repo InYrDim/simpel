@@ -1,16 +1,13 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { Search } from 'lucide-react';
-import { useState } from 'react';
-import { DataTable } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
+import { Head, router } from '@inertiajs/react';
+import { Plus, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { DataTable, type SortState } from '@/components/data-table';
+import { SearchableSelect } from '@/components/searchable-select';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+    TablePagination,
+    type PaginationMeta,
+} from '@/components/table-pagination';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -22,295 +19,435 @@ import {
 } from '@/components/ui/select';
 import {
     mahasiswaColumns,
+    type DosenOption,
     type MahasiswaRow,
+    type ProdiOption,
+    type StatusOption,
 } from '@/pages/akademik/components/mahasiswa-columns';
+import { MahasiswaDeleteDialog } from '@/pages/akademik/components/mahasiswa-delete-dialog';
+import {
+    MahasiswaFormDialog,
+    type UserOption,
+} from '@/pages/akademik/components/mahasiswa-form-dialog';
 import akademik from '@/routes/akademik';
-import { store } from '@/routes/akademik/mahasiswa';
 
-type UserOption = {
-    id: number;
-    name: string;
-    email: string;
-};
+const SEMUA = 'semua';
+const TANPA_DOSEN_PA = 'kosong';
+const SEARCH_DEBOUNCE_MS = 300;
+const DEFAULT_SORT: SortState = { key: 'nama', direction: 'asc' };
+const DEFAULT_PER_PAGE = 10;
 
-type DosenOption = {
-    id: number;
-    nama: string;
-};
-
-type ProdiOption = {
-    id: number;
-    nama: string;
-};
-
-type PaginatedMahasiswas = {
-    data: MahasiswaRow[];
-    total: number;
+type Filters = {
+    search: string;
+    prodi_id: number | null;
+    angkatan: number | null;
+    dosen_pa_id: number | typeof TANPA_DOSEN_PA | null;
+    status: string | null;
+    sort: string;
+    direction: 'asc' | 'desc';
     per_page: number;
-    current_page: number;
-    last_page: number;
+};
+
+type PaginatedMahasiswas = PaginationMeta & {
+    data: MahasiswaRow[];
 };
 
 type MahasiswaIndexPageProps = {
     mahasiswas: PaginatedMahasiswas;
-    filters: { search: string };
+    filters: Filters;
+    perPageOptions: number[];
+    statusOptions: StatusOption[];
+    angkatanOptions: number[];
     userOptions: UserOption[];
     dosenOptions: DosenOption[];
     prodiOptions: ProdiOption[];
 };
 
+type DialogState =
+    | { type: 'none' }
+    | { type: 'create' }
+    | { type: 'edit'; mahasiswa: MahasiswaRow }
+    | { type: 'delete'; mahasiswa: MahasiswaRow };
+
+type QueryOverrides = Partial<Filters> & { page?: number };
+
+/** Buang nilai kosong dan default supaya URL tetap pendek. */
+function toQuery(filters: Filters, overrides: QueryOverrides) {
+    const merged = { ...filters, ...overrides };
+    const query: Record<string, string | number> = {};
+
+    if (merged.search) {
+        query.search = merged.search;
+    }
+    if (merged.prodi_id !== null) {
+        query.prodi_id = merged.prodi_id;
+    }
+    if (merged.angkatan !== null) {
+        query.angkatan = merged.angkatan;
+    }
+    if (merged.dosen_pa_id !== null) {
+        query.dosen_pa_id = merged.dosen_pa_id;
+    }
+    if (merged.status) {
+        query.status = merged.status;
+    }
+    if (
+        merged.sort !== DEFAULT_SORT.key ||
+        merged.direction !== DEFAULT_SORT.direction
+    ) {
+        query.sort = merged.sort;
+        query.direction = merged.direction;
+    }
+    if (merged.per_page !== DEFAULT_PER_PAGE) {
+        query.per_page = merged.per_page;
+    }
+    if (overrides.page && overrides.page > 1) {
+        query.page = overrides.page;
+    }
+
+    return query;
+}
+
 export default function MahasiswaIndex({
     mahasiswas,
     filters,
+    perPageOptions,
+    statusOptions,
+    angkatanOptions,
     userOptions,
     dosenOptions,
     prodiOptions,
 }: MahasiswaIndexPageProps) {
+    const [dialog, setDialog] = useState<DialogState>({ type: 'none' });
+    const [search, setSearch] = useState(filters.search);
+    const [loading, setLoading] = useState(false);
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+        undefined,
+    );
+
+    useEffect(() => () => clearTimeout(searchTimer.current), []);
+
+    const visit = (overrides: QueryOverrides) => {
+        router.get(
+            akademik.mahasiswa.index.url(),
+            toQuery(filters, overrides),
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setLoading(true),
+                onFinish: () => setLoading(false),
+            },
+        );
+    };
+
+    const onSearchChange = (value: string) => {
+        setSearch(value);
+        clearTimeout(searchTimer.current);
+        searchTimer.current = setTimeout(
+            () => visit({ search: value.trim() }),
+            SEARCH_DEBOUNCE_MS,
+        );
+    };
+
+    const onSort = (key: string) => {
+        const direction =
+            filters.sort === key && filters.direction === 'asc'
+                ? 'desc'
+                : 'asc';
+
+        visit({ sort: key, direction });
+    };
+
+    const hasActiveFilters =
+        filters.search !== '' ||
+        filters.prodi_id !== null ||
+        filters.angkatan !== null ||
+        filters.dosen_pa_id !== null ||
+        filters.status !== null;
+
+    const resetFilters = () => {
+        clearTimeout(searchTimer.current);
+        setSearch('');
+        visit({
+            search: '',
+            prodi_id: null,
+            angkatan: null,
+            dosen_pa_id: null,
+            status: null,
+        });
+    };
+
+    const columns = mahasiswaColumns({
+        statusOptions,
+        onEdit: (mahasiswa) => setDialog({ type: 'edit', mahasiswa }),
+        onDelete: (mahasiswa) => setDialog({ type: 'delete', mahasiswa }),
+    });
+
+    const closeDialog = () => setDialog({ type: 'none' });
+
+    const dosenFilterOptions = [
+        { value: TANPA_DOSEN_PA, label: 'Belum ada dosen PA' },
+        ...dosenOptions.map((d) => ({
+            value: String(d.id),
+            label: d.nama,
+        })),
+    ];
+
     return (
         <>
             <Head title="Akademik - Mahasiswa" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Mahasiswa</h1>
-                    <CreateMahasiswaDialog
-                        userOptions={userOptions}
-                        dosenOptions={dosenOptions}
-                        prodiOptions={prodiOptions}
-                    />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h1 className="text-2xl font-bold">Mahasiswa</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Profil akademik mahasiswa: prodi, angkatan, dosen
+                            PA, dan status.
+                        </p>
+                    </div>
+                    <Button onClick={() => setDialog({ type: 'create' })}>
+                        <Plus />
+                        Tambah mahasiswa
+                    </Button>
                 </div>
 
                 <section className="flex flex-col gap-4">
-                    <form
-                        className="flex items-center gap-2"
-                        onChange={(e) => {
-                            e.preventDefault();
-                            router.get(akademik.mahasiswa.index.url(), {
-                                search: (e.target as HTMLFormElement).search
-                                    .value,
-                            });
-                        }}
+                    <div
+                        role="search"
+                        className="flex flex-wrap items-center gap-2"
                     >
-                        <div className="relative max-w-sm flex-1">
-                            <Search className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
+                        <form
+                            className="relative w-full sm:max-w-xs sm:flex-1"
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                clearTimeout(searchTimer.current);
+                                visit({ search: search.trim() });
+                            }}
+                        >
+                            <Label htmlFor="mhs-search" className="sr-only">
+                                Cari mahasiswa berdasarkan nama, NIM, atau email
+                            </Label>
+                            <Search
+                                aria-hidden="true"
+                                className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                            />
                             <Input
+                                id="mhs-search"
+                                type="search"
                                 name="search"
                                 placeholder="Cari nama, NIM, atau email..."
-                                defaultValue={filters.search}
+                                value={search}
+                                onChange={(e) => onSearchChange(e.target.value)}
                                 className="pl-9"
                             />
-                        </div>
-                    </form>
+                        </form>
 
-                    <DataTable
-                        columns={mahasiswaColumns(dosenOptions, prodiOptions)}
-                        data={mahasiswas.data}
-                        getRowKey={(m) => m.id}
-                    />
-
-                    <div className="text-muted-foreground text-sm">
-                        Menampilkan {mahasiswas.data.length} dari{' '}
-                        {mahasiswas.total} mahasiswa
-                    </div>
-                </section>
-            </div>
-        </>
-    );
-}
-
-function CreateMahasiswaDialog({
-    userOptions,
-    dosenOptions,
-    prodiOptions,
-}: {
-    userOptions: UserOption[];
-    dosenOptions: DosenOption[];
-    prodiOptions: ProdiOption[];
-}) {
-    const [open, setOpen] = useState(false);
-    const { data, setData, post, processing, errors, reset } = useForm({
-        user_id: '',
-        nama: '',
-        nim: '',
-        dosen_pa_id: '',
-        prodi_id: '',
-        angkatan: '',
-    });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(store.url(), {
-            onSuccess: () => {
-                reset();
-                setOpen(false);
-            },
-        });
-    };
-
-    return (
-        <>
-            <Button size="sm" onClick={() => setOpen(true)}>
-                Tambah Mahasiswa
-            </Button>
-
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Tambah mahasiswa</DialogTitle>
-                        <DialogDescription>
-                            Hubungkan akun user dengan profil akademiknya.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={submit} className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="mhs-user">Akun User</Label>
-                            <Select
-                                value={data.user_id}
-                                onValueChange={(v) => setData('user_id', v)}
+                        <Select
+                            value={
+                                filters.prodi_id === null
+                                    ? SEMUA
+                                    : String(filters.prodi_id)
+                            }
+                            onValueChange={(v) =>
+                                visit({
+                                    prodi_id: v === SEMUA ? null : Number(v),
+                                })
+                            }
+                        >
+                            <SelectTrigger
+                                aria-label="Filter prodi"
+                                className="w-full sm:w-44"
                             >
-                                <SelectTrigger id="mhs-user">
-                                    <SelectValue placeholder="Pilih akun user" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {userOptions.map((u) => (
-                                        <SelectItem
-                                            key={u.id}
-                                            value={String(u.id)}
-                                        >
-                                            {u.name} ({u.email})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.user_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.user_id}
-                                </p>
-                            )}
-                        </div>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={SEMUA}>
+                                    Semua prodi
+                                </SelectItem>
+                                {prodiOptions.map((p) => (
+                                    <SelectItem key={p.id} value={String(p.id)}>
+                                        {p.nama}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="mhs-nama">Nama</Label>
-                            <Input
-                                id="mhs-nama"
-                                value={data.nama}
-                                onChange={(e) =>
-                                    setData('nama', e.target.value)
+                        <Select
+                            value={
+                                filters.angkatan === null
+                                    ? SEMUA
+                                    : String(filters.angkatan)
+                            }
+                            onValueChange={(v) =>
+                                visit({
+                                    angkatan: v === SEMUA ? null : Number(v),
+                                })
+                            }
+                        >
+                            <SelectTrigger
+                                aria-label="Filter angkatan"
+                                className="w-full sm:w-36"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={SEMUA}>
+                                    Semua angkatan
+                                </SelectItem>
+                                {angkatanOptions.map((tahun) => (
+                                    <SelectItem
+                                        key={tahun}
+                                        value={String(tahun)}
+                                    >
+                                        {tahun}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={filters.status ?? SEMUA}
+                            onValueChange={(v) =>
+                                visit({ status: v === SEMUA ? null : v })
+                            }
+                        >
+                            <SelectTrigger
+                                aria-label="Filter status"
+                                className="w-full sm:w-36"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={SEMUA}>
+                                    Semua status
+                                </SelectItem>
+                                {statusOptions.map((s) => (
+                                    <SelectItem key={s.value} value={s.value}>
+                                        {s.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <div className="w-full sm:w-52">
+                            <SearchableSelect
+                                id="mhs-filter-dosen"
+                                value={
+                                    filters.dosen_pa_id === null
+                                        ? ''
+                                        : String(filters.dosen_pa_id)
                                 }
-                                disabled={processing}
+                                onChange={(v) =>
+                                    visit({
+                                        dosen_pa_id:
+                                            v === ''
+                                                ? null
+                                                : v === TANPA_DOSEN_PA
+                                                  ? TANPA_DOSEN_PA
+                                                  : Number(v),
+                                    })
+                                }
+                                options={dosenFilterOptions}
+                                placeholder="Semua dosen PA"
+                                searchPlaceholder="Cari nama dosen..."
+                                emptyText="Dosen tidak ditemukan."
+                                clearLabel="Semua dosen PA"
                             />
-                            {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.nama}
-                                </p>
-                            )}
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="mhs-nim">NIM</Label>
-                            <Input
-                                id="mhs-nim"
-                                value={data.nim}
-                                onChange={(e) => setData('nim', e.target.value)}
-                                disabled={processing}
-                            />
-                            {errors.nim && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.nim}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="mhs-dosen-pa">Dosen PA</Label>
-                            <Select
-                                value={data.dosen_pa_id}
-                                onValueChange={(v) => setData('dosen_pa_id', v)}
-                            >
-                                <SelectTrigger id="mhs-dosen-pa">
-                                    <SelectValue placeholder="Pilih dosen PA" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {dosenOptions.map((d) => (
-                                        <SelectItem
-                                            key={d.id}
-                                            value={String(d.id)}
-                                        >
-                                            {d.nama}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.dosen_pa_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.dosen_pa_id}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="mhs-prodi">Prodi</Label>
-                                <Select
-                                    value={data.prodi_id}
-                                    onValueChange={(v) =>
-                                        setData('prodi_id', v)
-                                    }
-                                >
-                                    <SelectTrigger id="mhs-prodi">
-                                        <SelectValue placeholder="Pilih prodi" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {prodiOptions.map((p) => (
-                                            <SelectItem
-                                                key={p.id}
-                                                value={String(p.id)}
-                                            >
-                                                {p.nama}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.prodi_id && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.prodi_id}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="mhs-angkatan">Angkatan</Label>
-                                <Input
-                                    id="mhs-angkatan"
-                                    type="number"
-                                    value={data.angkatan}
-                                    onChange={(e) =>
-                                        setData('angkatan', e.target.value)
-                                    }
-                                    disabled={processing}
-                                />
-                                {errors.angkatan && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.angkatan}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <DialogFooter>
+                        {hasActiveFilters && (
                             <Button
                                 type="button"
-                                variant="outline"
-                                onClick={() => setOpen(false)}
-                                disabled={processing}
+                                variant="ghost"
+                                onClick={resetFilters}
                             >
-                                Batal
+                                <X />
+                                Reset filter
                             </Button>
-                            <Button type="submit" disabled={processing}>
-                                {processing ? 'Menyimpan...' : 'Simpan'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                        )}
+                    </div>
+
+                    <DataTable
+                        caption="Daftar mahasiswa"
+                        columns={columns}
+                        data={mahasiswas.data}
+                        getRowKey={(m) => m.id}
+                        sort={{
+                            key: filters.sort,
+                            direction: filters.direction,
+                        }}
+                        onSort={onSort}
+                        isLoading={loading}
+                        emptyState={
+                            hasActiveFilters ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <p>
+                                        Tidak ada mahasiswa yang cocok
+                                        {filters.search
+                                            ? ` dengan “${filters.search}”`
+                                            : ' dengan filter ini'}
+                                        .
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={resetFilters}
+                                    >
+                                        Reset filter
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-1">
+                                    <p>Belum ada mahasiswa.</p>
+                                    <p className="text-muted-foreground text-sm">
+                                        Pilih “Tambah mahasiswa” untuk membuat
+                                        profil pertama.
+                                    </p>
+                                </div>
+                            )
+                        }
+                    />
+
+                    <TablePagination
+                        meta={mahasiswas}
+                        perPageOptions={perPageOptions}
+                        unit="mahasiswa"
+                        onPageChange={(page) => visit({ page })}
+                        onPerPageChange={(per_page) => visit({ per_page })}
+                    />
+                </section>
+            </div>
+
+            {dialog.type === 'create' && (
+                <MahasiswaFormDialog
+                    key="create"
+                    mahasiswa={null}
+                    userOptions={userOptions}
+                    dosenOptions={dosenOptions}
+                    prodiOptions={prodiOptions}
+                    statusOptions={statusOptions}
+                    onClose={closeDialog}
+                />
+            )}
+            {dialog.type === 'edit' && (
+                <MahasiswaFormDialog
+                    key={dialog.mahasiswa.id}
+                    mahasiswa={dialog.mahasiswa}
+                    userOptions={userOptions}
+                    dosenOptions={dosenOptions}
+                    prodiOptions={prodiOptions}
+                    statusOptions={statusOptions}
+                    onClose={closeDialog}
+                />
+            )}
+            {dialog.type === 'delete' && (
+                <MahasiswaDeleteDialog
+                    key={dialog.mahasiswa.id}
+                    mahasiswa={dialog.mahasiswa}
+                    onClose={closeDialog}
+                />
+            )}
         </>
     );
 }

@@ -86,6 +86,7 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                     variant="ghost"
                     size="icon"
                     title="Edit"
+                    aria-label="Edit"
                     onClick={() => setEditOpen(true)}
                 >
                     <Pencil className="size-4" />
@@ -94,6 +95,7 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                     variant="ghost"
                     size="icon"
                     title="Hapus"
+                    aria-label="Hapus"
                     onClick={() => setDeleteOpen(true)}
                 >
                     <Trash2 className="text-destructive size-4" />
@@ -122,7 +124,7 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                                 disabled={processing}
                             />
                             {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nama}
                                 </p>
                             )}
@@ -136,7 +138,7 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                                 disabled={processing}
                             />
                             {errors.nip && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nip}
                                 </p>
                             )}
@@ -154,7 +156,7 @@ function ActionCell({ dosen }: { dosen: DosenRow }) {
                                 disabled={processing}
                             />
                             {errors.bidang && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.bidang}
                                 </p>
                             )}

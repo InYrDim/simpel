@@ -1,26 +1,13 @@
-import { useForm } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import type { Column } from '@/components/data-table';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { destroy, update } from '@/routes/akademik/mahasiswa';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export type DosenOption = {
     id: number;
@@ -30,6 +17,11 @@ export type DosenOption = {
 export type ProdiOption = {
     id: number;
     nama: string;
+};
+
+export type StatusOption = {
+    value: string;
+    label: string;
 };
 
 export type MahasiswaRow = {
@@ -42,20 +34,29 @@ export type MahasiswaRow = {
     prodi_id: number | null;
     prodi: string | null;
     angkatan: number | null;
+    status: string;
     created_at: string;
 };
 
+type ColumnHandlers = {
+    statusOptions: StatusOption[];
+    onEdit: (mahasiswa: MahasiswaRow) => void;
+    onDelete: (mahasiswa: MahasiswaRow) => void;
+};
+
 /**
- * Kolom tabel mahasiswa — dibuat via factory supaya dialog edit bisa
- * menerima daftar opsi dosen PA & prodi dari halaman yang memakainya.
+ * Kolom tabel mahasiswa. Dialog ubah/hapus dimiliki halaman (satu instans
+ * bersama), jadi kolom hanya memanggil `onEdit` / `onDelete` dengan barisnya.
  */
-export const mahasiswaColumns = (
-    dosenOptions: DosenOption[],
-    prodiOptions: ProdiOption[],
-): Column<MahasiswaRow>[] => [
+export const mahasiswaColumns = ({
+    statusOptions,
+    onEdit,
+    onDelete,
+}: ColumnHandlers): Column<MahasiswaRow>[] => [
     {
         key: 'nama',
         label: 'Mahasiswa',
+        sortKey: 'nama',
         render: (m) => (
             <div className="flex flex-col">
                 <span className="font-medium">{m.nama}</span>
@@ -68,11 +69,7 @@ export const mahasiswaColumns = (
     {
         key: 'nim',
         label: 'NIM',
-    },
-    {
-        key: 'dosen_pa_nama',
-        label: 'Dosen PA',
-        render: (m) => m.dosen_pa_nama ?? '-',
+        sortKey: 'nim',
     },
     {
         key: 'prodi',
@@ -82,262 +79,81 @@ export const mahasiswaColumns = (
     {
         key: 'angkatan',
         label: 'Angkatan',
+        sortKey: 'angkatan',
         render: (m) => m.angkatan ?? '-',
+    },
+    {
+        key: 'dosen_pa_nama',
+        label: 'Dosen PA',
+        render: (m) =>
+            m.dosen_pa_nama ?? (
+                <span className="text-muted-foreground">Belum ditentukan</span>
+            ),
+    },
+    {
+        key: 'status',
+        label: 'Status',
+        render: (m) => (
+            <StatusBadge status={m.status} options={statusOptions} />
+        ),
     },
     {
         key: 'actions',
         label: 'Aksi',
         render: (m) => (
-            <ActionCell
-                mahasiswa={m}
-                dosenOptions={dosenOptions}
-                prodiOptions={prodiOptions}
-            />
+            <div className="flex justify-end">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Aksi untuk ${m.nama}`}
+                        >
+                            <MoreHorizontal />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => onEdit(m)}>
+                            <Pencil />
+                            Ubah
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            variant="destructive"
+                            onSelect={() => onDelete(m)}
+                        >
+                            <Trash2 />
+                            Hapus mahasiswa
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
         ),
     },
 ];
 
-function ActionCell({
-    mahasiswa,
-    dosenOptions,
-    prodiOptions,
+function StatusBadge({
+    status,
+    options,
 }: {
-    mahasiswa: MahasiswaRow;
-    dosenOptions: DosenOption[];
-    prodiOptions: ProdiOption[];
+    status: string;
+    options: StatusOption[];
 }) {
-    const [editOpen, setEditOpen] = useState(false);
-    const [deleteOpen, setDeleteOpen] = useState(false);
-    const {
-        data,
-        setData,
-        put,
-        delete: deleteForm,
-        processing,
-        errors,
-    } = useForm({
-        nama: mahasiswa.nama,
-        nim: mahasiswa.nim,
-        dosen_pa_id:
-            mahasiswa.dosen_pa_id === null ? '' : String(mahasiswa.dosen_pa_id),
-        prodi_id: mahasiswa.prodi_id ? String(mahasiswa.prodi_id) : '',
-        angkatan: mahasiswa.angkatan ? String(mahasiswa.angkatan) : '',
-    });
+    const label = options.find((o) => o.value === status)?.label ?? status;
 
-    const handleEdit = (e: React.FormEvent) => {
-        e.preventDefault();
-        put(update.url({ mahasiswa: mahasiswa.id }), {
-            onSuccess: () => setEditOpen(false),
-        });
-    };
+    if (status === 'lulus') {
+        return <Badge>{label}</Badge>;
+    }
 
-    const handleDelete = () => {
-        deleteForm(destroy.url({ mahasiswa: mahasiswa.id }), {
-            onSuccess: () => setDeleteOpen(false),
-        });
-    };
+    if (status === 'aktif') {
+        return <Badge variant="secondary">{label}</Badge>;
+    }
 
     return (
-        <>
-            <div className="flex justify-end gap-1">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Edit"
-                    onClick={() => setEditOpen(true)}
-                >
-                    <Pencil className="size-4" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    title="Hapus"
-                    onClick={() => setDeleteOpen(true)}
-                >
-                    <Trash2 className="text-destructive size-4" />
-                </Button>
-            </div>
-
-            <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit mahasiswa</DialogTitle>
-                        <DialogDescription>
-                            Ubah profil akademik{' '}
-                            <strong>{mahasiswa.nama}</strong>.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleEdit} className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-mhs-nama-${mahasiswa.id}`}>
-                                Nama
-                            </Label>
-                            <Input
-                                id={`edit-mhs-nama-${mahasiswa.id}`}
-                                value={data.nama}
-                                onChange={(e) =>
-                                    setData('nama', e.target.value)
-                                }
-                                disabled={processing}
-                            />
-                            {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.nama}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-mhs-nim-${mahasiswa.id}`}>
-                                NIM
-                            </Label>
-                            <Input
-                                id={`edit-mhs-nim-${mahasiswa.id}`}
-                                value={data.nim}
-                                onChange={(e) => setData('nim', e.target.value)}
-                                disabled={processing}
-                            />
-                            {errors.nim && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.nim}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor={`edit-mhs-dosen-${mahasiswa.id}`}>
-                                Dosen PA
-                            </Label>
-                            <Select
-                                value={data.dosen_pa_id}
-                                onValueChange={(v) => setData('dosen_pa_id', v)}
-                            >
-                                <SelectTrigger
-                                    id={`edit-mhs-dosen-${mahasiswa.id}`}
-                                >
-                                    <SelectValue placeholder="Pilih dosen PA" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {dosenOptions.map((d) => (
-                                        <SelectItem
-                                            key={d.id}
-                                            value={String(d.id)}
-                                        >
-                                            {d.nama}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.dosen_pa_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
-                                    {errors.dosen_pa_id}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label
-                                    htmlFor={`edit-mhs-prodi-${mahasiswa.id}`}
-                                >
-                                    Prodi
-                                </Label>
-                                <Select
-                                    value={data.prodi_id}
-                                    onValueChange={(v) =>
-                                        setData('prodi_id', v)
-                                    }
-                                >
-                                    <SelectTrigger
-                                        id={`edit-mhs-prodi-${mahasiswa.id}`}
-                                    >
-                                        <SelectValue placeholder="Pilih prodi" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {prodiOptions.map((p) => (
-                                            <SelectItem
-                                                key={p.id}
-                                                value={String(p.id)}
-                                            >
-                                                {p.nama}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.prodi_id && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.prodi_id}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label
-                                    htmlFor={`edit-mhs-angkatan-${mahasiswa.id}`}
-                                >
-                                    Angkatan
-                                </Label>
-                                <Input
-                                    id={`edit-mhs-angkatan-${mahasiswa.id}`}
-                                    type="number"
-                                    value={data.angkatan}
-                                    onChange={(e) =>
-                                        setData('angkatan', e.target.value)
-                                    }
-                                    disabled={processing}
-                                />
-                                {errors.angkatan && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
-                                        {errors.angkatan}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setEditOpen(false)}
-                                disabled={processing}
-                            >
-                                Batal
-                            </Button>
-                            <Button type="submit" disabled={processing}>
-                                Simpan
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Hapus mahasiswa</DialogTitle>
-                        <DialogDescription>
-                            Apakah Anda yakin ingin menghapus{' '}
-                            <strong>{mahasiswa.nama}</strong>? Aksi ini tidak
-                            dapat dibatalkan.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteOpen(false)}
-                            disabled={processing}
-                        >
-                            Batal
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={processing}
-                        >
-                            Hapus
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+        <Badge
+            variant="outline"
+            className={status === 'nonaktif' ? 'text-muted-foreground' : ''}
+        >
+            {label}
+        </Badge>
     );
 }

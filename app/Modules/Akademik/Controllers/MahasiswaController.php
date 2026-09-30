@@ -4,12 +4,14 @@ namespace App\Modules\Akademik\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Akademik\Enums\StatusMahasiswa;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Akademik\Models\Prodi;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,15 +23,37 @@ use Inertia\Response;
  */
 class MahasiswaController extends Controller
 {
+    private const TANPA_DOSEN_PA = 'kosong';
+
+    /** @var list<int> */
+    private const PER_PAGE_OPTIONS = [10, 25, 50];
+
+    /** @var list<string> */
+    private const SORTABLE = ['nama', 'nim', 'angkatan'];
+
     public function index(Request $request): Response
     {
         $search = trim((string) $request->input('search', ''));
+        $prodiId = $this->intOrNull($request->input('prodi_id'));
+        $angkatan = $this->intOrNull($request->input('angkatan'));
+        $status = StatusMahasiswa::tryFrom((string) $request->input('status', ''));
+
+        $dosenPaInput = $request->input('dosen_pa_id');
+        $tanpaDosenPa = $dosenPaInput === self::TANPA_DOSEN_PA;
+        $dosenPaId = $tanpaDosenPa ? null : $this->intOrNull($dosenPaInput);
+
+        $sort = in_array($request->input('sort'), self::SORTABLE, true) ? (string) $request->input('sort') : 'nama';
+        $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
+        $perPage = in_array((int) $request->input('per_page'), self::PER_PAGE_OPTIONS, true)
+            ? (int) $request->input('per_page')
+            : self::PER_PAGE_OPTIONS[0];
 
         /** @var Builder<Mahasiswa> $query */
         $query = Mahasiswa::query()
             ->with(['user:id,name,email', 'dosenPa:id,nama', 'prodiRef:id,nama'])
-            ->select(['id', 'user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan', 'created_at'])
-            ->orderBy('nama');
+            ->select(['id', 'user_id', 'nama', 'nim', 'dosen_pa_id', 'prodi_id', 'angkatan', 'status', 'created_at'])
+            ->orderBy($sort, $direction)
+            ->orderBy('id');
 
         if ($search !== '') {
             $query->where(function (Builder $q) use ($search): void {
@@ -39,7 +63,17 @@ class MahasiswaController extends Controller
             });
         }
 
-        $mahasiswas = $query->paginate(10)->withQueryString()->through(
+        $query
+            ->when($prodiId !== null, fn (Builder $q) => $q->where('prodi_id', $prodiId))
+            ->when($angkatan !== null, fn (Builder $q) => $q->where('angkatan', $angkatan))
+            ->when($status !== null, fn (Builder $q) => $q->where('status', $status))
+            ->when($tanpaDosenPa, fn (Builder $q) => $q->whereNull('dosen_pa_id'))
+            ->when($dosenPaId !== null, fn (Builder $q) => $q->where('dosen_pa_id', $dosenPaId));
+
+        /** @var LengthAwarePaginator<int, Mahasiswa> $paginator */
+        $paginator = $query->paginate($perPage)->withQueryString();
+
+        $mahasiswas = $paginator->through(
             fn (Mahasiswa $m): array => [
                 'id' => $m->id,
                 'nama' => $m->nama,
@@ -50,6 +84,7 @@ class MahasiswaController extends Controller
                 'prodi_id' => $m->prodi_id,
                 'prodi' => $m->prodiRef?->nama,
                 'angkatan' => $m->angkatan,
+                'status' => $m->status->value,
                 'created_at' => $m->created_at?->toISOString(),
             ],
         );
@@ -61,9 +96,26 @@ class MahasiswaController extends Controller
             ->orderBy('name')
             ->get(['users.id', 'users.name', 'users.email']);
 
+        $angkatanOptions = [];
+        foreach (Mahasiswa::query()->whereNotNull('angkatan')->distinct()->orderByDesc('angkatan')->pluck('angkatan') as $tahun) {
+            $angkatanOptions[] = (int) $tahun;
+        }
+
         return Inertia::render('akademik/mahasiswa/index', [
             'mahasiswas' => $mahasiswas,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'prodi_id' => $prodiId,
+                'angkatan' => $angkatan,
+                'dosen_pa_id' => $tanpaDosenPa ? self::TANPA_DOSEN_PA : $dosenPaId,
+                'status' => $status?->value,
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $perPage,
+            ],
+            'perPageOptions' => self::PER_PAGE_OPTIONS,
+            'statusOptions' => StatusMahasiswa::options(),
+            'angkatanOptions' => $angkatanOptions,
             'dosenOptions' => Dosen::query()->orderBy('nama')->get(['id', 'nama']),
             'prodiOptions' => Prodi::query()->orderBy('nama')->get(['id', 'nama']),
             'userOptions' => $userOptions,
@@ -82,18 +134,23 @@ class MahasiswaController extends Controller
 
     public function update(Request $request, Mahasiswa $mahasiswa): RedirectResponse
     {
-        // `user_id` sengaja tidak bisa diubah lewat update — tautan akun
-        // ditetapkan saat pembuatan profil, bukan bagian dari data akademik.
-        $validated = $this->validateMahasiswa($request, $mahasiswa->id);
-
-        $mahasiswa->update(collect($validated)->except('user_id')->all());
+        $mahasiswa->update($this->validateMahasiswa($request, $mahasiswa->id));
 
         return redirect()->route('akademik.mahasiswa.index')
             ->with('success', 'Profil mahasiswa berhasil diperbarui.');
     }
 
-    public function destroy(Mahasiswa $mahasiswa): RedirectResponse
+    public function destroy(Request $request, Mahasiswa $mahasiswa): RedirectResponse
     {
+        // Hapus permanen menghilangkan profil akademik; konfirmasi NIM dicek
+        // di server supaya tidak bisa dilewati dari klien.
+        $request->validate([
+            'konfirmasi_nim' => ['required', 'string', Rule::in([$mahasiswa->nim])],
+        ], [
+            'konfirmasi_nim.required' => 'Ketik NIM mahasiswa untuk mengonfirmasi penghapusan.',
+            'konfirmasi_nim.in' => 'NIM yang diketik tidak sesuai.',
+        ]);
+
         $mahasiswa->delete();
 
         return redirect()->route('akademik.mahasiswa.index')
@@ -101,18 +158,11 @@ class MahasiswaController extends Controller
     }
 
     /**
-     * @return array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi_id: int|null, angkatan: int|null}
+     * @return array{user_id?: int, nama: string, nim: string, dosen_pa_id: int|null, prodi_id: int|null, angkatan: int|null, status?: string}
      */
     private function validateMahasiswa(Request $request, ?int $ignoreId = null): array
     {
-        /** @var array{user_id: int, nama: string, nim: string, dosen_pa_id: int, prodi_id: int|null, angkatan: int|null} $validated */
-        $validated = $request->validate([
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id'),
-                Rule::unique('akademik_mahasiswas', 'user_id')->ignore($ignoreId),
-            ],
+        $rules = [
             'nama' => ['required', 'string', 'max:255'],
             'nim' => [
                 'required',
@@ -120,11 +170,40 @@ class MahasiswaController extends Controller
                 'max:255',
                 Rule::unique('akademik_mahasiswas', 'nim')->ignore($ignoreId),
             ],
-            'dosen_pa_id' => ['required', 'integer', Rule::exists('akademik_dosens', 'id')],
+            // Secara bisnis dosen PA wajib; sementara dibolehkan kosong karena
+            // mahasiswa hasil registrasi mandiri belum punya PA.
+            'dosen_pa_id' => ['nullable', 'integer', Rule::exists('akademik_dosens', 'id')],
             'prodi_id' => ['nullable', 'integer', Rule::exists('akademik_prodis', 'id')],
             'angkatan' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-        ]);
+            'status' => ['sometimes', Rule::enum(StatusMahasiswa::class)],
+        ];
+
+        // Tautan akun hanya ditetapkan saat pembuatan profil.
+        if ($ignoreId === null) {
+            $rules['user_id'] = [
+                'required',
+                'integer',
+                Rule::exists('users', 'id'),
+                Rule::unique('akademik_mahasiswas', 'user_id'),
+            ];
+        }
+
+        /** @var array{user_id?: int, nama: string, nim: string, dosen_pa_id: int|null, prodi_id: int|null, angkatan: int|null, status?: string} $validated */
+        $validated = $request->validate($rules);
 
         return $validated;
+    }
+
+    private function intOrNull(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && ctype_digit($value)) {
+            return (int) $value;
+        }
+
+        return null;
     }
 }
