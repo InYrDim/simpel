@@ -130,6 +130,8 @@ class MahasiswaController extends Controller
                 'per_page' => $perPage,
             ],
             'ringkasan' => [
+                'total' => Mahasiswa::query()->count(),
+                'per_status' => $this->jumlahPerStatus(),
                 'tanpa_dosen_pa' => Mahasiswa::query()
                     ->whereNull('dosen_pa_id')
                     ->whereNotIn('status', [StatusMahasiswa::Lulus, StatusMahasiswa::Nonaktif])
@@ -232,6 +234,25 @@ class MahasiswaController extends Controller
         $validated = $request->validate($rules);
 
         return $validated;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function jumlahPerStatus(): array
+    {
+        $jumlah = Mahasiswa::query()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $hasil = [];
+
+        foreach (StatusMahasiswa::cases() as $status) {
+            $hasil[$status->value] = (int) ($jumlah[$status->value] ?? 0);
+        }
+
+        return $hasil;
     }
 
     private function intOrNull(mixed $value): ?int

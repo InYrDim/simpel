@@ -88,6 +88,22 @@ test('summary counts students who still need a dosen pa, ignoring lulus and nona
         ->assertInertia(fn ($page) => $page->where('ringkasan.tanpa_dosen_pa', 2));
 });
 
+test('summary reports the total and a count for every status, including empty ones', function () {
+    Mahasiswa::factory()->count(2)->create();
+    Mahasiswa::factory()->create(['status' => StatusMahasiswa::Cuti]);
+
+    $this->actingAs(mahasiswaListAdmin())
+        ->get(route('akademik.mahasiswa.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('ringkasan.total', 3)
+            ->where('ringkasan.per_status', [
+                'aktif' => 2,
+                'cuti' => 1,
+                'lulus' => 0,
+                'nonaktif' => 0,
+            ]));
+});
+
 test('list can be narrowed to mahasiswa without a dosen pa', function () {
     $tanpaPa = Mahasiswa::factory()->create(['dosen_pa_id' => null]);
     Mahasiswa::factory()->create();

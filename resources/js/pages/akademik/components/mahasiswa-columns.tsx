@@ -1,13 +1,7 @@
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Column } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 export type DosenOption = {
     id: number;
@@ -120,28 +114,28 @@ export const mahasiswaColumns = ({
     {
         key: 'actions',
         label: 'Aksi',
+        align: 'center',
         render: (m) => (
-            <div className="flex justify-end">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Aksi untuk ${m.nama}`}
-                        >
-                            <MoreHorizontal />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                            variant="destructive"
-                            onSelect={() => onDelete(m)}
-                        >
-                            <Trash2 />
-                            Hapus mahasiswa
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            <div className="flex justify-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Ubah"
+                    aria-label={`Ubah ${m.nama}`}
+                    onClick={() => onEdit(m)}
+                >
+                    <Pencil />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Hapus"
+                    aria-label={`Hapus ${m.nama}`}
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => onDelete(m)}
+                >
+                    <Trash2 />
+                </Button>
             </div>
         ),
     },

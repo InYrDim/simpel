@@ -22,6 +22,10 @@ import {
     TANPA_DOSEN_PA,
     type DosenPaFilter,
 } from '@/pages/akademik/components/mahasiswa-filter-popover';
+import {
+    MahasiswaRingkasan,
+    type Ringkasan,
+} from '@/pages/akademik/components/mahasiswa-ringkasan';
 import { MahasiswaDeleteDialog } from '@/pages/akademik/components/mahasiswa-delete-dialog';
 import {
     MahasiswaFormDialog,
@@ -46,7 +50,7 @@ type MahasiswaIndexPageProps = {
     mahasiswas: PaginatedMahasiswas;
     filters: Filters;
     perPageOptions: number[];
-    ringkasan: { tanpa_dosen_pa: number };
+    ringkasan: Ringkasan;
     statusOptions: StatusOption[];
     angkatanOptions: number[];
     userOptions: UserOption[];
@@ -148,30 +152,24 @@ export default function MahasiswaIndex({
                             Profil akademik mahasiswa: prodi, angkatan, dosen
                             PA, dan status.
                         </p>
-                        {ringkasan.tanpa_dosen_pa > 0 &&
-                            filters.dosen_pa_id !== TANPA_DOSEN_PA && (
-                                <p className="mt-1 text-sm">
-                                    <Button
-                                        type="button"
-                                        variant="link"
-                                        className="text-destructive h-auto p-0 pointer-coarse:h-auto"
-                                        onClick={() =>
-                                            visit({
-                                                dosen_pa_id: TANPA_DOSEN_PA,
-                                            })
-                                        }
-                                    >
-                                        {ringkasan.tanpa_dosen_pa} mahasiswa
-                                        belum punya dosen PA
-                                    </Button>
-                                </p>
-                            )}
                     </div>
                     <Button onClick={() => setDialog({ type: 'create' })}>
                         <Plus />
                         Tambah mahasiswa
                     </Button>
                 </div>
+
+                <MahasiswaRingkasan
+                    ringkasan={ringkasan}
+                    statusOptions={statusOptions}
+                    status={filters.status}
+                    dosenPaId={filters.dosen_pa_id}
+                    onStatusChange={(status) => visit({ status })}
+                    onSemua={() => visit({ status: null, dosen_pa_id: null })}
+                    onTanpaDosenPa={(aktif) =>
+                        visit({ dosen_pa_id: aktif ? TANPA_DOSEN_PA : null })
+                    }
+                />
 
                 <section className="flex flex-col gap-4">
                     <div
@@ -209,8 +207,6 @@ export default function MahasiswaIndex({
                             prodiId={filters.prodi_id}
                             angkatan={filters.angkatan}
                             dosenPaId={filters.dosen_pa_id}
-                            status={filters.status}
-                            statusOptions={statusOptions}
                             prodiOptions={prodiOptions}
                             angkatanOptions={angkatanOptions}
                             dosenOptions={dosenOptions}

@@ -18,7 +18,6 @@ import {
 import type {
     DosenOption,
     ProdiOption,
-    StatusOption,
 } from '@/pages/akademik/components/mahasiswa-columns';
 
 export const SEMUA = 'semua';
@@ -30,15 +29,12 @@ export type FilterPatch = {
     prodi_id?: number | null;
     angkatan?: number | null;
     dosen_pa_id?: DosenPaFilter;
-    status?: string | null;
 };
 
 type MahasiswaFilterPopoverProps = {
     prodiId: number | null;
     angkatan: number | null;
     dosenPaId: DosenPaFilter;
-    status: string | null;
-    statusOptions: StatusOption[];
     prodiOptions: ProdiOption[];
     angkatanOptions: number[];
     dosenOptions: DosenOption[];
@@ -47,21 +43,19 @@ type MahasiswaFilterPopoverProps = {
 
 /**
  * Filter yang jarang dipakai (prodi, angkatan, dosen PA) dikumpulkan dalam
- * satu popover supaya toolbar hanya menampilkan pencarian dan status.
+ * satu popover supaya toolbar hanya menampilkan pencarian. Status ada di baris ringkasan.
  * Jumlah filter aktif tampil di tombol; nilainya tampil sebagai chip di halaman.
  */
 export function MahasiswaFilterPopover({
     prodiId,
     angkatan,
     dosenPaId,
-    status,
-    statusOptions,
     prodiOptions,
     angkatanOptions,
     dosenOptions,
     onChange,
 }: MahasiswaFilterPopoverProps) {
-    const activeCount = [prodiId, angkatan, dosenPaId, status].filter(
+    const activeCount = [prodiId, angkatan, dosenPaId].filter(
         (value) => value !== null,
     ).length;
 
@@ -87,31 +81,6 @@ export function MahasiswaFilterPopover({
                 </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="grid w-80 gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="mhs-filter-status">Status</Label>
-                    <Select
-                        value={status ?? SEMUA}
-                        onValueChange={(v) =>
-                            onChange({ status: v === SEMUA ? null : v })
-                        }
-                    >
-                        <SelectTrigger
-                            id="mhs-filter-status"
-                            className="w-full"
-                        >
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={SEMUA}>Semua status</SelectItem>
-                            {statusOptions.map((s) => (
-                                <SelectItem key={s.value} value={s.value}>
-                                    {s.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
                 <div className="grid gap-2">
                     <Label htmlFor="mhs-filter-prodi">Prodi</Label>
                     <Select

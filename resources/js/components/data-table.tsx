@@ -20,6 +20,8 @@ export type Column<T> = {
     key: string;
     label: string;
     sortKey?: string;
+    /** Rata tengah untuk header dan sel (mis. kolom aksi berisi tombol). */
+    align?: 'center';
     render?: (row: T) => React.ReactNode;
 };
 
@@ -66,6 +68,9 @@ export function DataTable<T>({
                         {columns.map((col) => (
                             <TableHead
                                 key={col.key}
+                                className={cn(
+                                    col.align === 'center' && 'text-center',
+                                )}
                                 aria-sort={ariaSort(col, sort)}
                             >
                                 {col.sortKey && onSort ? (
@@ -96,7 +101,13 @@ export function DataTable<T>({
                         data.map((row) => (
                             <TableRow key={getRowKey(row)}>
                                 {columns.map((col) => (
-                                    <TableCell key={col.key}>
+                                    <TableCell
+                                        key={col.key}
+                                        className={cn(
+                                            col.align === 'center' &&
+                                                'text-center',
+                                        )}
+                                    >
                                         {col.render
                                             ? col.render(row)
                                             : ((row as Record<string, unknown>)[
