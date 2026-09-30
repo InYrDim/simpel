@@ -1,30 +1,9 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { FileDown, Send } from 'lucide-react';
-import { useState } from 'react';
+import { Head } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
-import { resubmit, store, template } from '@/routes/skripsi/pengajuan';
-
-type JudulItem = {
-    id: number;
-    urutan: number;
-    judul: string;
-    deskripsi: string;
-    topik: string;
-};
+import { PengajuanWizard } from './components/pengajuan-wizard';
+import type { JudulItem, KategoriOption } from './components/types';
 
 type PengajuanProp = {
     id: number;
@@ -59,6 +38,7 @@ type RiwayatStatusItem = {
 type PengajuanPageProps = {
     pengajuan: PengajuanProp | null;
     judulTerkini: JudulItem[];
+    kategoriOptions: KategoriOption[];
     riwayat: RiwayatItem[];
     riwayatStatus: RiwayatStatusItem[];
 };
@@ -105,6 +85,7 @@ const STATUS_JUDUL_LABEL: Record<string, string> = {
 export default function PengajuanIndex({
     pengajuan,
     judulTerkini,
+    kategoriOptions,
     riwayat,
     riwayatStatus,
 }: PengajuanPageProps) {
@@ -122,11 +103,12 @@ export default function PengajuanIndex({
                     <h1 className="text-2xl font-bold">
                         Pengajuan Judul Skripsi
                     </h1>
-                    <SubmitDialog
+                    <PengajuanWizard
                         mode={statusKey === 'direvisi' ? 'revisi' : 'baru'}
                         disabled={!bolehMengajukan}
                         pengajuanId={pengajuan?.id ?? null}
                         judulTerkini={judulTerkini}
+                        kategoriOptions={kategoriOptions}
                     />
                 </div>
 
@@ -193,7 +175,8 @@ export default function PengajuanIndex({
                                                 {j.deskripsi}
                                             </p>
                                             <p className="text-muted-foreground mt-1 text-xs">
-                                                Topik: {j.topik}
+                                                Topik: {j.topik} · Kategori:{' '}
+                                                {j.kategori_nama ?? '-'}
                                             </p>
                                         </div>
                                     ))}
@@ -281,294 +264,6 @@ export default function PengajuanIndex({
                     </Card>
                 )}
             </div>
-        </>
-    );
-}
-
-type JudulForm = { judul: string; deskripsi: string; topik: string };
-
-function SubmitDialog({
-    mode,
-    disabled,
-    pengajuanId,
-    judulTerkini,
-}: {
-    mode: 'baru' | 'revisi';
-    disabled: boolean;
-    pengajuanId: number | null;
-    judulTerkini: JudulItem[];
-}) {
-    // Mode revisi: pengajuan diminta revisi — mahasiswa memperbaiki judul &
-    // berkas pada pengajuan yang SAMA, judul lama di-prefill sebagai titik
-    // awal perbaikan.
-    const revisi = mode === 'revisi';
-    const tombolDisabled = revisi ? false : disabled;
-    const [open, setOpen] = useState(false);
-    const [step, setStep] = useState(1);
-    const [berkas, setBerkas] = useState<File | null>(null);
-
-    const emptyJuduls: JudulForm[] = [
-        { judul: '', deskripsi: '', topik: '' },
-        { judul: '', deskripsi: '', topik: '' },
-        { judul: '', deskripsi: '', topik: '' },
-    ];
-    const judulAwal: JudulForm[] = revisi
-        ? judulTerkini.map((j) => ({
-              judul: j.judul,
-              deskripsi: j.deskripsi,
-              topik: j.topik,
-          }))
-        : emptyJuduls;
-
-    const { data, setData, post, processing, errors, reset, clearErrors } =
-        useForm<{
-            juduls: JudulForm[];
-            berkas: File | null;
-        }>({
-            juduls: judulAwal,
-            berkas: null,
-        });
-
-    const judulError = (index: number, field: keyof JudulForm) =>
-        errors[`juduls.${index}.${field}`];
-
-    const close = () => {
-        setOpen(false);
-        setStep(1);
-        setBerkas(null);
-        reset();
-        clearErrors();
-    };
-
-    const next = () => setStep((s) => Math.min(3, s + 1));
-    const back = () => setStep((s) => Math.max(1, s - 1));
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(
-            revisi && pengajuanId !== null
-                ? resubmit.url({ pengajuan: pengajuanId })
-                : store.url(),
-            {
-                onSuccess: () => {
-                    close();
-                    router.reload({
-                        only: [
-                            'pengajuan',
-                            'judulTerkini',
-                            'riwayat',
-                            'riwayatStatus',
-                        ],
-                    });
-                },
-            },
-        );
-    };
-
-    return (
-        <>
-            <Button
-                size="sm"
-                disabled={tombolDisabled}
-                onClick={() => setOpen(true)}
-            >
-                <Send className="mr-2 size-4" />
-                {revisi ? 'Kirim Revisi' : 'Ajukan Judul'}
-            </Button>
-            {!revisi && tombolDisabled && (
-                <p className="text-muted-foreground self-center text-xs">
-                    Pengajuan aktif tidak memungkinkan submit baru.
-                </p>
-            )}
-
-            <Dialog
-                open={open}
-                onOpenChange={(v) => (v ? setOpen(true) : close())}
-            >
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {revisi ? 'Kirim Revisi' : 'Ajukan Judul'} — Langkah{' '}
-                            {step} dari 3
-                        </DialogTitle>
-                        <DialogDescription>
-                            {step === 1 &&
-                                (revisi
-                                    ? 'Perbaiki 3 judul yang diminta revisi — judul lama sudah diisi.'
-                                    : 'Isi tepat 3 judul beserta deskripsi dan topiknya.')}
-                            {step === 2 &&
-                                (revisi
-                                    ? 'Unggah berkas perbaikan sebagai PDF (maks 5 MB), menggantikan berkas lama.'
-                                    : 'Unduh template, isi, lalu unggah sebagai PDF (maks 5 MB).')}
-                            {step === 3 &&
-                                (revisi
-                                    ? 'Periksa kembali sebelum mengirim revisi.'
-                                    : 'Periksa kembali sebelum mengirim pengajuan.')}
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <form onSubmit={submit} className="flex flex-col gap-4">
-                        {step === 1 && (
-                            <div className="flex flex-col gap-4">
-                                {data.juduls.map((j, i) => (
-                                    <div
-                                        key={i}
-                                        className="grid gap-2 rounded-lg border p-3"
-                                    >
-                                        <Label>Judul {i + 1}</Label>
-                                        <Input
-                                            value={j.judul}
-                                            placeholder="Judul"
-                                            onChange={(e) =>
-                                                setData(
-                                                    `juduls.${i}.judul`,
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        {judulError(i, 'judul') && (
-                                            <p className="text-sm text-red-600">
-                                                {judulError(i, 'judul')}
-                                            </p>
-                                        )}
-                                        <Textarea
-                                            value={j.deskripsi}
-                                            placeholder="Deskripsi"
-                                            onChange={(e) =>
-                                                setData(
-                                                    `juduls.${i}.deskripsi`,
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        {judulError(i, 'deskripsi') && (
-                                            <p className="text-sm text-red-600">
-                                                {judulError(i, 'deskripsi')}
-                                            </p>
-                                        )}
-                                        <Input
-                                            value={j.topik}
-                                            placeholder="Topik"
-                                            onChange={(e) =>
-                                                setData(
-                                                    `juduls.${i}.topik`,
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        {judulError(i, 'topik') && (
-                                            <p className="text-sm text-red-600">
-                                                {judulError(i, 'topik')}
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {step === 2 && (
-                            <div className="flex flex-col gap-4">
-                                <a
-                                    href={template.url()}
-                                    className="text-primary flex items-center gap-2 text-sm underline"
-                                >
-                                    <FileDown className="size-4" />
-                                    Unduh template pengajuan (.docx)
-                                </a>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="berkas">
-                                        Berkas pengajuan (PDF, maks 5 MB)
-                                    </Label>
-                                    <Input
-                                        id="berkas"
-                                        type="file"
-                                        accept="application/pdf"
-                                        onChange={(e) => {
-                                            const file =
-                                                e.target.files?.[0] ?? null;
-                                            setBerkas(file);
-                                            setData('berkas', file);
-                                        }}
-                                    />
-                                    {errors.berkas && (
-                                        <p className="text-sm text-red-600">
-                                            {errors.berkas}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 3 && (
-                            <div className="flex flex-col gap-3 text-sm">
-                                <div className="rounded-lg border p-3">
-                                    <p className="mb-2 font-medium">
-                                        Ringkasan judul
-                                    </p>
-                                    {data.juduls.map((j, i) => (
-                                        <div key={i} className="mb-2">
-                                            <span className="font-medium">
-                                                {i + 1}. {j.judul || '(kosong)'}
-                                            </span>
-                                            <span className="text-muted-foreground">
-                                                {' '}
-                                                — {j.topik || '(topik kosong)'}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="rounded-lg border p-3">
-                                    <p className="font-medium">Berkas</p>
-                                    <p className="text-muted-foreground">
-                                        {berkas
-                                            ? `${berkas.name} (${(berkas.size / 1024).toFixed(0)} KB)`
-                                            : 'Belum ada berkas dipilih'}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-
-                        <DialogFooter className="flex items-center justify-between">
-                            <div>
-                                {step > 1 && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={back}
-                                    >
-                                        Kembali
-                                    </Button>
-                                )}
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={close}
-                                >
-                                    Batal
-                                </Button>
-                                {step < 3 ? (
-                                    <Button type="button" onClick={next}>
-                                        Lanjut
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        type="submit"
-                                        disabled={processing || !berkas}
-                                    >
-                                        {processing
-                                            ? 'Mengirim...'
-                                            : revisi
-                                              ? 'Kirim Revisi'
-                                              : 'Kirim Pengajuan'}
-                                    </Button>
-                                )}
-                            </div>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
         </>
     );
 }

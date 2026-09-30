@@ -39,7 +39,7 @@ class PutusanValidatorController extends Controller
             $pengajuans = PengajuanJudul::query()
                 ->where('status', 'diverifikasi_admin')
                 ->where('validator_id', $dosen->id)
-                ->with('juduls')
+                ->with('juduls.kategori')
                 ->orderBy('verified_at')
                 ->get()
                 ->map(fn (PengajuanJudul $p): array => [
@@ -47,7 +47,7 @@ class PutusanValidatorController extends Controller
                     'nama_mahasiswa' => $this->akademik->mahasiswaByUserId($p->user_id)->nama ?? '-',
                     'nim' => $this->akademik->mahasiswaByUserId($p->user_id)->nim ?? '-',
                     'verified_at' => $p->verified_at?->toISOString(),
-                    'juduls' => $p->juduls->map(fn ($j): array => $j->only(['id', 'urutan', 'judul', 'deskripsi', 'topik']))->all(),
+                    'juduls' => $p->juduls->map(fn ($j): array => [...$j->only(['id', 'urutan', 'judul', 'deskripsi', 'topik']), 'kategori_nama' => $j->kategori?->nama])->all(),
                 ]);
         }
 

@@ -2,6 +2,7 @@ import { BarChart3, BookOpen } from 'lucide-react';
 import bebanDosen from '@/routes/skripsi/beban-dosen';
 import daftarJudul from '@/routes/skripsi/daftar-judul';
 import exportRoutes from '@/routes/skripsi/export';
+import kategori from '@/routes/skripsi/kategori';
 import monitoring from '@/routes/skripsi/monitoring';
 import pengajuan from '@/routes/skripsi/pengajuan';
 import putusan from '@/routes/skripsi/putusan';
@@ -49,6 +50,11 @@ export const navigation: NavItem[] = [
                 title: 'Daftar Judul',
                 href: daftarJudul.index.url(),
                 roles: ['admin', 'validator'],
+            },
+            {
+                title: 'Kategori',
+                href: kategori.index.url(),
+                roles: ['admin'],
             },
         ],
     },

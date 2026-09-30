@@ -3,6 +3,7 @@
 use App\Modules\Skripsi\Controllers\BebanDosenController;
 use App\Modules\Skripsi\Controllers\DaftarJudulController;
 use App\Modules\Skripsi\Controllers\ExportController;
+use App\Modules\Skripsi\Controllers\KategoriController;
 use App\Modules\Skripsi\Controllers\MonitoringController;
 use App\Modules\Skripsi\Controllers\PengajuanJudulController;
 use App\Modules\Skripsi\Controllers\PutusanValidatorController;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])->prefix('skripsi/penga
         ->middleware(['permission:skripsi.pengajuan.submit', 'throttle:pengajuan-submit'])
         ->name('resubmit');
     Route::get('/template', [PengajuanJudulController::class, 'template'])->name('template');
+    Route::post('/template', [PengajuanJudulController::class, 'templateDariDraft'])->name('template.draft');
 });
 
 // Admin (§5.3): verifikasi pengajuan masuk + pilih validator / tolak /
@@ -80,4 +82,18 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi')->name('
 Route::middleware(['auth', 'verified', 'role:admin|mahasiswa'])->prefix('skripsi/riwayat')->name('skripsi.riwayat.')->group(function (): void {
     Route::get('/', [RiwayatPengajuanController::class, 'index'])->name('index');
     Route::get('/{pengajuan}/berkas', [RiwayatPengajuanController::class, 'berkas'])->name('berkas');
+});
+
+// Admin: master data kategori judul (dipakai di form pengajuan mahasiswa).
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('skripsi/kategori')->name('skripsi.kategori.')->group(function (): void {
+    Route::get('/', [KategoriController::class, 'index'])->name('index');
+    Route::post('/', [KategoriController::class, 'store'])
+        ->middleware('permission:skripsi.kategori.manage')
+        ->name('store');
+    Route::put('/{kategori}', [KategoriController::class, 'update'])
+        ->middleware('permission:skripsi.kategori.manage')
+        ->name('update');
+    Route::delete('/{kategori}', [KategoriController::class, 'destroy'])
+        ->middleware('permission:skripsi.kategori.manage')
+        ->name('destroy');
 });

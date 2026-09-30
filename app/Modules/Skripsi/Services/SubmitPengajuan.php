@@ -27,7 +27,7 @@ class SubmitPengajuan
     ) {}
 
     /**
-     * @param  array<int, array{judul: string, deskripsi: string, topik: string}>  $juduls
+     * @param  array<int, array{judul: string, deskripsi: string, topik: string, kategori_id: int}>  $juduls
      * @param  array<string, mixed>  $attributes  user_id, mahasiswa_id, submitted_at
      *
      * @throws ValidationException

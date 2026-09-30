@@ -147,7 +147,7 @@ test('permission options yang dihadirkan berasal dari tabel permission', functio
         ->get(route('manajemen.peran.index'))
         ->assertInertia(fn ($page) => $page
             ->has('permissionOptions', Permission::count())
-            ->where('permissionOptions.0.name', 'skripsi.pengajuan.decide'));
+            ->where('permissionOptions.0.name', 'skripsi.kategori.manage'));
 });
 
 test('non-admin tidak bisa memanipulasi peran', function () {
