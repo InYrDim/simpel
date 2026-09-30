@@ -14,6 +14,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { destroy, update } from '@/routes/manajemen/pengguna';
 
 export type UserRow = {
@@ -22,9 +29,10 @@ export type UserRow = {
     email: string;
     email_verified_at: string | null;
     created_at: string;
+    role: string | null;
 };
 
-export const userColumns: Column<UserRow>[] = [
+export const userColumns = (roleOptions: string[]): Column<UserRow>[] => [
     {
         key: 'name',
         label: 'Pengguna',
@@ -41,6 +49,18 @@ export const userColumns: Column<UserRow>[] = [
                 </div>
             </div>
         ),
+    },
+    {
+        key: 'roles',
+        label: 'Peran',
+        render: (u) =>
+            u.role === null ? (
+                <span className="text-muted-foreground text-sm">
+                    Belum ada peran
+                </span>
+            ) : (
+                <Badge variant="outline">{u.role}</Badge>
+            ),
     },
     {
         key: 'email_verified_at',
@@ -63,9 +83,48 @@ export const userColumns: Column<UserRow>[] = [
     {
         key: 'actions',
         label: 'Aksi',
-        render: (u) => <ActionCell user={u} />,
+        render: (u) => <ActionCell user={u} roleOptions={roleOptions} />,
     },
 ];
+
+export function RolePicker({
+    id,
+    options,
+    value,
+    onChange,
+    disabled,
+    error,
+}: {
+    id: string;
+    options: string[];
+    value: string;
+    onChange: (role: string) => void;
+    disabled: boolean;
+    error?: string;
+}) {
+    return (
+        <div className="grid gap-2">
+            <Label htmlFor={id}>Peran</Label>
+            <Select value={value} onValueChange={onChange} disabled={disabled}>
+                <SelectTrigger id={id}>
+                    <SelectValue placeholder="Pilih peran" />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map((option) => (
+                        <SelectItem key={option} value={option}>
+                            {option}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            {error && (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                    {error}
+                </p>
+            )}
+        </div>
+    );
+}
 
 function UserIcon() {
     return (
@@ -87,11 +146,17 @@ function UserIcon() {
     );
 }
 
-function ActionCell({ user }: { user: UserRow }) {
+function ActionCell({
+    user,
+    roleOptions,
+}: {
+    user: UserRow;
+    roleOptions: string[];
+}) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const {
-        patch,
+        put,
         delete: deleteForm,
         processing,
         setData,
@@ -100,10 +165,11 @@ function ActionCell({ user }: { user: UserRow }) {
     } = useForm({
         name: user.name,
         email: user.email,
+        role: user.role ?? '',
     });
 
     const handleEdit = () => {
-        patch(update.url({ pengguna: user.id }), {
+        put(update.url({ pengguna: user.id }), {
             onSuccess: () => setEditOpen(false),
         });
     };
@@ -140,7 +206,7 @@ function ActionCell({ user }: { user: UserRow }) {
                     <DialogHeader>
                         <DialogTitle>Edit pengguna</DialogTitle>
                         <DialogDescription>
-                            Ubah nama dan email pengguna{' '}
+                            Ubah nama, email, dan peran pengguna{' '}
                             <strong>{user.name}</strong>.
                         </DialogDescription>
                     </DialogHeader>
@@ -178,6 +244,14 @@ function ActionCell({ user }: { user: UserRow }) {
                                 </p>
                             )}
                         </div>
+                        <RolePicker
+                            id={`edit-role-${user.id}`}
+                            options={roleOptions}
+                            value={data.role}
+                            onChange={(role) => setData('role', role)}
+                            disabled={processing}
+                            error={errors.role}
+                        />
                     </div>
                     <DialogFooter>
                         <Button

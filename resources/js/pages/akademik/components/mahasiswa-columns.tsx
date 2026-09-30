@@ -36,7 +36,7 @@ export type MahasiswaRow = {
     id: number;
     nama: string;
     nim: string;
-    dosen_pa_id: number;
+    dosen_pa_id: number | null;
     dosen_pa_nama: string | null;
     user_email: string | null;
     prodi_id: number | null;
@@ -118,7 +118,8 @@ function ActionCell({
     } = useForm({
         nama: mahasiswa.nama,
         nim: mahasiswa.nim,
-        dosen_pa_id: String(mahasiswa.dosen_pa_id),
+        dosen_pa_id:
+            mahasiswa.dosen_pa_id === null ? '' : String(mahasiswa.dosen_pa_id),
         prodi_id: mahasiswa.prodi_id ? String(mahasiswa.prodi_id) : '',
         angkatan: mahasiswa.angkatan ? String(mahasiswa.angkatan) : '',
     });
