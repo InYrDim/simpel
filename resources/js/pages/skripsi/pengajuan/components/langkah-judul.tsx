@@ -151,9 +151,7 @@ function Field({
             <Label htmlFor={id}>{label}</Label>
             {children}
             {error ? (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                    {error}
-                </p>
+                <p className="text-destructive text-sm">{error}</p>
             ) : (
                 <p className="text-muted-foreground text-xs">{hint}</p>
             )}

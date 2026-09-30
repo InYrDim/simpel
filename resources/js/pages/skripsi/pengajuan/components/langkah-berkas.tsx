@@ -49,9 +49,7 @@ export function LangkahBerkas({
                         : 'Unduh template pengajuan (.docx)'}
                 </Button>
                 {galatUnduh && (
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                        {galatUnduh}
-                    </p>
+                    <p className="text-destructive text-sm">{galatUnduh}</p>
                 )}
             </div>
 
@@ -75,7 +73,7 @@ export function LangkahBerkas({
                     </p>
                 )}
                 {(galatKlien ?? galatServer) && (
-                    <p className="text-sm text-red-600 dark:text-red-400">
+                    <p className="text-destructive text-sm">
                         {galatKlien ?? galatServer}
                     </p>
                 )}

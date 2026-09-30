@@ -182,7 +182,7 @@ function CreateMahasiswaDialog({
                                 </SelectContent>
                             </Select>
                             {errors.user_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.user_id}
                                 </p>
                             )}
@@ -199,7 +199,7 @@ function CreateMahasiswaDialog({
                                 disabled={processing}
                             />
                             {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nama}
                                 </p>
                             )}
@@ -214,7 +214,7 @@ function CreateMahasiswaDialog({
                                 disabled={processing}
                             />
                             {errors.nim && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nim}
                                 </p>
                             )}
@@ -241,7 +241,7 @@ function CreateMahasiswaDialog({
                                 </SelectContent>
                             </Select>
                             {errors.dosen_pa_id && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.dosen_pa_id}
                                 </p>
                             )}
@@ -271,7 +271,7 @@ function CreateMahasiswaDialog({
                                     </SelectContent>
                                 </Select>
                                 {errors.prodi_id && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
+                                    <p className="text-destructive text-sm">
                                         {errors.prodi_id}
                                     </p>
                                 )}
@@ -288,7 +288,7 @@ function CreateMahasiswaDialog({
                                     disabled={processing}
                                 />
                                 {errors.angkatan && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
+                                    <p className="text-destructive text-sm">
                                         {errors.angkatan}
                                     </p>
                                 )}

@@ -117,11 +117,7 @@ export function RolePicker({
                     ))}
                 </SelectContent>
             </Select>
-            {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                    {error}
-                </p>
-            )}
+            {error && <p className="text-destructive text-sm">{error}</p>}
         </div>
     );
 }
@@ -187,6 +183,7 @@ function ActionCell({
                     variant="ghost"
                     size="icon"
                     title="Edit"
+                    aria-label="Edit"
                     onClick={() => setEditOpen(true)}
                 >
                     <Pencil className="size-4" />
@@ -195,6 +192,7 @@ function ActionCell({
                     variant="ghost"
                     size="icon"
                     title="Hapus"
+                    aria-label="Hapus"
                     onClick={() => setDeleteOpen(true)}
                 >
                     <Trash2 className="text-destructive size-4" />
@@ -221,7 +219,7 @@ function ActionCell({
                                 }
                             />
                             {errors.name && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.name}
                                 </p>
                             )}
@@ -239,7 +237,7 @@ function ActionCell({
                                 }
                             />
                             {errors.email && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.email}
                                 </p>
                             )}

@@ -61,7 +61,7 @@ export function NotificationBell({
                 >
                     <Bell className="size-5" />
                     {notifications.unread_count > 0 && (
-                        <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium">
+                        <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium">
                             {notifications.unread_count > 9
                                 ? '9+'
                                 : notifications.unread_count}

@@ -131,7 +131,7 @@ function CreateKategoriDialog() {
                                 disabled={processing}
                             />
                             {errors.nama && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.nama}
                                 </p>
                             )}
@@ -149,7 +149,7 @@ function CreateKategoriDialog() {
                                 disabled={processing}
                             />
                             {errors.deskripsi && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.deskripsi}
                                 </p>
                             )}

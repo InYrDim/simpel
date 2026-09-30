@@ -22,7 +22,7 @@ import type { NavChild, NavItem } from '@/types';
 export function NavMain({ items }: { items: NavItem[] }) {
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-sidebar-foreground/45 text-[10px] font-semibold tracking-widest uppercase">
+            <SidebarGroupLabel className="text-sidebar-foreground/65 text-xs font-semibold tracking-widest uppercase">
                 Menu
             </SidebarGroupLabel>
             <SidebarMenu>

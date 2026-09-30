@@ -143,7 +143,7 @@ function CreatePenggunaDialog({ roleOptions }: { roleOptions: string[] }) {
                                     disabled={processing}
                                 />
                                 {errors[field.key] && (
-                                    <p className="text-sm text-red-600 dark:text-red-400">
+                                    <p className="text-destructive text-sm">
                                         {errors[field.key]}
                                     </p>
                                 )}

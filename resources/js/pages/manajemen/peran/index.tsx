@@ -107,7 +107,7 @@ function CreatePeranDialog({
                                 disabled={processing}
                             />
                             {errors.name && (
-                                <p className="text-sm text-red-600 dark:text-red-400">
+                                <p className="text-destructive text-sm">
                                     {errors.name}
                                 </p>
                             )}
