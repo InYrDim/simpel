@@ -102,7 +102,8 @@ Kontrak publik modul tetap hidup di `CONTRACT.md` masing-masing modul (aturan `.
 ### N-012 Impor `cn` di komponen shadcn
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (impor `cn` di `scroll-area.tsx` dan `textarea.tsx` diganti `@/lib/utils`).
 - **Isi:** CLI shadcn menghasilkan `import { cn } from "cn"` (paket npm `cn`); di proyek ini seharusnya `@/lib/utils`. File baru sudah diperbaiki (`command.tsx`, `popover.tsx`). `scroll-area.tsx` dan `textarea.tsx` masih memakai impor lama; belum dibereskan.
 
 ### N-037 `CLAUDE.md` digabung ke `AGENTS.md`
@@ -203,7 +204,9 @@ Kontrak publik modul tetap hidup di `CONTRACT.md` masing-masing modul (aturan `.
 ### N-026 Dosen PA: wajib secara bisnis, sementara boleh kosong
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** digantikan
+- **Diganti oleh:** N-038
+- **Diganti pada:** 2026-09-30
 - **Menggantikan:** perilaku sebelumnya, yaitu validasi `dosen_pa_id` `required` di `MahasiswaController` (bertentangan dengan migrasi 2026-09-30 yang membuat kolomnya nullable).
 - **Isi:** Sesuai keputusan user, validasi kini `nullable` karena mahasiswa hasil registrasi mandiri belum punya PA. Kembalikan ke `required` setelah alur pengisian PA ada, dan sesuaikan tes `admin can update a mahasiswa without resending the linked account`.
 
@@ -236,35 +239,71 @@ Kontrak publik modul tetap hidup di `CONTRACT.md` masing-masing modul (aturan `.
 ### N-031 Data yatim di Skripsi setelah mahasiswa dihapus
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (larang hapus lewat `SkripsiContract`, lihat N-039).
 - **Isi:** `skripsi_pengajuan.mahasiswa_id` sengaja tanpa FK lintas modul, jadi pengajuan tetap ada setelah profil mahasiswa dihapus. Dialog hapus hanya memperingatkan. Perlu keputusan produk: larang hapus bila ada pengajuan (lewat kontrak), atau arahkan ke status Nonaktif.
 
 ### N-032 Halaman Mahasiswa belum diverifikasi di browser
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (user mengonfirmasi tampilan sudah baik).
 - **Isi:** Belum dicek: combobox di dalam dialog, menu yang membuka dialog (fokus dan `pointer-events`), tampilan mode gelap, dan mobile.
 
 ### N-033 Sisa dari audit UI
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** digantikan
+- **Diganti oleh:** N-040
+- **Diganti pada:** 2026-09-30
 - **Isi:** Sekitar 25 blok galat `<p>` belum disatukan ke `InputError` (sudah memakai token). `bg-zinc-900` di `auth-split-layout.tsx`. Teks 13px di `welcome.tsx`. Breadcrumb "Akademik" dan "Mahasiswa" menuju URL yang sama. Halaman Prodi dan Dosen belum memakai pola filter, pagination, dan dialog bersama.
 
 ### N-034 `package-lock.json` belum berisi `cmdk`
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (`cmdk` sudah ada di `package-lock.json`).
 - **Isi:** Jalankan `npm install` di mesin lokal dan commit lockfile. CI memakai `composer setup` (yang menjalankan `npm install`), jadi tidak macet. Lihat N-015.
 
 ### N-035 Migrasi kolom status belum dijalankan di database dev
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (migrasi sudah `Ran`).
 - **Isi:** Jalankan `php artisan migrate` (migrasi `2026_09_30_123415_add_status_to_akademik_mahasiswas_table`).
 
 ### N-036 Pekerjaan PR F-2 belum di-commit
 
 - **Dibuat:** 2026-09-30
-- **Status:** terbuka
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (3 commit, masuk `test` lewat #14).
 - **Isi:** Branch `feat/mahasiswa-registrar`. Saran: tiga commit (backend, komponen bersama + `cmdk`, halaman Mahasiswa), PR ke `test`. Menunggu izin user (N-004).
+
+### N-038 Dosen PA wajib kecuali lulus atau nonaktif
+
+- **Dibuat:** 2026-09-30
+- **Status:** aktif
+- **Menggantikan:** N-026
+- **Isi:** `MahasiswaController::validateMahasiswa()` memakai `required_unless:status,lulus,nonaktif` untuk `dosen_pa_id`. `update()` memakai status tersimpan bila request tidak mengirim status. Mahasiswa hasil registrasi mandiri tanpa PA tetap bisa dinonaktifkan tanpa memilih PA. Alur pengisian PA = filter `dosen_pa_id=kosong` + dialog ubah. Kolom DB tetap nullable.
+
+### N-039 Hapus mahasiswa diblokir bila punya pengajuan skripsi
+
+- **Dibuat:** 2026-09-30
+- **Status:** aktif
+- **Menggantikan:** N-031
+- **Isi:** Kontrak baru `App\Modules\Contracts\SkripsiContract::mahasiswaIdsDenganPengajuan()` (implementasi `Skripsi\Services\SkripsiService`). `MahasiswaController::destroy()` melempar error `mahasiswa`; daftar membawa `punya_pengajuan` (satu query per halaman) sehingga dialog hapus menonaktifkan tombol dan menyarankan status Nonaktif.
+
+### N-040 Sisa audit UI: pola bersama untuk Prodi dan Dosen
+
+- **Dibuat:** 2026-09-30
+- **Status:** selesai
+- **Selesai pada:** 2026-09-30 (lihat N-041)
+- **Menggantikan:** N-033
+- **Isi:** Sudah beres: blok galat `<p>` memakai `InputError` (kecuali ternary hint di `langkah-judul.tsx` dan blok catatan di `riwayat`), `bg-zinc-900` menjadi `bg-primary` + `text-primary-foreground`, teks 13px menjadi `text-sm`, breadcrumb grup "Akademik" tanpa tautan (`BreadcrumbItem.href` opsional). Belum: halaman Prodi dan Dosen belum memakai pola filter, pagination, dan dialog bersama seperti Mahasiswa.
+
+### N-041 Prodi dan Dosen memakai pola daftar bersama; hapus dosen dijaga
+
+- **Dibuat:** 2026-09-30
+- **Status:** aktif
+- **Isi:** Halaman Prodi dan Dosen kini seperti Mahasiswa: pencarian debounce, urutan, `per_page` (10/25/50), `TablePagination`, dialog ubah dan hapus tunggal milik halaman. Logika query string ada di hook `resources/js/hooks/use-list-query.ts` dan trait `Akademik\Controllers\Concerns\MembacaQueryDaftar` (halaman Mahasiswa belum dipindah ke keduanya; masih salinan sendiri).
+- **Jebakan:** FK `akademik_mahasiswas.dosen_pa_id` bersifat `cascadeOnDelete`, jadi dulu menghapus dosen ikut menghapus profil mahasiswa yang dibimbingnya. `DosenController::destroy()` kini menolak selama dosen masih menjadi PA (flash `error`), dan dialog hapus memakai `jumlah_mahasiswa_pa`. FK-nya sendiri belum diubah. Kolom `dosen_*`/`validator_id` di Skripsi tanpa FK, jadi dosen yang dihapus tetap bisa yatim di sana (belum dijaga).

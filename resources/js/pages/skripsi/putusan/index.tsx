@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
 import { revisi, store } from '@/routes/skripsi/putusan';
+import InputError from '@/components/input-error';
 
 type JudulItem = {
     id: number;
@@ -215,11 +216,7 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                                 </label>
                             ))}
                         </div>
-                        {errors.judul_id && (
-                            <p className="text-destructive text-sm">
-                                {errors.judul_id}
-                            </p>
-                        )}
+                        <InputError message={errors.judul_id} />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeDialog}>
@@ -257,11 +254,7 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                                 setData('catatan_validator', e.target.value)
                             }
                         />
-                        {errors.catatan_validator && (
-                            <p className="text-destructive text-sm">
-                                {errors.catatan_validator}
-                            </p>
-                        )}
+                        <InputError message={errors.catatan_validator} />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeDialog}>
@@ -305,11 +298,9 @@ function PengajuanCard({ pengajuan }: { pengajuan: PengajuanItem }) {
                                 )
                             }
                         />
-                        {revisiForm.errors.catatan_validator && (
-                            <p className="text-destructive text-sm">
-                                {revisiForm.errors.catatan_validator}
-                            </p>
-                        )}
+                        <InputError
+                            message={revisiForm.errors.catatan_validator}
+                        />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeRevisiDialog}>

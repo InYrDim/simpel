@@ -20,6 +20,7 @@ import {
 } from '@/pages/manajemen/components/peran-columns';
 import manajemen from '@/routes/manajemen';
 import { store } from '@/routes/manajemen/peran';
+import InputError from '@/components/input-error';
 
 type PeranIndexPageProps = {
     roles: PeranRow[];
@@ -106,11 +107,7 @@ function CreatePeranDialog({
                                 }
                                 disabled={processing}
                             />
-                            {errors.name && (
-                                <p className="text-destructive text-sm">
-                                    {errors.name}
-                                </p>
-                            )}
+                            <InputError message={errors.name} />
                         </div>
 
                         <PermissionPicker

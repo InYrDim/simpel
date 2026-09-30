@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MAKS_BERKAS_MB } from './types';
+import InputError from '@/components/input-error';
 
 type Props = {
     berkas: File | null;
@@ -48,9 +49,7 @@ export function LangkahBerkas({
                         ? 'Menyiapkan template...'
                         : 'Unduh template pengajuan (.docx)'}
                 </Button>
-                {galatUnduh && (
-                    <p className="text-destructive text-sm">{galatUnduh}</p>
-                )}
+                <InputError message={galatUnduh ?? undefined} />
             </div>
 
             <div className="grid gap-2">
@@ -72,11 +71,7 @@ export function LangkahBerkas({
                         {berkas.name} ({(berkas.size / 1024).toFixed(0)} KB)
                     </p>
                 )}
-                {(galatKlien ?? galatServer) && (
-                    <p className="text-destructive text-sm">
-                        {galatKlien ?? galatServer}
-                    </p>
-                )}
+                <InputError message={galatKlien ?? galatServer} />
             </div>
         </div>
     );

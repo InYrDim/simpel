@@ -20,6 +20,7 @@ import {
 import type { PaginatedUsers } from '@/types';
 import manajemen from '@/routes/manajemen';
 import pengguna from '@/routes/manajemen/pengguna';
+import InputError from '@/components/input-error';
 
 type UsersPageProps = {
     users: PaginatedUsers;
@@ -142,11 +143,7 @@ function CreatePenggunaDialog({ roleOptions }: { roleOptions: string[] }) {
                                     }
                                     disabled={processing}
                                 />
-                                {errors[field.key] && (
-                                    <p className="text-destructive text-sm">
-                                        {errors[field.key]}
-                                    </p>
-                                )}
+                                <InputError message={errors[field.key]} />
                             </div>
                         ))}
 

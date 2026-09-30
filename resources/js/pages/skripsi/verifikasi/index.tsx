@@ -22,6 +22,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import skripsi from '@/routes/skripsi';
 import { revisi, store } from '@/routes/skripsi/verifikasi';
+import InputError from '@/components/input-error';
 
 type JudulItem = {
     id: number;
@@ -219,11 +220,7 @@ function PengajuanCard({
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.validator_id && (
-                            <p className="text-destructive text-sm">
-                                {errors.validator_id}
-                            </p>
-                        )}
+                        <InputError message={errors.validator_id} />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeDialog}>
@@ -261,11 +258,7 @@ function PengajuanCard({
                                 setData('catatan_admin', e.target.value)
                             }
                         />
-                        {errors.catatan_admin && (
-                            <p className="text-destructive text-sm">
-                                {errors.catatan_admin}
-                            </p>
-                        )}
+                        <InputError message={errors.catatan_admin} />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeDialog}>
@@ -309,11 +302,7 @@ function PengajuanCard({
                                 )
                             }
                         />
-                        {revisiForm.errors.catatan_admin && (
-                            <p className="text-destructive text-sm">
-                                {revisiForm.errors.catatan_admin}
-                            </p>
-                        )}
+                        <InputError message={revisiForm.errors.catatan_admin} />
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeRevisiDialog}>

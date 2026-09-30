@@ -21,6 +21,7 @@ import {
 } from '@/pages/skripsi/components/kategori-columns';
 import skripsi from '@/routes/skripsi';
 import { store } from '@/routes/skripsi/kategori';
+import InputError from '@/components/input-error';
 
 type PaginatedKategoris = {
     data: KategoriRow[];
@@ -130,11 +131,7 @@ function CreateKategoriDialog() {
                                 }
                                 disabled={processing}
                             />
-                            {errors.nama && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nama}
-                                </p>
-                            )}
+                            <InputError message={errors.nama} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="kategori-deskripsi">
@@ -148,11 +145,7 @@ function CreateKategoriDialog() {
                                 }
                                 disabled={processing}
                             />
-                            {errors.deskripsi && (
-                                <p className="text-destructive text-sm">
-                                    {errors.deskripsi}
-                                </p>
-                            )}
+                            <InputError message={errors.deskripsi} />
                         </div>
                         <div className="flex items-center gap-2">
                             <Checkbox

@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { destroy, update } from '@/routes/skripsi/kategori';
+import InputError from '@/components/input-error';
 
 export type KategoriRow = {
     id: number;
@@ -133,11 +134,7 @@ function ActionCell({ kategori }: { kategori: KategoriRow }) {
                                 }
                                 disabled={processing}
                             />
-                            {errors.nama && (
-                                <p className="text-destructive text-sm">
-                                    {errors.nama}
-                                </p>
-                            )}
+                            <InputError message={errors.nama} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-kategori-ket-${kategori.id}`}>
@@ -151,11 +148,7 @@ function ActionCell({ kategori }: { kategori: KategoriRow }) {
                                 }
                                 disabled={processing}
                             />
-                            {errors.deskripsi && (
-                                <p className="text-destructive text-sm">
-                                    {errors.deskripsi}
-                                </p>
-                            )}
+                            <InputError message={errors.deskripsi} />
                         </div>
                         <div className="flex items-center gap-2">
                             <Checkbox

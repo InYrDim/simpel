@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { destroy, update } from '@/routes/manajemen/pengguna';
+import InputError from '@/components/input-error';
 
 export type UserRow = {
     id: number;
@@ -117,7 +118,7 @@ export function RolePicker({
                     ))}
                 </SelectContent>
             </Select>
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            <InputError message={error} />
         </div>
     );
 }
@@ -218,11 +219,7 @@ function ActionCell({
                                     setData('name', e.target.value)
                                 }
                             />
-                            {errors.name && (
-                                <p className="text-destructive text-sm">
-                                    {errors.name}
-                                </p>
-                            )}
+                            <InputError message={errors.name} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`edit-email-${user.id}`}>
@@ -236,11 +233,7 @@ function ActionCell({
                                     setData('email', e.target.value)
                                 }
                             />
-                            {errors.email && (
-                                <p className="text-destructive text-sm">
-                                    {errors.email}
-                                </p>
-                            )}
+                            <InputError message={errors.email} />
                         </div>
                         <RolePicker
                             id={`edit-role-${user.id}`}

@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { destroy, update } from '@/routes/manajemen/peran';
+import InputError from '@/components/input-error';
 
 export type PermissionOption = {
     name: string;
@@ -211,11 +212,7 @@ function ActionCell({
                                     dapat diubah.
                                 </p>
                             )}
-                            {errors.name && (
-                                <p className="text-destructive text-sm">
-                                    {errors.name}
-                                </p>
-                            )}
+                            <InputError message={errors.name} />
                         </div>
                         <PermissionPicker
                             options={permissionOptions}
@@ -223,11 +220,7 @@ function ActionCell({
                             onToggle={togglePermission}
                             disabled={processing}
                         />
-                        {errors.permissions?.[0] && (
-                            <p className="text-destructive text-sm">
-                                {errors.permissions[0]}
-                            </p>
-                        )}
+                        <InputError message={errors.permissions?.[0]} />
                     </div>
                     <DialogFooter>
                         <Button
