@@ -30,3 +30,5 @@ tampilan ui berupa tabel
 - detail judul ditampilkan dalam bentuk dialog modal. Terdapat informasi: Judul, Deskripsi, Topik, Dosen Pembimbing 1 dan 2, Dosen Penguji 1 dan 2, NIM.
 
 Tetap gunakan arsitektur modular monolith.
+
+

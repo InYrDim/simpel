@@ -42,7 +42,7 @@ export default function PenggunaIndex({
                     <CreatePenggunaDialog roleOptions={roleOptions} />
                 </div>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <form
                         className="flex items-center gap-2"
                         onChange={(e) => {
@@ -74,7 +74,7 @@ export default function PenggunaIndex({
                         Menampilkan {users.data.length} dari {users.total}{' '}
                         pengguna
                     </div>
-                </Card>
+                </section>
             </div>
         </>
     );

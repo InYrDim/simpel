@@ -28,7 +28,7 @@ class RiwayatPengajuanService
      * audit dituang per baris agar dialog detail tidak butuh endpoint
      * terpisah (pola modal Daftar Judul).
      *
-     * @return LengthAwarePaginator<int, array{id: int, status: string, status_label: string, submitted_at: string|null, nama_mahasiswa: string, nim: string, jumlah_judul: int, judul_list: list<string>, catatan_admin: string|null, catatan_validator: string|null, riwayat: list<array{aksi: string, dari_status: string|null, dari_status_label: string|null, ke_status: string, ke_status_label: string, aktor_nama: string, catatan: string|null, created_at: string|null}>}>
+     * @return LengthAwarePaginator<int, array{id: int, status: string, status_label: string, submitted_at: string|null, nama_mahasiswa: string, nim: string, jumlah_judul: int, judul_list: list<array{judul: string, deskripsi: string}>, berkas_original_name: string, catatan_admin: string|null, catatan_validator: string|null, riwayat: list<array{aksi: string, dari_status: string|null, dari_status_label: string|null, ke_status: string, ke_status_label: string, aktor_nama: string, catatan: string|null, created_at: string|null}>}>
      */
     public function daftar(User $aktor, bool $lihatSemua): LengthAwarePaginator
     {
@@ -59,7 +59,7 @@ class RiwayatPengajuanService
     }
 
     /**
-     * @return array{id: int, status: string, status_label: string, submitted_at: string|null, nama_mahasiswa: string, nim: string, jumlah_judul: int, judul_list: list<string>, catatan_admin: string|null, catatan_validator: string|null, riwayat: list<array{aksi: string, dari_status: string|null, dari_status_label: string|null, ke_status: string, ke_status_label: string, aktor_nama: string, catatan: string|null, created_at: string|null}>}
+     * @return array{id: int, status: string, status_label: string, submitted_at: string|null, nama_mahasiswa: string, nim: string, jumlah_judul: int, judul_list: list<array{judul: string, deskripsi: string}>, berkas_original_name: string, catatan_admin: string|null, catatan_validator: string|null, riwayat: list<array{aksi: string, dari_status: string|null, dari_status_label: string|null, ke_status: string, ke_status_label: string, aktor_nama: string, catatan: string|null, created_at: string|null}>}
      */
     private function barisPengajuan(PengajuanJudul $p, MahasiswaDTOList $mahasiswaList): array
     {
@@ -75,7 +75,11 @@ class RiwayatPengajuanService
             'nama_mahasiswa' => $mahasiswa->nama ?? '-',
             'nim' => $mahasiswa->nim ?? '-',
             'jumlah_judul' => $p->juduls->count(),
-            'judul_list' => array_values($p->juduls->map(fn (JudulPengajuan $j): string => $j->judul)->all()),
+            'judul_list' => array_values($p->juduls->map(fn (JudulPengajuan $j): array => [
+                'judul' => $j->judul,
+                'deskripsi' => $j->deskripsi,
+            ])->all()),
+            'berkas_original_name' => $p->berkas_original_name,
             'catatan_admin' => $p->catatan_admin,
             'catatan_validator' => $p->catatan_validator,
             'riwayat' => array_values($p->riwayat->map(fn (PengajuanRiwayat $r): array => [

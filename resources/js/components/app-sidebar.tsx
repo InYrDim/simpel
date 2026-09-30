@@ -42,7 +42,7 @@ export function AppSidebar() {
     const moduleNavItems = useModuleNavigation();
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>

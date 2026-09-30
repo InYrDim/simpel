@@ -149,8 +149,11 @@ test('admin melihat semua pengajuan beserta kronologi lengkapnya', function () {
             ->where('pengajuans.data.0.nama_mahasiswa', fn ($nama) => is_string($nama) && $nama !== '-')
             ->where('pengajuans.data.0.jumlah_judul', 3)
             ->where('pengajuans.data.0.judul_list', [
-                'Judul Revisi Satu', 'Judul Revisi Dua', 'Judul Revisi Tiga',
+                ['judul' => 'Judul Revisi Satu', 'deskripsi' => 'Deskripsi revisi satu.'],
+                ['judul' => 'Judul Revisi Dua', 'deskripsi' => 'Deskripsi revisi dua.'],
+                ['judul' => 'Judul Revisi Tiga', 'deskripsi' => 'Deskripsi revisi tiga.'],
             ])
+            ->where('pengajuans.data.0.berkas_original_name', 'revisi.pdf')
             ->has('pengajuans.data.0.riwayat', 5)
             ->where('pengajuans.data.0.riwayat.0.aksi', 'submit')
             ->where('pengajuans.data.0.riwayat.1.aksi', 'verifikasi_revisi')
@@ -191,4 +194,53 @@ test('pengajuan terbaru muncul pertama', function () {
         ->assertInertia(fn ($page) => $page
             ->where('pengajuans.data.0.id', $baru->id)
             ->where('pengajuans.data.1.id', $lama->id));
+});
+
+test('hanya pemilik dan admin yang dapat mengunduh berkas pengajuan', function () {
+    $mahasiswaA = rwyPgMahasiswa();
+    $mahasiswaB = rwyPgMahasiswa();
+    $admin = rwyPgAdmin();
+
+    $pengajuanA = rwyPgAjukan($mahasiswaA);
+    Storage::disk('local')->put($pengajuanA->berkas_path, 'dummy content');
+
+    // Mahasiswa A bisa lihat miliknya
+    $this->actingAs($mahasiswaA)
+        ->get(route('skripsi.riwayat.berkas', $pengajuanA))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf');
+
+    // Mahasiswa B tidak bisa
+    $this->actingAs($mahasiswaB)
+        ->get(route('skripsi.riwayat.berkas', $pengajuanA))
+        ->assertForbidden();
+
+    // Admin bisa
+    $this->actingAs($admin)
+        ->get(route('skripsi.riwayat.berkas', $pengajuanA))
+        ->assertOk();
+});
+
+test('content-disposition berkas disusun sanitasi untuk nama asli tak sepele', function () {
+    $mahasiswa = rwyPgMahasiswa();
+    $pengajuan = rwyPgAjukan($mahasiswa);
+    Storage::disk('local')->put($pengajuan->berkas_path, 'dummy content');
+
+    // Simulasikan nama asli berkas berbahaya: CRLF (percobaan header
+    // injection), backslash & kutip. Header HARUS tetap satu baris, tanpa
+    // exception, dan tanpa header injected.
+    $pengajuan->forceFill([
+        'berkas_original_name' => "rahasia\"evil\\.pdf\r\nX-Evil: 1",
+    ])->save();
+
+    $response = $this->actingAs($mahasiswa)
+        ->get(route('skripsi.riwayat.berkas', $pengajuan))
+        ->assertOk();
+
+    $disposition = $response->baseResponse->headers->get('Content-Disposition');
+
+    expect($disposition)->toStartWith('inline; filename=')
+        ->and($disposition)->not->toContain("\r\n")
+        ->and($disposition)->toContain('.pdf')
+        ->and($response->baseResponse->headers->get('X-Evil'))->toBeNull();
 });

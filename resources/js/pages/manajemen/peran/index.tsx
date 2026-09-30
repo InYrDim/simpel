@@ -2,7 +2,6 @@ import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -40,13 +39,13 @@ export default function PeranIndex({
                     <CreatePeranDialog permissionOptions={permissionOptions} />
                 </div>
 
-                <Card className="p-4">
+                <section className="flex flex-col gap-4">
                     <DataTable
                         columns={peranColumns(permissionOptions)}
                         data={roles}
                         getRowKey={(r) => r.id}
                     />
-                </Card>
+                </section>
             </div>
         </>
     );
