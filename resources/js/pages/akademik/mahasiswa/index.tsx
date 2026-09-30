@@ -1,6 +1,6 @@
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Plus, Search, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { DataTable, type SortState } from '@/components/data-table';
 import { SearchableSelect } from '@/components/searchable-select';
 import {
@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useListQuery, type ListFilters } from '@/hooks/use-list-query';
 import {
     mahasiswaColumns,
     type DosenOption,
@@ -33,19 +34,13 @@ import akademik from '@/routes/akademik';
 
 const SEMUA = 'semua';
 const TANPA_DOSEN_PA = 'kosong';
-const SEARCH_DEBOUNCE_MS = 300;
 const DEFAULT_SORT: SortState = { key: 'nama', direction: 'asc' };
-const DEFAULT_PER_PAGE = 10;
 
-type Filters = {
-    search: string;
+type Filters = ListFilters & {
     prodi_id: number | null;
     angkatan: number | null;
     dosen_pa_id: number | typeof TANPA_DOSEN_PA | null;
     status: string | null;
-    sort: string;
-    direction: 'asc' | 'desc';
-    per_page: number;
 };
 
 type PaginatedMahasiswas = PaginationMeta & {
@@ -69,45 +64,6 @@ type DialogState =
     | { type: 'edit'; mahasiswa: MahasiswaRow }
     | { type: 'delete'; mahasiswa: MahasiswaRow };
 
-type QueryOverrides = Partial<Filters> & { page?: number };
-
-/** Buang nilai kosong dan default supaya URL tetap pendek. */
-function toQuery(filters: Filters, overrides: QueryOverrides) {
-    const merged = { ...filters, ...overrides };
-    const query: Record<string, string | number> = {};
-
-    if (merged.search) {
-        query.search = merged.search;
-    }
-    if (merged.prodi_id !== null) {
-        query.prodi_id = merged.prodi_id;
-    }
-    if (merged.angkatan !== null) {
-        query.angkatan = merged.angkatan;
-    }
-    if (merged.dosen_pa_id !== null) {
-        query.dosen_pa_id = merged.dosen_pa_id;
-    }
-    if (merged.status) {
-        query.status = merged.status;
-    }
-    if (
-        merged.sort !== DEFAULT_SORT.key ||
-        merged.direction !== DEFAULT_SORT.direction
-    ) {
-        query.sort = merged.sort;
-        query.direction = merged.direction;
-    }
-    if (merged.per_page !== DEFAULT_PER_PAGE) {
-        query.per_page = merged.per_page;
-    }
-    if (overrides.page && overrides.page > 1) {
-        query.page = overrides.page;
-    }
-
-    return query;
-}
-
 export default function MahasiswaIndex({
     mahasiswas,
     filters,
@@ -119,45 +75,18 @@ export default function MahasiswaIndex({
     prodiOptions,
 }: MahasiswaIndexPageProps) {
     const [dialog, setDialog] = useState<DialogState>({ type: 'none' });
-    const [search, setSearch] = useState(filters.search);
-    const [loading, setLoading] = useState(false);
-    const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-        undefined,
-    );
-
-    useEffect(() => () => clearTimeout(searchTimer.current), []);
-
-    const visit = (overrides: QueryOverrides) => {
-        router.get(
-            akademik.mahasiswa.index.url(),
-            toQuery(filters, overrides),
-            {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-                onStart: () => setLoading(true),
-                onFinish: () => setLoading(false),
-            },
-        );
-    };
-
-    const onSearchChange = (value: string) => {
-        setSearch(value);
-        clearTimeout(searchTimer.current);
-        searchTimer.current = setTimeout(
-            () => visit({ search: value.trim() }),
-            SEARCH_DEBOUNCE_MS,
-        );
-    };
-
-    const onSort = (key: string) => {
-        const direction =
-            filters.sort === key && filters.direction === 'asc'
-                ? 'desc'
-                : 'asc';
-
-        visit({ sort: key, direction });
-    };
+    const list = useListQuery<Filters>({
+        url: akademik.mahasiswa.index.url(),
+        filters,
+        defaultSort: DEFAULT_SORT,
+        extraParams: (f) => ({
+            prodi_id: f.prodi_id,
+            angkatan: f.angkatan,
+            dosen_pa_id: f.dosen_pa_id,
+            status: f.status,
+        }),
+    });
+    const { visit } = list;
 
     const hasActiveFilters =
         filters.search !== '' ||
@@ -167,8 +96,7 @@ export default function MahasiswaIndex({
         filters.status !== null;
 
     const resetFilters = () => {
-        clearTimeout(searchTimer.current);
-        setSearch('');
+        list.clearSearchInput();
         visit({
             search: '',
             prodi_id: null,
@@ -221,8 +149,7 @@ export default function MahasiswaIndex({
                             className="relative w-full sm:max-w-xs sm:flex-1"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                clearTimeout(searchTimer.current);
-                                visit({ search: search.trim() });
+                                list.submitSearch();
                             }}
                         >
                             <Label htmlFor="mhs-search" className="sr-only">
@@ -237,8 +164,10 @@ export default function MahasiswaIndex({
                                 type="search"
                                 name="search"
                                 placeholder="Cari nama, NIM, atau email..."
-                                value={search}
-                                onChange={(e) => onSearchChange(e.target.value)}
+                                value={list.search}
+                                onChange={(e) =>
+                                    list.onSearchChange(e.target.value)
+                                }
                                 className="pl-9"
                             />
                         </form>
@@ -377,8 +306,8 @@ export default function MahasiswaIndex({
                             key: filters.sort,
                             direction: filters.direction,
                         }}
-                        onSort={onSort}
-                        isLoading={loading}
+                        onSort={list.onSort}
+                        isLoading={list.loading}
                         emptyState={
                             hasActiveFilters ? (
                                 <div className="flex flex-col items-center gap-3">

@@ -11,38 +11,53 @@ export type ListFilters = {
     per_page: number;
 };
 
-type ListQueryOptions = {
+type ExtraParams = Record<string, string | number | null | undefined>;
+
+type ListQueryOptions<F extends ListFilters> = {
     url: string;
-    filters: ListFilters;
+    filters: F;
     defaultSort: SortState;
     defaultPerPage?: number;
+    /** Filter tambahan halaman ini; nilai null/kosong dibuang dari URL. */
+    extraParams?: (filters: F) => ExtraParams;
 };
 
-type Overrides = Partial<ListFilters> & { page?: number };
+type Overrides<F extends ListFilters> = Partial<F> & { page?: number };
 
 /**
  * Status daftar admin yang hidup di query string: pencarian (debounce),
- * urutan, ukuran halaman, dan halaman. Nilai kosong/default dibuang dari URL.
+ * urutan, ukuran halaman, halaman, dan filter tambahan. Nilai kosong/default
+ * dibuang dari URL.
  */
-export function useListQuery({
+export function useListQuery<F extends ListFilters>({
     url,
     filters,
     defaultSort,
     defaultPerPage = 10,
-}: ListQueryOptions) {
+    extraParams,
+}: ListQueryOptions<F>) {
     const [search, setSearch] = useState(filters.search);
     const [loading, setLoading] = useState(false);
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => () => clearTimeout(timer.current), []);
 
-    const visit = (overrides: Overrides) => {
-        const merged = { ...filters, ...overrides };
+    const visit = (overrides: Overrides<F>) => {
+        const merged: F = { ...filters, ...overrides };
         const query: Record<string, string | number> = {};
 
         if (merged.search) {
             query.search = merged.search;
         }
+
+        for (const [key, value] of Object.entries(
+            extraParams?.(merged) ?? {},
+        )) {
+            if (value !== null && value !== undefined && value !== '') {
+                query[key] = value;
+            }
+        }
+
         if (
             merged.sort !== defaultSort.key ||
             merged.direction !== defaultSort.direction
@@ -70,20 +85,25 @@ export function useListQuery({
         setSearch(value);
         clearTimeout(timer.current);
         timer.current = setTimeout(
-            () => visit({ search: value.trim() }),
+            () => visit({ search: value.trim() } as Overrides<F>),
             SEARCH_DEBOUNCE_MS,
         );
     };
 
     const submitSearch = () => {
         clearTimeout(timer.current);
-        visit({ search: search.trim() });
+        visit({ search: search.trim() } as Overrides<F>);
+    };
+
+    /** Kosongkan kolom cari dan batalkan pencarian yang tertunda. */
+    const clearSearchInput = () => {
+        clearTimeout(timer.current);
+        setSearch('');
     };
 
     const resetSearch = () => {
-        clearTimeout(timer.current);
-        setSearch('');
-        visit({ search: '' });
+        clearSearchInput();
+        visit({ search: '' } as Overrides<F>);
     };
 
     const onSort = (key: string) => {
@@ -92,7 +112,7 @@ export function useListQuery({
                 ? 'desc'
                 : 'asc';
 
-        visit({ sort: key, direction });
+        visit({ sort: key, direction } as Overrides<F>);
     };
 
     return {
@@ -101,6 +121,7 @@ export function useListQuery({
         visit,
         onSearchChange,
         submitSearch,
+        clearSearchInput,
         resetSearch,
         onSort,
     };

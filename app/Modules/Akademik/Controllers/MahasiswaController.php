@@ -4,6 +4,7 @@ namespace App\Modules\Akademik\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Akademik\Controllers\Concerns\MembacaQueryDaftar;
 use App\Modules\Akademik\Enums\StatusMahasiswa;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
@@ -25,10 +26,9 @@ use Inertia\Response;
  */
 class MahasiswaController extends Controller
 {
-    private const TANPA_DOSEN_PA = 'kosong';
+    use MembacaQueryDaftar;
 
-    /** @var list<int> */
-    private const PER_PAGE_OPTIONS = [10, 25, 50];
+    private const TANPA_DOSEN_PA = 'kosong';
 
     /** @var list<string> */
     private const SORTABLE = ['nama', 'nim', 'angkatan'];
@@ -46,11 +46,9 @@ class MahasiswaController extends Controller
         $tanpaDosenPa = $dosenPaInput === self::TANPA_DOSEN_PA;
         $dosenPaId = $tanpaDosenPa ? null : $this->intOrNull($dosenPaInput);
 
-        $sort = in_array($request->input('sort'), self::SORTABLE, true) ? (string) $request->input('sort') : 'nama';
-        $direction = $request->input('direction') === 'desc' ? 'desc' : 'asc';
-        $perPage = in_array((int) $request->input('per_page'), self::PER_PAGE_OPTIONS, true)
-            ? (int) $request->input('per_page')
-            : self::PER_PAGE_OPTIONS[0];
+        $sort = $this->sortColumn($request, self::SORTABLE, 'nama');
+        $direction = $this->sortDirection($request);
+        $perPage = $this->perPage($request);
 
         /** @var Builder<Mahasiswa> $query */
         $query = Mahasiswa::query()
@@ -124,7 +122,7 @@ class MahasiswaController extends Controller
                 'direction' => $direction,
                 'per_page' => $perPage,
             ],
-            'perPageOptions' => self::PER_PAGE_OPTIONS,
+            'perPageOptions' => $this->perPageOptions(),
             'statusOptions' => StatusMahasiswa::options(),
             'angkatanOptions' => $angkatanOptions,
             'dosenOptions' => Dosen::query()->orderBy('nama')->get(['id', 'nama']),
