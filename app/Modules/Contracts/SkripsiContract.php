@@ -21,4 +21,14 @@ interface SkripsiContract
      * @return list<int>
      */
     public function mahasiswaIdsDenganPengajuan(array $mahasiswaIds): array;
+
+    /**
+     * Subset dari `$dosenIds` yang masih dirujuk pengajuan skripsi sebagai
+     * validator, pembimbing, atau penguji (status apa pun). Daftar kosong
+     * tidak menembak query sama sekali.
+     *
+     * @param  list<int>  $dosenIds
+     * @return list<int>
+     */
+    public function dosenIdsDenganPenugasan(array $dosenIds): array;
 }

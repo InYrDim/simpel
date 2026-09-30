@@ -20,7 +20,7 @@
 
 - `App\Modules\Support\*` (kerangka modul)
 - Shared kernel: `App\Http\Controllers\Controller`, `App\Models\User`
-- `App\Modules\Contracts\SkripsiContract` — hanya untuk bertanya apakah mahasiswa masih punya pengajuan skripsi (guard hapus). Tidak mengimpor kelas Skripsi
+- `App\Modules\Contracts\SkripsiContract` — hanya untuk bertanya apakah mahasiswa masih punya pengajuan skripsi dan apakah dosen masih dirujuk pengajuan sebagai validator/pembimbing/penguji (guard hapus). Tidak mengimpor kelas Skripsi
 
 ## Events published
 
@@ -44,4 +44,5 @@
 - `mahasiswaByUserIds()` adalah jalur BATCH (satu query `whereIn`) untuk konsumen yang memetakan identitas per baris — dipakai halaman Riwayat Pengajuan agar tidak N+1 (PRD ketahanan-teknis §3.2, keputusan #3). Daftar `user_id` kosong tidak menembak query sama sekali.
 - Daftar admin mahasiswa (`MahasiswaController::index`) menerima `search`, `prodi_id`, `angkatan`, `dosen_pa_id` (angka atau `kosong`), `status`, `sort` (`nama|nim|angkatan`), `direction`, `per_page` (10/25/50). Nilai tak sah jatuh ke default, bukan galat validasi.
 - Hapus mahasiswa menuntut `konfirmasi_nim` yang sama dengan NIM-nya (dicek di server). Hapus permanen dan tidak menyentuh akun `users`. Modul Skripsi merujuk mahasiswa tanpa FK, jadi penghapusan **ditolak** (error `mahasiswa`) bila `SkripsiContract::mahasiswaIdsDenganPengajuan()` mengembalikan ID-nya; baris daftar membawa `punya_pengajuan` (satu query per halaman). Arahkan admin ke status Nonaktif.
+- Hapus dosen (`DosenController::destroy`) ditolak (flash `error`) bila dosen masih PA mahasiswa atau `SkripsiContract::dosenIdsDenganPenugasan()` mengembalikan ID-nya; baris daftar membawa `jumlah_mahasiswa_pa` dan `punya_penugasan`. FK `akademik_mahasiswas.dosen_pa_id` kini `nullOnDelete` (bukan cascade) sebagai jaring pengaman.
 - `update()` tidak memvalidasi `user_id`: tautan akun ditetapkan saat pembuatan profil dan tidak bisa diubah.

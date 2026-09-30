@@ -7,6 +7,7 @@
 
 ## Public interface (Contracts/)
 
+- `SkripsiContract::dosenIdsDenganPenugasan(list<int>)` — subset ID dosen yang masih dirujuk `validator_id` atau kolom `dosen_*` judul (status apa pun); dipakai Akademik untuk memblokir hapus dosen.
 - `SkripsiContract::mahasiswaIdsDenganPengajuan(list<int>)` (implementasi `Services\SkripsiService`, di-bind di `SkripsiServiceProvider`) — subset ID mahasiswa yang punya pengajuan (status apa pun), satu query. Dipakai Akademik untuk memblokir hapus mahasiswa. Data lain tetap tidak dibuka.
 
 ## Allowed dependencies

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Akademik\Controllers\Concerns\MembacaQueryDaftar;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
+use App\Modules\Contracts\SkripsiContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ class DosenController extends Controller
     use MembacaQueryDaftar;
 
     private const SORTABLE = ['nama', 'nip', 'bidang'];
+
+    public function __construct(private SkripsiContract $skripsi) {}
 
     public function index(Request $request): Response
     {
@@ -46,13 +49,22 @@ class DosenController extends Controller
             });
         }
 
-        $dosens = $query->paginate($this->perPage($request))->withQueryString()->through(
+        $paginator = $query->paginate($this->perPage($request))->withQueryString();
+
+        $idsDenganPenugasan = array_flip(
+            $this->skripsi->dosenIdsDenganPenugasan(
+                array_values($paginator->getCollection()->map(fn (Dosen $d): int => $d->id)->all()),
+            ),
+        );
+
+        $dosens = $paginator->through(
             fn (Dosen $d): array => [
                 'id' => $d->id,
                 'nama' => $d->nama,
                 'nip' => $d->nip,
                 'bidang' => $d->bidang,
                 'jumlah_mahasiswa_pa' => $d->mahasiswa_pa_count,
+                'punya_penugasan' => isset($idsDenganPenugasan[$d->id]),
                 'created_at' => $d->created_at?->toISOString(),
             ],
         );
@@ -91,11 +103,16 @@ class DosenController extends Controller
 
     public function destroy(Dosen $dosen): RedirectResponse
     {
-        // FK `dosen_pa_id` bersifat cascade: menghapus dosen yang masih menjadi
-        // PA akan ikut menghapus profil mahasiswanya, jadi ditolak di sini.
         if (Mahasiswa::query()->where('dosen_pa_id', $dosen->id)->exists()) {
             return redirect()->route('akademik.dosen.index')
                 ->with('error', 'Dosen tidak bisa dihapus karena masih menjadi dosen PA mahasiswa.');
+        }
+
+        // Skripsi merujuk dosen tanpa FK, jadi penghapusan dijaga di sini
+        // agar pengajuan tidak menunjuk dosen yang sudah hilang.
+        if ($this->skripsi->dosenIdsDenganPenugasan([$dosen->id]) !== []) {
+            return redirect()->route('akademik.dosen.index')
+                ->with('error', 'Dosen tidak bisa dihapus karena masih tercatat sebagai validator, pembimbing, atau penguji pada pengajuan skripsi.');
         }
 
         $dosen->delete();

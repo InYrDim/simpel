@@ -305,5 +305,11 @@ Kontrak publik modul tetap hidup di `CONTRACT.md` masing-masing modul (aturan `.
 
 - **Dibuat:** 2026-09-30
 - **Status:** aktif
-- **Isi:** Halaman Prodi dan Dosen kini seperti Mahasiswa: pencarian debounce, urutan, `per_page` (10/25/50), `TablePagination`, dialog ubah dan hapus tunggal milik halaman. Logika query string ada di hook `resources/js/hooks/use-list-query.ts` dan trait `Akademik\Controllers\Concerns\MembacaQueryDaftar` (halaman Mahasiswa belum dipindah ke keduanya; masih salinan sendiri).
-- **Jebakan:** FK `akademik_mahasiswas.dosen_pa_id` bersifat `cascadeOnDelete`, jadi dulu menghapus dosen ikut menghapus profil mahasiswa yang dibimbingnya. `DosenController::destroy()` kini menolak selama dosen masih menjadi PA (flash `error`), dan dialog hapus memakai `jumlah_mahasiswa_pa`. FK-nya sendiri belum diubah. Kolom `dosen_*`/`validator_id` di Skripsi tanpa FK, jadi dosen yang dihapus tetap bisa yatim di sana (belum dijaga).
+- **Isi:** Halaman Prodi dan Dosen kini seperti Mahasiswa: pencarian debounce, urutan, `per_page` (10/25/50), `TablePagination`, dialog ubah dan hapus tunggal milik halaman. Logika query string ada di hook `resources/js/hooks/use-list-query.ts` dan trait `Akademik\Controllers\Concerns\MembacaQueryDaftar` (halaman Mahasiswa dipindah ke keduanya pada 2026-10-01, dengan `extraParams` untuk filter tambahan).
+- **Jebakan:** FK `akademik_mahasiswas.dosen_pa_id` bersifat `cascadeOnDelete`, jadi dulu menghapus dosen ikut menghapus profil mahasiswa yang dibimbingnya. `DosenController::destroy()` kini menolak selama dosen masih menjadi PA (flash `error`), dan dialog hapus memakai `jumlah_mahasiswa_pa`. Lihat N-042 untuk lanjutan (FK dan penugasan Skripsi).
+
+### N-042 FK `dosen_pa_id` nullOnDelete dan guard dosen yang dirujuk Skripsi
+
+- **Dibuat:** 2026-10-01
+- **Status:** aktif
+- **Isi:** Migrasi `2026_09_30_160821_change_dosen_pa_foreign_key_to_null_on_delete_on_akademik_mahasiswas` mengganti cascade menjadi `nullOnDelete` (kolom sudah nullable). Kontrak `SkripsiContract::dosenIdsDenganPenugasan()` (validator_id + empat kolom `dosen_*`) dipakai `DosenController` untuk menolak hapus dosen yang masih dirujuk pengajuan (flash `error`) dan untuk flag `punya_penugasan` pada baris daftar. Migrasi belum dijalankan di database dev: `php artisan migrate`.

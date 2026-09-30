@@ -4,6 +4,8 @@ use App\Models\User;
 use App\Modules\Akademik\Models\Dosen;
 use App\Modules\Akademik\Models\Mahasiswa;
 use App\Modules\Akademik\Models\Prodi;
+use App\Modules\Skripsi\Models\JudulPengajuan;
+use App\Modules\Skripsi\Models\PengajuanJudul;
 use Database\Seeders\RolePermissionSeeder;
 
 beforeEach(function () {
@@ -177,4 +179,41 @@ test('dosen list sorts by an allowed column and reports mahasiswa pa counts', fu
             ->where('dosens.data.0.nip', '111')
             ->where('dosens.data.0.jumlah_mahasiswa_pa', 2)
             ->where('filters.per_page', 25));
+});
+
+test('dosen yang dirujuk pengajuan skripsi tidak bisa dihapus', function (string $peran) {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $dirujuk = Dosen::factory()->create();
+    $bebas = Dosen::factory()->create();
+
+    if ($peran === 'validator') {
+        PengajuanJudul::factory()->create(['validator_id' => $dirujuk->id]);
+    } else {
+        JudulPengajuan::factory()->create([$peran => $dirujuk->id]);
+    }
+
+    $this->actingAs($admin)
+        ->get(route('akademik.dosen.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('dosens.data', fn ($rows) => collect($rows)->pluck('punya_penugasan', 'id')->all() == [
+                $dirujuk->id => true,
+                $bebas->id => false,
+            ]));
+
+    $this->actingAs($admin)
+        ->delete(route('akademik.dosen.destroy', $dirujuk))
+        ->assertSessionHas('error');
+
+    expect(Dosen::find($dirujuk->id))->not->toBeNull();
+})->with(['validator_id' => 'validator', 'pembimbing 1' => 'dosen_pembimbing_1', 'penguji 2' => 'dosen_penguji_2']);
+
+test('menghapus dosen di level database hanya mengosongkan PA, bukan menghapus mahasiswa', function () {
+    $dosen = Dosen::factory()->create();
+    $mahasiswa = Mahasiswa::factory()->create(['dosen_pa_id' => $dosen->id]);
+
+    $dosen->delete();
+
+    expect(Mahasiswa::find($mahasiswa->id))->not->toBeNull()
+        ->and($mahasiswa->refresh()->dosen_pa_id)->toBeNull();
 });

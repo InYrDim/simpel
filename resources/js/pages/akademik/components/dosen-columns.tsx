@@ -8,6 +8,7 @@ export type DosenRow = {
     nip: string;
     bidang: string;
     jumlah_mahasiswa_pa: number;
+    punya_penugasan: boolean;
     created_at: string;
 };
 

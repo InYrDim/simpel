@@ -19,7 +19,8 @@ type DosenDeleteDialogProps = {
 /** Dosen yang masih menjadi PA mahasiswa ditolak server; dialog menjelaskannya. */
 export function DosenDeleteDialog({ dosen, onClose }: DosenDeleteDialogProps) {
     const { delete: deleteForm, processing } = useForm({});
-    const terpakai = dosen.jumlah_mahasiswa_pa > 0;
+    const masihPa = dosen.jumlah_mahasiswa_pa > 0;
+    const terpakai = masihPa || dosen.punya_penugasan;
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -27,12 +28,18 @@ export function DosenDeleteDialog({ dosen, onClose }: DosenDeleteDialogProps) {
                 <DialogHeader>
                     <DialogTitle>Hapus dosen</DialogTitle>
                     <DialogDescription>
-                        {terpakai ? (
+                        {masihPa ? (
                             <>
                                 <strong>{dosen.nama}</strong> masih menjadi
                                 dosen PA bagi {dosen.jumlah_mahasiswa_pa}{' '}
                                 mahasiswa sehingga tidak bisa dihapus. Ganti
                                 dosen PA mahasiswanya terlebih dahulu.
+                            </>
+                        ) : dosen.punya_penugasan ? (
+                            <>
+                                <strong>{dosen.nama}</strong> masih tercatat
+                                sebagai validator, pembimbing, atau penguji pada
+                                pengajuan skripsi sehingga tidak bisa dihapus.
                             </>
                         ) : (
                             <>
